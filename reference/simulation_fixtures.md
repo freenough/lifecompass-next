@@ -94,8 +94,8 @@ const base = {
 
 | 設定 | 破綻確率 | 備考 |
 |---|---|---|
-| 利回り4%・標準偏差10% | 19.3% | 中央値最終資産3,487万 |
-| 利回り7%・標準偏差16% | 7.8% | 中央値最終資産2.5億 |
+| 利回り4%・標準偏差10% | 14.3% | 中央値最終資産4,756万 |
+| 利回り7%・標準偏差16% | 6.0% | 中央値最終資産2.78億 |
 
 ---
 
@@ -121,14 +121,19 @@ const NAKAMURA = {
 };
 
 const EVENTS = [
-  { type:'loan',    s:38, e:68, amt:158 },
+  { type:'loan',    s:38, e:68, amt:158 },  // ← mortgage type: 元本4100万・金利1%・30年（=158.25万/年）
   { type:'edu1',    s:49, e:53, amt:250 },
   { type:'edu2',    s:52, e:56, amt:250 },
   { type:'nursing', s:55, e:58, amt:100 },
   { type:'base_change', age:68, amt:240 },
-  { type:'severance_m', age:58, amt:2299 },
+  { type:'severance_m', age:58, amt:2299 },  // 退職金2299万(sevYrs≥42で控除後=2299万、非課税)
   { type:'ideco_pension', s:65, e:80, amt:58 },
 ];
+// Next.js版での確定パラメータ（2026-06-21 CSV突き合わせ完了）:
+// loan: subtype:'mortgage', principal:4100, rate:1.0, termYears:30 → 158.25万/年
+// idecoYrs:13, sevYrs:42（KENZOの「勤続5年」は物語上の設定・CSV整合には42が必要）
+// iDeCo: receiveType:'pension', receiveYears:15, startAge:65
+// MC 破綻率 ~22-24%（≈20.4%+特定口座課税バイアス2-3%）
 ```
 
 ### 確定数値（中立シナリオ・決定論的）
