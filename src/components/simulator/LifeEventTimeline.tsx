@@ -10,16 +10,20 @@ const INCOME_SUBTYPES: { value: IncomeSubtype; label: string }[] = [
   { value: 'rental',      label: '不動産収入' },
   { value: 'inheritance', label: '相続' },
   { value: 'severance',   label: '退職金' },
+  { value: 'inc_change',  label: '収入変更' },
   { value: 'other_inc',   label: 'その他収入' },
 ];
 
 const EXPENSE_SUBTYPES: { value: ExpenseSubtype; label: string }[] = [
-  { value: 'education',   label: '教育費' },
-  { value: 'care',        label: '介護費' },
-  { value: 'renovation',  label: 'リフォーム' },
-  { value: 'mortgage',    label: '住宅ローン' },
-  { value: 'other_exp',   label: 'その他支出' },
-  { value: 'base_change', label: '生活費変更' },
+  { value: 'education',        label: '教育費' },
+  { value: 'care',             label: '介護費' },
+  { value: 'renovation',       label: 'リフォーム' },
+  { value: 'mortgage',         label: '住宅ローン' },
+  { value: 'base_change',      label: '生活費変更' },
+  { value: 'nisa_con_change',  label: 'NISA積立変更' },
+  { value: 'ideco_con_change', label: 'iDeCo積立変更' },
+  { value: 'tax_con_change',   label: '特定口座積立変更' },
+  { value: 'other_exp',        label: 'その他支出' },
 ];
 
 const SUBTYPE_LABEL = Object.fromEntries(
@@ -55,7 +59,20 @@ interface FormState {
   termYears: number;
 }
 
-const DEFAULT_MORTGAGE = { principal: 3000, rate: 1.0, termYears: 30 };
+const DEFAULT_MORTGAGE = { principal: 3000, rate: 1.0, termYears: 30 }
+
+// These subtypes take effect from a given age onward — no "years" field needed
+const POINT_CHANGE_SUBTYPES = new Set([
+  'base_change', 'inc_change', 'nisa_con_change', 'ideco_con_change', 'tax_con_change',
+]);
+
+const CHANGE_AMT_LABEL: Record<string, string> = {
+  base_change:      '変更後の年間生活費（万円・現在価格）',
+  inc_change:       '変更後の年間手取り収入（万円）',
+  nisa_con_change:  '変更後のNISA年間積立額（万円）',
+  ideco_con_change: '変更後のiDeCo年間積立額（万円）',
+  tax_con_change:   '変更後の特定口座年間積立額（万円）',
+};;
 
 function blankForm(retAge: number): FormState {
   return {
@@ -93,9 +110,10 @@ function formToEvent(f: FormState): LifeEvent {
       termYears: f.termYears,
     };
   }
+  const isChange = POINT_CHANGE_SUBTYPES.has(f.subtype);
   return f.category === 'income'
-    ? { category: 'income',  subtype: f.subtype as IncomeSubtype,  name: f.name, age: f.age, years: f.years, amount: f.amount }
-    : { category: 'expense', subtype: f.subtype as ExpenseSubtype, name: f.name, age: f.age, years: f.years, amount: f.amount };
+    ? { category: 'income',  subtype: f.subtype as IncomeSubtype,  name: f.name, age: f.age, years: isChange ? 1 : f.years, amount: f.amount }
+    : { category: 'expense', subtype: f.subtype as ExpenseSubtype, name: f.name, age: f.age, years: isChange ? 1 : f.years, amount: f.amount };
 }
 
 export default function LifeEventTimeline() {
@@ -220,7 +238,8 @@ interface EventFormProps {
 }
 
 function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: EventFormProps) {
-  const isMortgage = form.subtype === 'mortgage';
+  const isMortgage   = form.subtype === 'mortgage';
+  const isPointChange = POINT_CHANGE_SUBTYPES.has(form.subtype);
 
   const updateMortgage = (patch: { principal?: number; rate?: number; termYears?: number }) => {
     setForm(f => {
@@ -346,28 +365,37 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: Eve
         </>
       ) : (
         <>
-          {/* 通常イベントの期間・金額 */}
+          {/* 通常イベントの期間（変更系は非表示） */}
+          {!isPointChange && (
+            <div className="flex gap-2 items-center">
+              <label className="text-xs text-slate-500 w-16 shrink-0">期間</label>
+              <input
+                type="number"
+                value={form.years}
+                onChange={e => setForm(f => ({ ...f, years: +e.target.value }))}
+                min={1}
+                className={`w-16 ${inputCls}`}
+              />
+              <span className="text-xs text-slate-400">年</span>
+            </div>
+          )}
           <div className="flex gap-2 items-center">
-            <label className="text-xs text-slate-500 w-16 shrink-0">期間</label>
-            <input
-              type="number"
-              value={form.years}
-              onChange={e => setForm(f => ({ ...f, years: +e.target.value }))}
-              min={1}
-              className={`w-16 ${inputCls}`}
-            />
-            <span className="text-xs text-slate-400">年</span>
-          </div>
-          <div className="flex gap-2 items-center">
-            <label className="text-xs text-slate-500 w-16 shrink-0">金額</label>
+            <label className="text-xs text-slate-500 w-16 shrink-0 leading-tight">
+              {isPointChange ? '変更後' : '金額'}
+            </label>
             <input
               type="number"
               value={form.amount}
               onChange={e => setForm(f => ({ ...f, amount: +e.target.value }))}
               className={`w-24 ${inputCls}`}
             />
-            <span className="text-xs text-slate-400">万円/年</span>
+            <span className="text-xs text-slate-400">万円{isPointChange ? '' : '/年'}</span>
           </div>
+          {isPointChange && CHANGE_AMT_LABEL[form.subtype] && (
+            <p className="text-[10px] text-slate-400 -mt-1 leading-relaxed">
+              {CHANGE_AMT_LABEL[form.subtype]}
+            </p>
+          )}
         </>
       )}
 

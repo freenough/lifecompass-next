@@ -124,11 +124,13 @@ export default function SimulatorForm() {
       <Section title="口座残高・積立">
         <Field label="NISA残高"       id="bNisa"   value={p.bNisa}   onChange={v => up({ bNisa: v })}   min={0} suffix="万円" />
         <Field label="NISA積立"       id="cNisa"   value={p.cNisa}   onChange={v => up({ cNisa: v })}   min={0} suffix="万円/年" />
-        <Field label="NISA積立終了"   id="cNisaTo" value={p.cNisaTo} onChange={v => up({ cNisaTo: v })} min={p.curAge} suffix="歳" />
+        <Field label="NISA積立終了"   id="cNisaTo" value={p.cNisaTo} onChange={v => up({ cNisaTo: v })} min={p.curAge} max={100} step={0.1} suffix="歳" />
         <Field label="iDeCo残高"      id="bIdeco"  value={p.bIdeco}  onChange={v => up({ bIdeco: v })}  min={0} suffix="万円" />
         <Field label="iDeCo積立"      id="cIdeco"  value={p.cIdeco}  onChange={v => up({ cIdeco: v })}  min={0} suffix="万円/年" />
+        <Field label="iDeCo積立終了"  id="cIdecoTo" value={p.cIdecoTo} onChange={v => up({ cIdecoTo: v })} min={p.curAge} max={60} step={0.1} suffix="歳" />
         <Field label="特定口座残高"   id="bTax"    value={p.bTax}    onChange={v => up({ bTax: v })}    min={0} suffix="万円" />
         <Field label="特定口座積立"   id="cTax"    value={p.cTax}    onChange={v => up({ cTax: v })}    min={0} suffix="万円/年" />
+        <Field label="特定口座積立終了" id="cTaxTo" value={p.cTaxTo} onChange={v => up({ cTaxTo: v })} min={p.curAge} max={100} step={0.1} suffix="歳" />
         <Field label="現金残高"       id="bCash"   value={p.bCash}   onChange={v => up({ bCash: v })}   min={0} suffix="万円" />
       </Section>
 
