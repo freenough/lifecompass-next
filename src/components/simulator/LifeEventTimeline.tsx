@@ -26,6 +26,22 @@ const SUBTYPE_LABEL = Object.fromEntries(
   [...INCOME_SUBTYPES, ...EXPENSE_SUBTYPES].map(s => [s.value, s.label])
 );
 
+// 旧HTML calcMortgage() と完全一致（元利均等返済・年間返済額を返す）
+function calcMortgage(principal: number, rate: number, termYears: number): number {
+  const r = rate / 100 / 12;
+  const n = termYears * 12;
+  if (r === 0) return termYears > 0 ? Math.round(principal / termYears) : 0;
+  const monthly = principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+  return Math.round(monthly * 12);
+}
+
+function calcMortgageMonthly(principal: number, rate: number, termYears: number): number {
+  const r = rate / 100 / 12;
+  const n = termYears * 12;
+  if (r === 0) return termYears > 0 ? Math.round(principal / termYears / 12 * 10) / 10 : 0;
+  return Math.round(principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) * 10) / 10;
+}
+
 interface FormState {
   category: 'income' | 'expense';
   subtype: string;
@@ -33,17 +49,50 @@ interface FormState {
   age: number;
   years: number;
   amount: number;
+  // 住宅ローン専用フィールド
+  principal: number;
+  rate: number;
+  termYears: number;
 }
 
+const DEFAULT_MORTGAGE = { principal: 3000, rate: 1.0, termYears: 30 };
+
 function blankForm(retAge: number): FormState {
-  return { category: 'income', subtype: 'reemploy', name: '', age: retAge, years: 1, amount: 0 };
+  return {
+    category: 'income', subtype: 'reemploy', name: '', age: retAge, years: 1, amount: 0,
+    ...DEFAULT_MORTGAGE,
+  };
 }
 
 function eventToForm(ev: LifeEvent): FormState {
-  return { category: ev.category, subtype: ev.subtype, name: ev.name, age: ev.age, years: ev.years, amount: ev.amount };
+  const base: FormState = {
+    category: ev.category, subtype: ev.subtype, name: ev.name,
+    age: ev.age, years: ev.years, amount: ev.amount,
+    ...DEFAULT_MORTGAGE,
+  };
+  if (ev.category === 'expense' && ev.subtype === 'mortgage') {
+    const principal = ev.principal ?? DEFAULT_MORTGAGE.principal;
+    const rate      = ev.rate      ?? DEFAULT_MORTGAGE.rate;
+    const termYears = ev.termYears ?? DEFAULT_MORTGAGE.termYears;
+    return { ...base, principal, rate, termYears };
+  }
+  return base;
 }
 
 function formToEvent(f: FormState): LifeEvent {
+  if (f.category === 'expense' && f.subtype === 'mortgage') {
+    return {
+      category: 'expense',
+      subtype: 'mortgage' as ExpenseSubtype,
+      name: f.name,
+      age: f.age,
+      years: f.termYears,
+      amount: calcMortgage(f.principal, f.rate, f.termYears),
+      principal: f.principal,
+      rate: f.rate,
+      termYears: f.termYears,
+    };
+  }
   return f.category === 'income'
     ? { category: 'income',  subtype: f.subtype as IncomeSubtype,  name: f.name, age: f.age, years: f.years, amount: f.amount }
     : { category: 'expense', subtype: f.subtype as ExpenseSubtype, name: f.name, age: f.age, years: f.years, amount: f.amount };
@@ -171,61 +220,158 @@ interface EventFormProps {
 }
 
 function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: EventFormProps) {
+  const isMortgage = form.subtype === 'mortgage';
+
+  const updateMortgage = (patch: { principal?: number; rate?: number; termYears?: number }) => {
+    setForm(f => {
+      const p = patch.principal ?? f.principal;
+      const r = patch.rate      ?? f.rate;
+      const t = patch.termYears ?? f.termYears;
+      return { ...f, ...patch, years: t, amount: calcMortgage(p, r, t) };
+    });
+  };
+
+  const handleSubtypeChange = (subtype: string) => {
+    if (subtype === 'mortgage') {
+      const p = form.principal || DEFAULT_MORTGAGE.principal;
+      const r = form.rate      || DEFAULT_MORTGAGE.rate;
+      const t = form.termYears || DEFAULT_MORTGAGE.termYears;
+      setForm(f => ({ ...f, subtype, principal: p, rate: r, termYears: t, years: t, amount: calcMortgage(p, r, t) }));
+    } else {
+      setForm(f => ({ ...f, subtype }));
+    }
+  };
+
+  const annual  = isMortgage ? calcMortgage(form.principal, form.rate, form.termYears) : 0;
+  const monthly = isMortgage ? calcMortgageMonthly(form.principal, form.rate, form.termYears) : 0;
+  const total   = isMortgage ? Math.round(annual * form.termYears) : 0;
+
+  const inputCls = 'text-xs border border-slate-300 rounded px-1 py-1 text-right bg-white';
+
   return (
     <div className="mt-2 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      {/* カテゴリ・種別 */}
       <div className="flex gap-2">
         <select
           value={form.category}
           onChange={e => setCategory(e.target.value as 'income' | 'expense')}
-          className="text-xs border rounded px-1 py-1 bg-white"
+          className={`${inputCls} text-left`}
         >
           <option value="income">収入</option>
           <option value="expense">支出</option>
         </select>
         <select
           value={form.subtype}
-          onChange={e => setForm(f => ({ ...f, subtype: e.target.value }))}
-          className="flex-1 text-xs border rounded px-1 py-1 bg-white"
+          onChange={e => handleSubtypeChange(e.target.value)}
+          className={`flex-1 ${inputCls} text-left`}
         >
           {(form.category === 'income' ? INCOME_SUBTYPES : EXPENSE_SUBTYPES).map(s => (
             <option key={s.value} value={s.value}>{s.label}</option>
           ))}
         </select>
       </div>
+
+      {/* 名称 */}
       <input
         placeholder="名称（省略可）"
         value={form.name}
         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        className="w-full text-xs border rounded px-2 py-1 bg-white"
+        className="w-full text-xs border border-slate-300 rounded px-2 py-1 bg-white"
       />
+
+      {/* 開始年齢（共通） */}
       <div className="flex gap-2 items-center">
-        <label className="text-xs text-slate-500 w-14 shrink-0">開始年齢</label>
+        <label className="text-xs text-slate-500 w-16 shrink-0">開始年齢</label>
         <input
           type="number"
           value={form.age}
           onChange={e => setForm(f => ({ ...f, age: +e.target.value }))}
-          className="w-16 text-xs border rounded px-1 py-1 text-right bg-white"
+          className={`w-16 ${inputCls}`}
         />
-        <label className="text-xs text-slate-500 w-8 shrink-0">期間</label>
-        <input
-          type="number"
-          value={form.years}
-          onChange={e => setForm(f => ({ ...f, years: +e.target.value }))}
-          min={1}
-          className="w-14 text-xs border rounded px-1 py-1 text-right bg-white"
-        />
-        <span className="text-xs text-slate-400">年</span>
+        <span className="text-xs text-slate-400">歳</span>
       </div>
-      <div className="flex gap-2 items-center">
-        <label className="text-xs text-slate-500 w-14 shrink-0">金額</label>
-        <input
-          type="number"
-          value={form.amount}
-          onChange={e => setForm(f => ({ ...f, amount: +e.target.value }))}
-          className="w-24 text-xs border rounded px-1 py-1 text-right bg-white"
-        />
-        <span className="text-xs text-slate-400">万円/年</span>
-      </div>
+
+      {isMortgage ? (
+        <>
+          {/* 住宅ローン専用フィールド */}
+          <div className="flex gap-2 items-center">
+            <label className="text-xs text-slate-500 w-16 shrink-0">借入額</label>
+            <input
+              type="number"
+              value={form.principal}
+              onChange={e => updateMortgage({ principal: +e.target.value })}
+              min={0}
+              className={`w-24 ${inputCls}`}
+            />
+            <span className="text-xs text-slate-400">万円</span>
+          </div>
+          <div className="flex gap-2 items-center">
+            <label className="text-xs text-slate-500 w-16 shrink-0">金利</label>
+            <input
+              type="number"
+              value={form.rate}
+              onChange={e => updateMortgage({ rate: +e.target.value })}
+              min={0} max={10} step={0.1}
+              className={`w-20 ${inputCls}`}
+            />
+            <span className="text-xs text-slate-400">% / 年</span>
+          </div>
+          <div className="flex gap-2 items-center">
+            <label className="text-xs text-slate-500 w-16 shrink-0">返済年数</label>
+            <input
+              type="number"
+              value={form.termYears}
+              onChange={e => updateMortgage({ termYears: +e.target.value })}
+              min={1} max={50}
+              className={`w-16 ${inputCls}`}
+            />
+            <span className="text-xs text-slate-400">年</span>
+          </div>
+
+          {/* リアルタイム試算 */}
+          {form.principal > 0 && form.termYears > 0 && (
+            <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2 text-xs">
+              <p className="font-medium text-blue-700 mb-1">試算（元利均等返済）</p>
+              <div className="flex gap-4 text-slate-600 flex-wrap">
+                <span>月次 <strong>{monthly.toLocaleString()}万円</strong></span>
+                <span>年次 <strong>{annual.toLocaleString()}万円</strong></span>
+                <span>総返済 <strong>{total.toLocaleString()}万円</strong></span>
+              </div>
+            </div>
+          )}
+
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            元利均等返済のみ対応。繰上返済・ボーナス払いは非対応。返済額は名目固定額です。金利変動リスクは別途イベントで登録してください。
+          </p>
+        </>
+      ) : (
+        <>
+          {/* 通常イベントの期間・金額 */}
+          <div className="flex gap-2 items-center">
+            <label className="text-xs text-slate-500 w-16 shrink-0">期間</label>
+            <input
+              type="number"
+              value={form.years}
+              onChange={e => setForm(f => ({ ...f, years: +e.target.value }))}
+              min={1}
+              className={`w-16 ${inputCls}`}
+            />
+            <span className="text-xs text-slate-400">年</span>
+          </div>
+          <div className="flex gap-2 items-center">
+            <label className="text-xs text-slate-500 w-16 shrink-0">金額</label>
+            <input
+              type="number"
+              value={form.amount}
+              onChange={e => setForm(f => ({ ...f, amount: +e.target.value }))}
+              className={`w-24 ${inputCls}`}
+            />
+            <span className="text-xs text-slate-400">万円/年</span>
+          </div>
+        </>
+      )}
+
+      {/* 保存・キャンセル */}
       <div className="flex gap-2 mt-1">
         <button onClick={onSave} className="flex-1 rounded bg-slate-800 py-1 text-xs text-white hover:bg-slate-700">
           {isEdit ? '更新' : '追加'}

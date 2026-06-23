@@ -236,6 +236,7 @@ export default function SimulatorPage() {
             retAge={p.retAge}
             penAge={p.penAge}
             idecoStartAge={p.idecoStartAge}
+            strategy={strategy}
           />
 
           <AiPanel />

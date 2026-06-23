@@ -107,7 +107,7 @@ export default function SimulatorForm() {
         <Field label="現在年齢"     id="curAge"   value={p.curAge}   onChange={v => up({ curAge: v })}   min={20} max={80} suffix="歳" />
         <Field label="手取り収入"   id="baseInc"  value={p.baseInc}  onChange={v => up({ baseInc: v })}  min={0}  suffix="万円/年" />
         <Field label="年間生活費"   id="baseExp"  value={p.baseExp}  onChange={v => up({ baseExp: v })}  min={0}  suffix="万円/年" />
-        <Field label="インフレ率"   id="inflR"    value={p.inflR}    onChange={v => up({ inflR: v })}    min={0}  max={10} step={0.5} suffix="%" />
+        <Field label="インフレ率"   id="inflR"    value={p.inflR}    onChange={v => up({ inflR: v })}    min={0}  max={10} step={0.1} suffix="%" />
         <Field label="余命(終端年齢)" id="lifeEx" value={p.lifeEx}  onChange={v => up({ lifeEx: v })}   min={60} max={120} suffix="歳" />
         <div className="flex items-center gap-2">
           <span className="w-36 shrink-0 text-xs text-slate-600">年間余剰CF</span>
