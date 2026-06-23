@@ -124,6 +124,54 @@ const NAKAMURA_EXPECTED = [
   { age: 90, totalAssets:18685, income_disp: 290, expense: 672 },
 ];
 
+// ---- 佐々木シリーズ ----
+// curAge=53, retAge=60, rW=7, rR=4（全口座共通）, inflR=1%
+// idecoYrs=20, sevYrs=30（sevDed=1500万 → taxable=250万 → tax≈51万 → net=1949万）
+// プロファイルJSONにはseveranceのみ保存。CSV生成時に再雇用2つが追加されていた。
+const SASAKI_P = {
+  curAge: 53, lifeEx: 90,
+  baseInc: 620, baseExp: 360,
+  inflR: 1,
+  retAge: 60, penAge: 65, penAmt: 150,
+  mcStd: 16, mcStdR: 8,
+  hasIdeco: true,
+  idecoYrs: 20, sevYrs: 30,
+  idecoReceiveType: 'pension',
+  idecoReceiveYears: 15,
+  idecoStartAge: 65,
+  acct: {
+    nisa:  { bal: 1200, con: 120, toAge: 60, rW: 7, rR: 4 },
+    ideco: { bal: 1200, con: 27.6, toAge: 60, rW: 7, rR: 4 },
+    tax:   { bal: 2300, con: 0,    toAge: 60, rW: 7, rR: 4, costBasis: 2300 },
+    cash:  { bal: 1500 },
+  },
+  spouse: { inc: 100, retAge: 60, penAge: 65, penAmt: 80, spCurAge: 51 },
+};
+
+// severance@60(2000万) + reemploy@61×5年(350万) + reemploy@66×5年(100万)
+const SASAKI_EVENTS = [
+  { category: 'income',  subtype: 'severance', name: '退職金',   age: 60, years: 1, amount: 2000 },
+  { category: 'income',  subtype: 'reemploy',  name: '再雇用①', age: 61, years: 5, amount: 350 },
+  { category: 'income',  subtype: 'reemploy',  name: '再雇用②', age: 66, years: 5, amount: 100 },
+];
+
+// 確定数値（年次資産表・全37行 CSV突き合わせ済み 2026-06-22）
+const SASAKI_EXPECTED = [
+  { age: 53, totalAssets:  6889, income_disp:  720, expense:  360 },
+  { age: 59, totalAssets: 11734, income_disp:  720, expense:  382 },
+  { age: 60, totalAssets: 13744, income_disp: 2049, expense:  386 },
+  { age: 61, totalAssets: 14163, income_disp:  450, expense:  390 },
+  { age: 62, totalAssets: 14492, income_disp:  350, expense:  394 },
+  { age: 65, totalAssets: 15653, income_disp:  641, expense:  406 },
+  { age: 66, totalAssets: 15882, income_disp:  397, expense:  410 },
+  { age: 67, totalAssets: 16195, income_disp:  484, expense:  414 },
+  { age: 70, totalAssets: 17160, income_disp:  503, expense:  426 },
+  { age: 71, totalAssets: 17390, income_disp:  411, expense:  431 },
+  { age: 79, totalAssets: 19365, income_disp:  479, expense:  466 },
+  { age: 80, totalAssets: 19670, income_disp:  230, expense:  471 },
+  { age: 90, totalAssets: 23277, income_disp:  230, expense:  520 },
+];
+
 // ================================================================
 // SECTION 1: 山本シリーズ全件一覧表
 // ================================================================
@@ -255,4 +303,273 @@ console.log(`  90歳時点 p50（中央値） |  11,400万     |    ${nakP50[yea
 console.log(`  90歳時点 p90           |  50,400万     |    ${nakP90[years90]}万`);
 console.log('  ※特定口座課税（約20%）の影響で実機破綻率は数%高めになる場合があります');
 
+// ================================================================
+// SECTION 5: 田中シリーズ 年次資産表
+// ================================================================
+
+// 田中誠シリーズ 基本パラメータ（完全FIRE / セミリタイヤ共通・inflR=1%）
+// severanceNet: retirementTaxCalc(0, 800, idecoYrs=13, sevYrs=5)
+//   dcDed=520万, sevDed=200万 → max=520万, taxable=(800-520)/2=140万, tax≈28万, net=772万
+//   income at 55 = spouseInc(200) + severanceNet(772) = 972万
+//   CF at 55 = 200 - 546(expense) = -346万 ✓
+const TANAKA_P = {
+  curAge: 42, lifeEx: 90,
+  baseInc: 650, baseExp: 480,
+  inflR: 1,
+  retAge: 55, penAge: 65, penAmt: 150,
+  mcStd: 10, mcStdR: 8,
+  hasIdeco: true,
+  idecoYrs: 13,
+  idecoReceiveType: 'lump',
+  idecoReceiveYears: 10,
+  idecoStartAge: 65,
+  sevYrs: 5,
+  acct: {
+    nisa:  { bal: 700, con: 120,  toAge: 99, rW: 4, rR: 4 },
+    ideco: { bal: 350, con: 27.6, toAge: 99, rW: 4, rR: 4 },
+    tax:   { bal: 550, con: 52,   toAge: 99, rW: 4, rR: 4, costBasis: 550 },
+    cash:  { bal: 900 },
+  },
+  spouse: { inc: 200, retAge: 55, penAge: 65, penAmt: 80, spCurAge: 40 },
+};
+
+// インフレ2%シナリオ（セミリタイヤ+教育、inflR=2%）
+const TANAKA_INFLE2_P = { ...TANAKA_P, inflR: 2 };
+
+// 完全FIREイベント（退職金のみ）
+const TANAKA_FIRE_EVENTS = [
+  { category: 'income', subtype: 'severance', name: '退職金', age: 55, years: 1, amount: 800 },
+];
+
+// セミリタイヤイベント（退職金＋生活費削減）
+const TANAKA_SEMIRETIRE_EVENTS = [
+  { category: 'income',  subtype: 'severance',  name: '退職金',    age: 55, years: 1, amount: 800 },
+  { category: 'expense', subtype: 'base_change', name: '生活費変更', age: 56, years: 1, amount: 300 },
+];
+
+// インフレ2%イベント（退職金＋生活費削減＋教育費2件・inflR=2%）
+// base_change amount は curAge時点の現在価値→退職時に inflR 分膨らむ
+const TANAKA_INFLE2_EVENTS = [
+  { category: 'income',  subtype: 'severance',  name: '退職金',    age: 55, years: 1, amount: 800 },
+  { category: 'expense', subtype: 'base_change', name: '生活費変更', age: 56, years: 1, amount: 300 },
+  { category: 'expense', subtype: 'education',   name: '教育費1',   age: 45, years: 4, amount: 250 },
+  { category: 'expense', subtype: 'education',   name: '教育費2',   age: 48, years: 4, amount: 250 },
+];
+
+// 確定値：tanakaFIRE_2026-06-21.csv（完全FIRE・inflR=1%・教育費なし）
+const TANAKA_FIRE_EXPECTED = [
+  { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
+  { age: 45, totalAssets: 4272, income_disp:  850, expense:  495 },
+  { age: 54, totalAssets: 8710, income_disp:  850, expense:  541 },
+  { age: 55, totalAssets: 9369, income_disp:  972, expense:  546 }, // 退職金net772+妻収入200=972万
+  { age: 56, totalAssets: 9252, income_disp:  200, expense:  552 }, // 妻のみ収入（年齢54<55）
+  { age: 57, totalAssets: 8925, income_disp:    0, expense:  557 }, // 妻も退職（年齢55=spRetAge）
+  { age: 65, totalAssets: 5955, income_disp:  150, expense:  603 }, // 主年金150・妻63歳未達
+  { age: 67, totalAssets: 5364, income_disp:  230, expense:  616 }, // 妻65歳→年金80追加
+  { age: 82, totalAssets:    0, income_disp:  230, expense:  715 }, // 枯渇（82歳）
+  { age: 90, totalAssets:    0, income_disp:  230, expense:  715 },
+];
+
+// 確定値：tanankasemiretire_simulation_2026-06-21.csv（セミリタイヤ・生活費300万/年）
+const TANAKA_SEMIRETIRE_EXPECTED = [
+  { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
+  { age: 55, totalAssets: 9369, income_disp:  972, expense:  546 },
+  { age: 56, totalAssets: 9462, income_disp:  200, expense:  345 }, // 300*(1.01)^14≈345万
+  { age: 57, totalAssets: 9354, income_disp:    0, expense:  348 },
+  { age: 65, totalAssets: 8428, income_disp:  150, expense:  377 }, // 300*(1.01)^23≈377万
+  { age: 67, totalAssets: 8438, income_disp:  230, expense:  385 },
+  { age: 90, totalAssets: 9337, income_disp:  230, expense:  484 }, // 生涯枯渇なし
+];
+
+// 確定値：tanaka_インフレ2%_simulation_2026-06-21.csv（セミリタイヤ+教育・inflR=2%）
+const TANAKA_INFLE2_EXPECTED = [
+  { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
+  { age: 45, totalAssets: 3993, income_disp:  850, expense:  759 }, // 480*(1.02)^3+250≈759万
+  { age: 48, totalAssets: 4316, income_disp:  850, expense: 1041 }, // 480*(1.02)^6+250+250≈1041万
+  { age: 52, totalAssets: 5368, income_disp:  850, expense:  585 }, // 480*(1.02)^10≈585万（教育終了）
+  { age: 55, totalAssets: 6874, income_disp:  972, expense:  621 }, // 480*(1.02)^13≈621万
+  { age: 56, totalAssets: 6908, income_disp:  200, expense:  396 }, // 300*(1.02)^14≈396万
+  { age: 84, totalAssets:    0, income_disp:  230, expense:  689 }, // 枯渇（84歳）
+  { age: 90, totalAssets:    0, income_disp:  230, expense:  689 },
+];
+
+function runTanakaSection(p, events, expected) {
+  const snaps = simulate(p, events, 'proportional');
+  let pass = 0, fail = 0;
+  const results = [];
+  for (const ex of expected) {
+    const snap = snaps.find(s => s.age === ex.age);
+    if (!snap) { results.push(`  [ERROR] age ${ex.age} のスナップなし`); fail++; continue; }
+    const incDisp = snap.income + (snap.severanceNet || 0);
+    const assetOk = snap.totalAssets === ex.totalAssets;
+    const diff = snap.totalAssets - ex.totalAssets;
+    if (assetOk) pass++; else fail++;
+    results.push(nrow([
+      ex.age + '歳',
+      ex.totalAssets + '万', snap.totalAssets + '万',
+      (diff >= 0 ? '+' : '') + diff + '万',
+      ex.income_disp + '万', incDisp + '万',
+      ex.expense + '万', snap.expense + '万',
+      assetOk ? 'PASS' : 'FAIL',
+    ]));
+  }
+  return { pass, fail, results };
+}
+
+console.log('\n' + '='.repeat(100));
+console.log('【田中シリーズ】完全FIRE（inflR=1%・教育なし・退職金800万・retAge55）');
+console.log(`  パラメータ: rW=4% rR=4%（全口座共通） inflR=1% sevYrs=5 idecoYrs=13 lump@65`);
+console.log('='.repeat(100));
+console.log(nrow(['年齢', '総資産(期待)', '総資産(実際)', '差異', '収入表示(期待)', '収入表示(実際)', '支出(期待)', '支出(実際)', '結果']));
+console.log('-'.repeat(100));
+const { pass: t1p, fail: t1f, results: t1r } = runTanakaSection(TANAKA_P, TANAKA_FIRE_EVENTS, TANAKA_FIRE_EXPECTED);
+t1r.forEach(r => console.log(r));
+console.log('-'.repeat(100));
+console.log(`合計（総資産一致基準）: ${t1p} PASS / ${t1f} FAIL`);
+
+console.log('\n' + '='.repeat(100));
+console.log('【田中シリーズ】セミリタイヤ（生活費300万/年に削減）');
+console.log('='.repeat(100));
+console.log(nrow(['年齢', '総資産(期待)', '総資産(実際)', '差異', '収入表示(期待)', '収入表示(実際)', '支出(期待)', '支出(実際)', '結果']));
+console.log('-'.repeat(100));
+const { pass: t2p, fail: t2f, results: t2r } = runTanakaSection(TANAKA_P, TANAKA_SEMIRETIRE_EVENTS, TANAKA_SEMIRETIRE_EXPECTED);
+t2r.forEach(r => console.log(r));
+console.log('-'.repeat(100));
+console.log(`合計（総資産一致基準）: ${t2p} PASS / ${t2f} FAIL`);
+
+console.log('\n' + '='.repeat(100));
+console.log('【田中シリーズ】インフレ2%（セミリタイヤ+教育費250万×2・inflR=2%）');
+console.log('='.repeat(100));
+console.log(nrow(['年齢', '総資産(期待)', '総資産(実際)', '差異', '収入表示(期待)', '収入表示(実際)', '支出(期待)', '支出(実際)', '結果']));
+console.log('-'.repeat(100));
+const { pass: t3p, fail: t3f, results: t3r } = runTanakaSection(TANAKA_INFLE2_P, TANAKA_INFLE2_EVENTS, TANAKA_INFLE2_EXPECTED);
+t3r.forEach(r => console.log(r));
+console.log('-'.repeat(100));
+console.log(`合計（総資産一致基準）: ${t3p} PASS / ${t3f} FAIL`);
+console.log('  ※田中シリーズ確定値（2026-06-21 CSV突き合わせ完了）');
+
+// ================================================================================
+// SECTION 6: 田中MCシリーズ（HTML実機突き合わせ済み・2026-06-22）
+//
+// 重要: HTMLのMCシナリオはsameAsWorking=false状態で実行されていた。
+// 取崩期rR: rRNisa=4%, rRIdeco=2%, rRTax=1%（口座別）
+// mcStdR=16%（ポートフォリオσ=16%から自動設定、pfManualFlags.mcStdR=false）
+// → MCbase≈25%(HTML:25.4%) MC-10%≈10%(HTML:10.5%) MC+2y≈10%(HTML:9.8%) MCCFall≈20%(HTML:20.6%)
+//
+// 決定論的シナリオ(Section5)はrR=4%全口座共通が正解（CSV検証済み）。MCは別パラメータ。
+// ================================================================================
+
+// MCシナリオ専用パラメータ（sameAsWorking=false時の口座別rR + ポートフォリオσ=16%）
+const TANAKA_MC_P = {
+  ...TANAKA_P,
+  mcStdR: 16,  // ポートフォリオσ=16%（全世界株）
+  acct: {
+    ...TANAKA_P.acct,
+    ideco: { ...TANAKA_P.acct.ideco, rR: 2 },  // sameAsWorking=false → 保存値rRIdeco=2%
+    tax:   { ...TANAKA_P.acct.tax,   rR: 1 },  // sameAsWorking=false → 保存値rRTax=1%
+  },
+};
+
+const TANAKA_MC_EVENTS_BASE = [
+  { category: 'income',  subtype: 'severance',  name: '退職金',    age: 55, years: 1, amount: 800 },
+  { category: 'expense', subtype: 'base_change', name: '生活費変更', age: 56, years: 1, amount: 300 },
+];
+const TANAKA_MC_EVENTS_M10 = [
+  { category: 'income',  subtype: 'severance',  name: '退職金',    age: 55, years: 1, amount: 800 },
+  { category: 'expense', subtype: 'base_change', name: '生活費変更', age: 56, years: 1, amount: 270 },
+];
+// MC+2years: 田中・配偶者ともに57歳退職（両者同時退職）
+const TANAKA_MC_P_PLUS2 = {
+  ...TANAKA_MC_P,
+  retAge: 57,
+  spouse: { ...TANAKA_MC_P.spouse, retAge: 57 },
+};
+const TANAKA_MC_EVENTS_PLUS2 = [
+  { category: 'income',  subtype: 'severance',  name: '退職金',    age: 57, years: 1, amount: 800 },
+  { category: 'expense', subtype: 'base_change', name: '生活費変更', age: 58, years: 1, amount: 300 },
+];
+// MCCFall: 余剰CF全額投資 = 特定口座積立継続(cTax=52) + 取崩期rRTax=rWTax=4（積立期と同利回り）
+// cTaxは0にしない。rRTaxのみ1→4に変更（rRNisa=4・rRIdeco=2は据え置き）
+const TANAKA_MC_P_CFULL = {
+  ...TANAKA_MC_P,
+  acct: {
+    ...TANAKA_MC_P.acct,
+    tax: { ...TANAKA_MC_P.acct.tax, rR: 4 },  // con=52のまま、rRTaxのみ1→4
+  },
+};
+
 console.log('\n' + '='.repeat(80));
+console.log('【田中シリーズ】MCシナリオ比較 (N=1000) [HTML実機突き合わせ済み]');
+console.log('  mcStd=10%（積立期）mcStdR=16%（取崩期・ポートフォリオσ）');
+console.log('  取崩期: rRNisa=4%/rRIdeco=2%/rRTax=1%（sameAsWorking=false時の保存値）');
+console.log('='.repeat(80));
+
+// HTML実機の参照値（目安）
+const TANAKA_MC_HTML_REF = {
+  'MCbase（セミリタイヤ基本）':  { rate: 25.4 },
+  'MC-10%（生活費270万）':      { rate: 10.5 },
+  'MC+2years（両者57歳退職）':  { rate: 9.8  },
+  'MCCFall（余剰CF全額投資）':  { rate: 20.6 },
+};
+
+const MC_SCENARIOS = [
+  { label: 'MCbase（セミリタイヤ基本）',  p: TANAKA_MC_P,        evs: TANAKA_MC_EVENTS_BASE  },
+  { label: 'MC-10%（生活費270万）',       p: TANAKA_MC_P,        evs: TANAKA_MC_EVENTS_M10   },
+  { label: 'MC+2years（両者57歳退職）',   p: TANAKA_MC_P_PLUS2,  evs: TANAKA_MC_EVENTS_PLUS2 },
+  { label: 'MCCFall（余剰CF全額投資）',   p: TANAKA_MC_P_CFULL,  evs: TANAKA_MC_EVENTS_BASE  },
+];
+
+for (const sc of MC_SCENARIOS) {
+  process.stdout.write('  計算中: ' + sc.label + ' ...');
+  const mc = runMC(sc.p, sc.evs, ['proportional'], 1000);
+  const r = mc.strategies.proportional;
+  const lastIdx = sc.p.lifeEx - sc.p.curAge;
+  const p10_90 = r.percentiles.p10[lastIdx];
+  const p50_90 = r.percentiles.p50[lastIdx];
+  const p90_90 = r.percentiles.p90[lastIdx];
+  const ref = TANAKA_MC_HTML_REF[sc.label];
+  const ok = ref ? Math.abs(r.bankruptcyRate - ref.rate) <= 5 : true;
+  console.log(' 完了');
+  console.log('  破綻率（90歳）: ' + r.bankruptcyRate.toFixed(1) + '%' +
+    (ref ? '  (HTML実機: ' + ref.rate + '%  許容±5%  ' + (ok ? 'PASS' : 'FAIL') + ')' : ''));
+  console.log('  90歳時点 p10=' + Math.round(p10_90/100)*100 + '万  p50=' + Math.round(p50_90/100)*100 + '万  p90=' + Math.round(p90_90/100)*100 + '万');
+  if (r.depletionMean !== null) {
+    console.log('  平均枯渇年齢=' + r.depletionMean + '歳  最短枯渇=' + r.depletionMin + '歳');
+  }
+  console.log();
+}
+
+console.log('\n' + '='.repeat(80));
+
+// ================================================================
+// SECTION 7: 佐々木シリーズ 年次資産表
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【佐々木シリーズ】年次資産表 期待値 vs 実際値');
+console.log('  パラメータ: rW=7% rR=4% inflR=1% idecoYrs=20 sevYrs=30 idecoStartAge=65 pension×15年');
+console.log('  events: severance@60(2000万) / reemploy@61×5年(350万) / reemploy@66×5年(100万)');
+console.log('='.repeat(100));
+
+const sasakiSnaps = simulate(SASAKI_P, SASAKI_EVENTS, 'proportional');
+
+let sPass = 0, sFail = 0;
+for (const ex of SASAKI_EXPECTED) {
+  const snap = sasakiSnaps.find(s => s.age === ex.age);
+  if (!snap) { console.log(`  [ERROR] age ${ex.age} のスナップなし`); continue; }
+  const incDisp = snap.income + (snap.severanceNet || 0);
+  const assetOk = snap.totalAssets === ex.totalAssets;
+  const diff = snap.totalAssets - ex.totalAssets;
+  const ok = assetOk;
+  if (ok) sPass++; else sFail++;
+  console.log(nrow([
+    ex.age + '歳',
+    ex.totalAssets + '万', snap.totalAssets + '万',
+    (diff >= 0 ? '+' : '') + diff + '万',
+    ex.income_disp + '万', incDisp + '万',
+    ex.expense + '万', snap.expense + '万',
+    ok ? 'PASS' : 'FAIL',
+  ]));
+}
+console.log('-'.repeat(100));
+console.log(`合計（総資産一致基準）: ${sPass} PASS / ${sFail} FAIL`);
+console.log('  ※収入表示 = snap.income + snap.severanceNet（HTML CSV形式）');

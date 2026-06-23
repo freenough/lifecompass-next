@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020"],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "module": "commonjs",
     "moduleResolution": "node",
     "strict": true,
@@ -10,8 +13,29 @@
     "declaration": true,
     "sourceMap": true,
     "jsx": "preserve",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "allowJs": true,
+    "noEmit": true,
+    "incremental": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["src/**/*", "scripts/**/*"],
-  "exclude": ["node_modules", ".next"]
+  "include": [
+    "src/**/*",
+    "scripts/**/*",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next"
+  ]
 }

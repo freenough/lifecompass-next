@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent:       #334155;
+  --color-accent-light: #64748b;
+  --color-bg-sub:       #f8fafc;
+  --color-border:       #e2e8f0;
+  --color-good-bg:      #f0fdf4;
+  --color-good-text:    #166534;
+  --color-warn-bg:      #fefce8;
+  --color-warn-text:    #854d0e;
+  --color-danger-bg:    #fef2f2;
+  --color-danger-text:  #991b1b;
+  --font-sans: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+}

@@ -1,3 +1,5 @@
-export default function Page() {
-  return <p>Coming soon</p>;
+import { redirect } from 'next/navigation';
+
+export default function HomePage() {
+  redirect('/simulator');
 }

@@ -12,5 +12,15 @@
         ]
       }
     ]
-  }
+  },
+  "allow": [
+    "Bash(node scripts/*)",
+    "Bash(npm run *)",
+    "Bash(npm test*)",
+    "Bash(git diff*)",
+    "Bash(git status*)",
+    "Bash(git add*)",
+    "Bash(git commit*)",
+    "Bash(git log*)"
+  ]
 }

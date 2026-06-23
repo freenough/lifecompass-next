@@ -1,0 +1,2186 @@
+{
+  "exportedAt": "2026-06-22T03:12:38.410Z",
+  "profiles": [
+    {
+      "id": 1780299195191.3406,
+      "name": "標準モデル",
+      "savedAt": "06/08 14:33",
+      "version": 3,
+      "params": {
+        "curAge": 48,
+        "lifeEx": 90,
+        "baseInc": 1000,
+        "baseExp": 400,
+        "inflR": 2,
+        "mcStd": 12.9,
+        "mcStdR": 10.3,
+        "rWNisa": 6.8,
+        "rRNisa": 6.8,
+        "rWIdeco": 6.8,
+        "rRIdeco": 6.8,
+        "rWTax": 5.9,
+        "rRTax": 5.2,
+        "pfManualFlags": {
+          "rWNisa": false,
+          "rWIdeco": false,
+          "rWTax": false,
+          "mcStd": false,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 120,
+        "bNisa": 1000,
+        "cNisa": 360,
+        "cNisaTo": 51,
+        "bIdeco": 1000,
+        "cIdeco": 27.6,
+        "cIdecoTo": 54,
+        "idecoYrs": 15,
+        "sevYrs": 3,
+        "bTax": 5800,
+        "cTax": 50,
+        "cTaxTo": 54,
+        "bCash": 2000,
+        "penAmt": 120,
+        "spInc": 0,
+        "spRetAge": 0,
+        "spPenAge": 0,
+        "spPenAmt": 0,
+        "spCurAge": 0
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "amount": 500
+            },
+            {
+              "assetClass": "先進国株",
+              "amount": 500
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "amount": 500
+            },
+            {
+              "assetClass": "先進国株",
+              "amount": 500
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "amount": 1000
+            },
+            {
+              "assetClass": "先進国株",
+              "amount": 1000
+            },
+            {
+              "assetClass": "新興国株",
+              "amount": 300
+            },
+            {
+              "assetClass": "日本株",
+              "amount": 1500
+            },
+            {
+              "assetClass": "先進国債券",
+              "amount": 700
+            },
+            {
+              "assetClass": "日本REIT",
+              "amount": 300
+            },
+            {
+              "assetClass": "ゴールド",
+              "amount": 1000
+            }
+          ]
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 50
+            },
+            {
+              "assetClass": "先進国株",
+              "pct": 50
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 50
+            },
+            {
+              "assetClass": "先進国株",
+              "pct": 50
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 16.1
+            },
+            {
+              "assetClass": "先進国株",
+              "pct": 16.1
+            },
+            {
+              "assetClass": "新興国株",
+              "pct": 4.8
+            },
+            {
+              "assetClass": "日本株",
+              "pct": 24.2
+            },
+            {
+              "assetClass": "先進国債券",
+              "pct": 11.3
+            },
+            {
+              "assetClass": "先進国REIT",
+              "pct": 4.8
+            },
+            {
+              "assetClass": "日本REIT",
+              "pct": 6.5
+            },
+            {
+              "assetClass": "ゴールド",
+              "pct": 16.2
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 50
+            },
+            {
+              "assetClass": "先進国株",
+              "pct": 50
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 50
+            },
+            {
+              "assetClass": "先進国株",
+              "pct": 50
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 20
+            },
+            {
+              "assetClass": "日本株",
+              "pct": 20
+            },
+            {
+              "assetClass": "先進国債券",
+              "pct": 35
+            },
+            {
+              "assetClass": "日本REIT",
+              "pct": 5
+            },
+            {
+              "assetClass": "ゴールド",
+              "pct": 20
+            }
+          ],
+          "sameAsWorking": false
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "reemploy",
+          "name": "",
+          "age": 55,
+          "years": 15,
+          "amount": 100
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 63,
+          "years": 6,
+          "amount": 300
+        },
+        {
+          "category": "expense",
+          "subtype": "base_change",
+          "name": "",
+          "age": 70,
+          "years": 1,
+          "amount": 360
+        },
+        {
+          "category": "expense",
+          "subtype": "base_change",
+          "name": "",
+          "age": 80,
+          "years": 1,
+          "amount": 300
+        },
+        {
+          "category": "expense",
+          "subtype": "mortgage",
+          "name": "",
+          "age": 44,
+          "years": 35,
+          "principal": 5040,
+          "rate": 1,
+          "termYears": 35,
+          "amount": 170.73
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "cash_first"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": true,
+          "ideco": true,
+          "tax": true
+        }
+      }
+    },
+    {
+      "id": 1781140133823,
+      "name": "田中シリーズ_ 退職延長",
+      "savedAt": "06/11 12:15",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": false,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 60,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 57,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 60,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 60,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 60,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 60,
+          "years": 1,
+          "amount": 1200
+        },
+        {
+          "category": "expense",
+          "subtype": "tax_con_change",
+          "name": "",
+          "age": 58,
+          "years": 4,
+          "amount": 172
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 45,
+          "years": 4,
+          "amount": 167.5
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 48,
+          "years": 4,
+          "amount": 167.5
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781140750543,
+      "name": "田中シリーズ_ 現実",
+      "savedAt": "06/11 12:06",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": false,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 60,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 57,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 60,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 60,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 60,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 60,
+          "years": 1,
+          "amount": 1500
+        },
+        {
+          "category": "expense",
+          "subtype": "tax_con_change",
+          "name": "",
+          "age": 58,
+          "years": 4,
+          "amount": 172
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 45,
+          "years": 4,
+          "amount": 167.5
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 48,
+          "years": 4,
+          "amount": 167.5
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781140847389,
+      "name": "田中シリーズ_完全FIRE",
+      "savedAt": "06/21 22:28",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 10,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": true,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 55,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 55,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 55,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 55,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 55,
+          "years": 1,
+          "amount": 800
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781141074196,
+      "name": "田中シリーズ_セミリタイヤ",
+      "savedAt": "06/21 22:28",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 10,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": true,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 55,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 55,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 55,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 55,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 55,
+          "years": 1,
+          "amount": 800
+        },
+        {
+          "category": "expense",
+          "subtype": "base_change",
+          "name": "",
+          "age": 56,
+          "years": 1,
+          "amount": 300
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781141138572,
+      "name": "田中シリーズ_ 副業",
+      "savedAt": "06/11 10:25",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": false,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 55,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 55,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 55,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 55,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 55,
+          "years": 1,
+          "amount": 800
+        },
+        {
+          "category": "income",
+          "subtype": "sidejob",
+          "name": "",
+          "age": 56,
+          "years": 10,
+          "amount": 200
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781142082662,
+      "name": "田中シリーズ_退職延長3年",
+      "savedAt": "06/21 22:29",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 10,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": true,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 58,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 57,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 58,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 58,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 58,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 58,
+          "years": 1,
+          "amount": 1000
+        },
+        {
+          "category": "expense",
+          "subtype": "tax_con_change",
+          "name": "",
+          "age": 58,
+          "years": 4,
+          "amount": 172
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781147080459,
+      "name": "田中シリーズ_ 副業+教育費",
+      "savedAt": "06/11 12:04",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": false,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 55,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 55,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 55,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 55,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 55,
+          "years": 1,
+          "amount": 800
+        },
+        {
+          "category": "income",
+          "subtype": "sidejob",
+          "name": "",
+          "age": 56,
+          "years": 10,
+          "amount": 200
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 45,
+          "years": 4,
+          "amount": 167.5
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 48,
+          "years": 4,
+          "amount": 167.5
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781152708450,
+      "name": "田中シリーズ_セミリタイヤ+教育",
+      "savedAt": "06/21 22:29",
+      "version": 3,
+      "params": {
+        "curAge": 42,
+        "lifeEx": 90,
+        "baseInc": 650,
+        "baseExp": 480,
+        "inflR": 1,
+        "mcStd": 10,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": true,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 700,
+        "cNisa": 120,
+        "cNisaTo": 55,
+        "bIdeco": 350,
+        "cIdeco": 27.6,
+        "cIdecoTo": 55,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 65,
+        "bTax": 550,
+        "cTax": 52,
+        "cTaxTo": 55,
+        "bCash": 900,
+        "penAmt": 150,
+        "spInc": 200,
+        "spRetAge": 55,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 40
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 55,
+          "years": 1,
+          "amount": 800
+        },
+        {
+          "category": "expense",
+          "subtype": "base_change",
+          "name": "",
+          "age": 56,
+          "years": 1,
+          "amount": 300
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 45,
+          "years": 4,
+          "amount": 250
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 48,
+          "years": 4,
+          "amount": 250
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781168112175,
+      "name": "山本シリーズ",
+      "savedAt": "06/12 09:34",
+      "version": 3,
+      "params": {
+        "curAge": 34,
+        "lifeEx": 90,
+        "baseInc": 456,
+        "baseExp": 264,
+        "inflR": 0,
+        "mcStd": 10,
+        "mcStdR": 8,
+        "rWNisa": 4,
+        "rRNisa": 4,
+        "rWIdeco": 4,
+        "rRIdeco": 2,
+        "rWTax": 4,
+        "rRTax": 1,
+        "pfManualFlags": {
+          "rWNisa": true,
+          "rWIdeco": true,
+          "rWTax": true,
+          "mcStd": true,
+          "rRNisa": false,
+          "rRIdeco": false,
+          "rRTax": false,
+          "mcStdR": false
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 100,
+        "bNisa": 400,
+        "cNisa": 120,
+        "cNisaTo": 55,
+        "bIdeco": 0,
+        "cIdeco": 0,
+        "cIdecoTo": 60,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "lump",
+        "idecoReceiveYears": 10,
+        "idecoStartAge": 60,
+        "bTax": 0,
+        "cTax": 0,
+        "cTaxTo": 60,
+        "bCash": 420,
+        "penAmt": 100,
+        "spInc": 0,
+        "spRetAge": 0,
+        "spPenAge": 0,
+        "spPenAmt": 0,
+        "spCurAge": 0
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [],
+          "ideco": [],
+          "tax": [],
+          "sameAsWorking": true
+        }
+      },
+      "events": [],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "mc",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781229889653,
+      "name": "中村シリーズ",
+      "savedAt": "06/12 15:22",
+      "version": 3,
+      "params": {
+        "curAge": 38,
+        "lifeEx": 90,
+        "baseInc": 480,
+        "baseExp": 360,
+        "inflR": 2,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 7,
+        "rRNisa": 4,
+        "rWIdeco": 7,
+        "rRIdeco": 4,
+        "rWTax": 7,
+        "rRTax": 4,
+        "pfManualFlags": {
+          "rWNisa": false,
+          "rWIdeco": false,
+          "rWTax": false,
+          "mcStd": false,
+          "rRNisa": true,
+          "rRIdeco": true,
+          "rRTax": true,
+          "mcStdR": true
+        },
+        "retAge": 58,
+        "penAge": 65,
+        "penAmtVal": 170,
+        "bNisa": 600,
+        "cNisa": 180,
+        "cNisaTo": 58,
+        "bIdeco": 300,
+        "cIdeco": 0,
+        "cIdecoTo": 58,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "pension",
+        "idecoReceiveYears": 15,
+        "idecoStartAge": 65,
+        "bTax": 400,
+        "cTax": 0,
+        "cTaxTo": 58,
+        "bCash": 900,
+        "penAmt": 170,
+        "spInc": 355,
+        "spRetAge": 56,
+        "spPenAge": 65,
+        "spPenAmt": 120,
+        "spCurAge": 36
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "sameAsWorking": false
+        }
+      },
+      "events": [
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 49,
+          "years": 4,
+          "amount": 250
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 52,
+          "years": 4,
+          "amount": 250
+        },
+        {
+          "category": "expense",
+          "subtype": "mortgage",
+          "name": "",
+          "age": 38,
+          "years": 30,
+          "principal": 4100,
+          "rate": 1,
+          "termYears": 30,
+          "amount": 158.25
+        },
+        {
+          "category": "expense",
+          "subtype": "care",
+          "name": "",
+          "age": 55,
+          "years": 3,
+          "amount": 100
+        },
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 58,
+          "years": 1,
+          "amount": 1500
+        },
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 58,
+          "years": 1,
+          "amount": 1000
+        },
+        {
+          "category": "expense",
+          "subtype": "base_change",
+          "name": "",
+          "age": 68,
+          "years": 1,
+          "amount": 240
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "mc",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781281957604,
+      "name": "中村シリーズ+教育＋住宅",
+      "savedAt": "06/13 01:32",
+      "version": 3,
+      "params": {
+        "curAge": 38,
+        "lifeEx": 90,
+        "baseInc": 480,
+        "baseExp": 360,
+        "inflR": 2,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 7,
+        "rRNisa": 4,
+        "rWIdeco": 7,
+        "rRIdeco": 4,
+        "rWTax": 7,
+        "rRTax": 4,
+        "pfManualFlags": {
+          "rWNisa": false,
+          "rWIdeco": false,
+          "rWTax": false,
+          "mcStd": false,
+          "rRNisa": true,
+          "rRIdeco": true,
+          "rRTax": true,
+          "mcStdR": true
+        },
+        "retAge": 58,
+        "penAge": 65,
+        "penAmtVal": 170,
+        "bNisa": 600,
+        "cNisa": 180,
+        "cNisaTo": 58,
+        "bIdeco": 300,
+        "cIdeco": 0,
+        "cIdecoTo": 58,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "pension",
+        "idecoReceiveYears": 15,
+        "idecoStartAge": 65,
+        "bTax": 400,
+        "cTax": 0,
+        "cTaxTo": 58,
+        "bCash": 900,
+        "penAmt": 170,
+        "spInc": 355,
+        "spRetAge": 65,
+        "spPenAge": 65,
+        "spPenAmt": 120,
+        "spCurAge": 36
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "sameAsWorking": false
+        }
+      },
+      "events": [
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 49,
+          "years": 4,
+          "amount": 250
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 52,
+          "years": 4,
+          "amount": 250
+        },
+        {
+          "category": "expense",
+          "subtype": "mortgage",
+          "name": "",
+          "age": 38,
+          "years": 30,
+          "principal": 4100,
+          "rate": 1,
+          "termYears": 30,
+          "amount": 158.25
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781283060072,
+      "name": "中村シリーズ+教育＋住宅②",
+      "savedAt": "06/13 01:51",
+      "version": 3,
+      "params": {
+        "curAge": 38,
+        "lifeEx": 90,
+        "baseInc": 480,
+        "baseExp": 360,
+        "inflR": 2,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 7,
+        "rRNisa": 4,
+        "rWIdeco": 7,
+        "rRIdeco": 4,
+        "rWTax": 7,
+        "rRTax": 4,
+        "pfManualFlags": {
+          "rWNisa": false,
+          "rWIdeco": false,
+          "rWTax": false,
+          "mcStd": false,
+          "rRNisa": true,
+          "rRIdeco": true,
+          "rRTax": true,
+          "mcStdR": true
+        },
+        "retAge": 58,
+        "penAge": 65,
+        "penAmtVal": 170,
+        "bNisa": 600,
+        "cNisa": 180,
+        "cNisaTo": 58,
+        "bIdeco": 300,
+        "cIdeco": 0,
+        "cIdecoTo": 58,
+        "idecoYrs": 13,
+        "sevYrs": 5,
+        "idecoReceiveType": "pension",
+        "idecoReceiveYears": 15,
+        "idecoStartAge": 65,
+        "bTax": 400,
+        "cTax": 0,
+        "cTaxTo": 58,
+        "bCash": 900,
+        "penAmt": 170,
+        "spInc": 355,
+        "spRetAge": 65,
+        "spPenAge": 65,
+        "spPenAmt": 120,
+        "spCurAge": 36
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "sameAsWorking": false
+        }
+      },
+      "events": [
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 49,
+          "years": 4,
+          "amount": 250
+        },
+        {
+          "category": "expense",
+          "subtype": "education",
+          "name": "",
+          "age": 52,
+          "years": 4,
+          "amount": 250
+        },
+        {
+          "category": "expense",
+          "subtype": "mortgage",
+          "name": "",
+          "age": 38,
+          "years": 30,
+          "principal": 4100,
+          "rate": 1,
+          "termYears": 30,
+          "amount": 158.25
+        },
+        {
+          "category": "income",
+          "subtype": "other_inc",
+          "name": "",
+          "age": 58,
+          "years": 10,
+          "amount": 158.2666667
+        },
+        {
+          "category": "expense",
+          "subtype": "mortgage",
+          "name": "",
+          "age": 58,
+          "years": 1,
+          "principal": 1500,
+          "rate": 0,
+          "termYears": 1,
+          "amount": 1500
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781297967279,
+      "name": "佐々木シリーズ",
+      "savedAt": "06/14 00:13",
+      "version": 3,
+      "params": {
+        "curAge": 53,
+        "lifeEx": 90,
+        "baseInc": 620,
+        "baseExp": 360,
+        "inflR": 1,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 7,
+        "rRNisa": 4,
+        "rWIdeco": 7,
+        "rRIdeco": 4,
+        "rWTax": 7,
+        "rRTax": 4,
+        "pfManualFlags": {
+          "rWNisa": false,
+          "rWIdeco": false,
+          "rWTax": false,
+          "mcStd": false,
+          "rRNisa": true,
+          "rRIdeco": true,
+          "rRTax": true,
+          "mcStdR": true
+        },
+        "retAge": 60,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 1200,
+        "cNisa": 120,
+        "cNisaTo": 60,
+        "bIdeco": 1200,
+        "cIdeco": 27.6,
+        "cIdecoTo": 60,
+        "idecoYrs": 20,
+        "sevYrs": 30,
+        "idecoReceiveType": "pension",
+        "idecoReceiveYears": 15,
+        "idecoStartAge": 65,
+        "bTax": 2300,
+        "cTax": 0,
+        "cTaxTo": 60,
+        "bCash": 1500,
+        "penAmt": 150,
+        "spInc": 100,
+        "spRetAge": 60,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 51
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "sameAsWorking": false
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 60,
+          "years": 1,
+          "amount": 2000
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    },
+    {
+      "id": 1781298561812,
+      "name": "佐々木シリーズ_55歳",
+      "savedAt": "06/13 06:22",
+      "version": 3,
+      "params": {
+        "curAge": 53,
+        "lifeEx": 90,
+        "baseInc": 620,
+        "baseExp": 360,
+        "inflR": 1,
+        "mcStd": 16,
+        "mcStdR": 8,
+        "rWNisa": 7,
+        "rRNisa": 4,
+        "rWIdeco": 7,
+        "rRIdeco": 4,
+        "rWTax": 7,
+        "rRTax": 4,
+        "pfManualFlags": {
+          "rWNisa": false,
+          "rWIdeco": false,
+          "rWTax": false,
+          "mcStd": false,
+          "rRNisa": true,
+          "rRIdeco": true,
+          "rRTax": true,
+          "mcStdR": true
+        },
+        "retAge": 55,
+        "penAge": 65,
+        "penAmtVal": 150,
+        "bNisa": 1200,
+        "cNisa": 120,
+        "cNisaTo": 55,
+        "bIdeco": 1200,
+        "cIdeco": 27.6,
+        "cIdecoTo": 55,
+        "idecoYrs": 20,
+        "sevYrs": 30,
+        "idecoReceiveType": "pension",
+        "idecoReceiveYears": 15,
+        "idecoStartAge": 65,
+        "bTax": 2300,
+        "cTax": 0,
+        "cTaxTo": 55,
+        "bCash": 1500,
+        "penAmt": 150,
+        "spInc": 100,
+        "spRetAge": 55,
+        "spPenAge": 65,
+        "spPenAmt": 80,
+        "spCurAge": 51
+      },
+      "portfolio": {
+        "current": {
+          "nisa": [],
+          "ideco": [],
+          "tax": []
+        },
+        "working": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ]
+        },
+        "retirement": {
+          "nisa": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "ideco": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "tax": [
+            {
+              "assetClass": "全世界株",
+              "pct": 100
+            }
+          ],
+          "sameAsWorking": false
+        }
+      },
+      "events": [
+        {
+          "category": "income",
+          "subtype": "severance",
+          "name": "",
+          "age": 55,
+          "years": 1,
+          "amount": 1500
+        },
+        {
+          "category": "expense",
+          "subtype": "base_change",
+          "name": "",
+          "age": 55,
+          "years": 1,
+          "amount": 300
+        }
+      ],
+      "ui": {
+        "cmpMode": "strategy",
+        "activeStrategies": [
+          "proportional"
+        ],
+        "activeScenarios": [
+          "optimistic",
+          "neutral",
+          "pessimistic"
+        ],
+        "currentMode": "fixed",
+        "balSync": {
+          "nisa": false,
+          "ideco": false,
+          "tax": false
+        }
+      }
+    }
+  ]
+}
