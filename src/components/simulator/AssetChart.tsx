@@ -302,23 +302,23 @@ export default function AssetChart({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className={`flex items-center justify-between ${inflR > 0 ? 'mb-1' : 'mb-3'}`}>
         <h3 className="text-sm font-semibold text-slate-700">総資産推移</h3>
-        <div className="flex items-center gap-3">
-          {inflR > 0 && (
-            <label className="flex items-center gap-1 text-xs text-slate-500 cursor-pointer whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={showRealValue}
-                onChange={e => setShowRealValue(e.target.checked)}
-                className="rounded"
-              />
-              実質値（インフレ調整）
-            </label>
-          )}
-          <TabButtons tab={tab} setTab={setTab} />
-        </div>
+        <TabButtons tab={tab} setTab={setTab} />
       </div>
+      {inflR > 0 && (
+        <div className="flex justify-end mb-2">
+          <label className="flex items-center gap-1 text-xs text-slate-500 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showRealValue}
+              onChange={e => setShowRealValue(e.target.checked)}
+              className="rounded"
+            />
+            実質値（インフレ調整）
+          </label>
+        </div>
+      )}
       <ResponsiveContainer width="100%" height={320}>
         <ComposedChart data={data} margin={{ top: 4, right: 10, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />

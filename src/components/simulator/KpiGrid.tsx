@@ -120,7 +120,6 @@ export default function KpiGrid({
     : undefined;
 
   const showIdecoTier3 = hasIdeco;
-  const tier3Cols = showIdecoTier3 ? 'grid-cols-2' : 'grid-cols-1';
 
   // Spouse retirement display condition
   const showSpouseRetirement = (a.spIdecoLumpNet ?? 0) > 0 || (a.spRetirementTaxKPI ?? 0) > 0 || (a.spSeveranceNetKPI ?? 0) > 0;
@@ -185,7 +184,7 @@ export default function KpiGrid({
       </div>
 
       {/* Tier3: 資産ピーク（常時）/ iDeCo受取（hasIdecoのとき） */}
-      <div className={`grid gap-3 ${tier3Cols}`}>
+      <div className="grid grid-cols-2 gap-3">
         <KpiCard
           label="資産ピーク"
           value={fmt(a.pV)}
@@ -218,7 +217,7 @@ export default function KpiGrid({
 
       {/* Tier4: iDeCo詳細（一時金受取・展開時のみ） */}
       {tier4Expandable && tier4Open && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <KpiCard
             label="iDeCo（手取り）"
             value={fmt(idecoTier3Value)}

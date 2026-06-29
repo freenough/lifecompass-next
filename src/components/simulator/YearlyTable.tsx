@@ -81,7 +81,7 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
 
       {open && (
         <div className="overflow-x-auto">
-          <table className="min-w-full text-xs border-t border-slate-200">
+          <table className="min-w-[600px] w-full text-xs border-t border-slate-200">
             <thead className="bg-slate-50">
               <tr>
                 {[
@@ -112,7 +112,7 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
 
                 return (
                   <tr key={s.age} className={`border-t border-slate-100 ${highlight}`}>
-                    <td className="px-2 py-1 font-medium text-slate-700">
+                    <td className="px-2 py-1 font-medium text-slate-700 whitespace-nowrap">
                       {s.age}歳
                       {label && <span className={`ml-1 text-[10px] ${isRetYear ? 'text-yellow-600' : isPenYear ? 'text-blue-600' : isIdecoYear ? 'text-green-600' : hasInc ? 'text-emerald-600' : 'text-orange-600'}`}>{label}</span>}
                     </td>

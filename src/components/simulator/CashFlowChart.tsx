@@ -9,6 +9,8 @@ interface CashFlowChartProps {
 }
 
 function fmtYen(v: number): string {
+  const abs = Math.abs(v);
+  if (abs >= 10000) return `${(v / 10000).toFixed(0)}億`;
   return `${v}万`;
 }
 
@@ -29,10 +31,10 @@ export default function CashFlowChart({ snaps }: CashFlowChartProps) {
       {open && (
         <div className="px-4 pb-4">
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={data} barCategoryGap="20%">
+            <BarChart data={data} barCategoryGap="20%" margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="age" tick={{ fontSize: 10 }} tickFormatter={v => `${v}歳`} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtYen} />
+              <YAxis width={48} tick={{ fontSize: 10 }} tickFormatter={fmtYen} />
               <Tooltip
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(v: any) => [`${Math.round(v as number).toLocaleString()}万円/年`, 'CF']}
