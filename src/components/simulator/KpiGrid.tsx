@@ -134,7 +134,7 @@ export default function KpiGrid({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Tier1: 3枚・常時 — 資産寿命 / FIRE達成 / MC破綻確率 */}
+      {/* Tier1+Tier2: 6枚を1グリッドに統合（モバイル2列→3行、SM以上3列→2行） */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard
           label="資産寿命"
@@ -151,17 +151,6 @@ export default function KpiGrid({
           tooltip="取崩期を通じて資産が「年間支出×25」を下回らない最速の退職年齢。達成できない場合は「—」を表示します。"
         />
         <KpiCard
-          label="MC 破綻確率"
-          value={mcStr ?? '—'}
-          sub={mcStr ? '1,000試行・90歳時点' : 'MCモードで実行'}
-          variant={mcStr ? mcVariant : 'neutral'}
-          tooltip="モンテカルロ法（1,000試行）で終端年齢時点に資産が枯渇する試行の割合。運用利回りのランダムなブレを考慮しています。10%未満が目安とされます。"
-        />
-      </div>
-
-      {/* Tier2: 3枚・常時 — 最終資産 / 初年度取崩率 / 収支転換点 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <KpiCard
           label="最終資産"
           value={fmt(a.last)}
           sub={`${retAge}歳退職`}
@@ -174,6 +163,13 @@ export default function KpiGrid({
           sub="退職直後の引出率"
           variant={wrVariant}
           tooltip="退職初年度の実質引出額 ÷ 退職時総資産。4%ルールでは4%以下が長期的に持続可能な目安とされています。"
+        />
+        <KpiCard
+          label="MC 破綻確率"
+          value={mcStr ?? '—'}
+          sub={mcStr ? '1,000試行・90歳時点' : 'MCモードで実行'}
+          variant={mcStr ? mcVariant : 'neutral'}
+          tooltip="モンテカルロ法（1,000試行）で終端年齢時点に資産が枯渇する試行の割合。運用利回りのランダムなブレを考慮しています。10%未満が目安とされます。"
         />
         <KpiCard
           label="収支転換点"
