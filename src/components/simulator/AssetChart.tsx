@@ -66,25 +66,71 @@ function FireLines() {
   );
 }
 
-/** 退職・年金の垂直ライン */
+/** 退職・年金の垂直ライン（同一 age はラベル結合、近接 age は縦オフセット） */
 function EventLines({ retAge, penAge, spRetAgeMain, spPenAgeMain }: {
   retAge: number; penAge: number;
   spRetAgeMain: number | null; spPenAgeMain: number | null;
 }) {
+  type RawMarker = { age: number; label: string; stroke: string; strokeDasharray: string };
+  const raw: RawMarker[] = [
+    { age: retAge, label: '退職',     stroke: '#64748b', strokeDasharray: '3 3' },
+    { age: penAge, label: '年金開始', stroke: '#3b82f6', strokeDasharray: '3 3' },
+  ];
+  if (spRetAgeMain !== null) raw.push({ age: spRetAgeMain, label: '配偶者退職', stroke: '#94a3b8', strokeDasharray: '2 2' });
+  if (spPenAgeMain !== null) raw.push({ age: spPenAgeMain, label: '配偶者年金', stroke: '#93c5fd', strokeDasharray: '2 2' });
+
+  // 同一 age のラベルをまとめる
+  const grouped = new Map<number, { labels: string[]; stroke: string; strokeDasharray: string }>();
+  for (const m of raw) {
+    if (!grouped.has(m.age)) {
+      grouped.set(m.age, { labels: [], stroke: m.stroke, strokeDasharray: m.strokeDasharray });
+    }
+    grouped.get(m.age)!.labels.push(m.label);
+  }
+
+  // 近接 age（3歳以内）は奇数番目のラベルを下にオフセット
+  const sortedAges = [...grouped.keys()].sort((a, b) => a - b);
+  const yOffsets = new Map<number, number>();
+  let lastAge = -999;
+  let offsetIdx = 0;
+  for (const age of sortedAges) {
+    if (age - lastAge <= 3) { offsetIdx++; } else { offsetIdx = 0; }
+    yOffsets.set(age, offsetIdx % 2 === 1 ? 28 : 0);
+    lastAge = age;
+  }
+
   return (
     <>
-      <ReferenceLine x={retAge} stroke="#64748b" strokeDasharray="3 3"
-        label={{ value: '退職', fill: '#64748b', fontSize: 10, position: 'insideTopRight' }} />
-      <ReferenceLine x={penAge} stroke="#3b82f6" strokeDasharray="3 3"
-        label={{ value: '年金開始', fill: '#3b82f6', fontSize: 10, position: 'insideTopRight' }} />
-      {spRetAgeMain !== null && spRetAgeMain !== retAge && (
-        <ReferenceLine x={spRetAgeMain} stroke="#94a3b8" strokeDasharray="2 2"
-          label={{ value: '配偶者退職', fill: '#94a3b8', fontSize: 10, position: 'insideTopRight' }} />
-      )}
-      {spPenAgeMain !== null && spPenAgeMain !== penAge && (
-        <ReferenceLine x={spPenAgeMain} stroke="#93c5fd" strokeDasharray="2 2"
-          label={{ value: '配偶者年金', fill: '#93c5fd', fontSize: 10, position: 'insideTopRight' }} />
-      )}
+      {sortedAges.map(age => {
+        const { labels, stroke, strokeDasharray } = grouped.get(age)!;
+        const combinedLabel = labels.join(' / ');
+        const yOff = yOffsets.get(age) ?? 0;
+        return (
+          <ReferenceLine
+            key={age}
+            x={age}
+            stroke={stroke}
+            strokeDasharray={strokeDasharray}
+            label={{
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              content: ({ viewBox }: any) => {
+                const vx = viewBox?.x ?? 0;
+                const vy = (viewBox?.y ?? 0) + 14 + yOff;
+                const parts = combinedLabel.split(' / ');
+                return (
+                  <text x={vx + 4} fill={stroke} fontSize={10} textAnchor="start">
+                    {parts.map((part, i) => (
+                      <tspan key={i} x={vx + 4} dy={i === 0 ? vy - (viewBox?.y ?? 0) : 12}>
+                        {part}
+                      </tspan>
+                    ))}
+                  </text>
+                );
+              },
+            }}
+          />
+        );
+      })}
     </>
   );
 }
@@ -99,8 +145,9 @@ export default function AssetChart({
   const { inflR, curAge, retAge, penAge } = simP;
 
   const sp = simP.spouse;
-  const spRetAgeMain = sp ? spouseAgeToMain(curAge, sp.spCurAge, sp.retAge) : null;
-  const spPenAgeMain = sp ? spouseAgeToMain(curAge, sp.spCurAge, sp.penAge) : null;
+  const spEffCurAge = sp ? (sp.spCurAge || curAge) : curAge;
+  const spRetAgeMain = sp ? spouseAgeToMain(curAge, spEffCurAge, sp.retAge) : null;
+  const spPenAgeMain = sp ? spouseAgeToMain(curAge, spEffCurAge, sp.penAge) : null;
   const eventProps = { retAge, penAge, spRetAgeMain, spPenAgeMain };
 
   const baseStrategy = activeStrategies[0] ?? 'proportional';
@@ -131,7 +178,7 @@ export default function AssetChart({
               <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
               <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
               <EventLines {...eventProps} />
               <FireLines />
               <Area dataKey="p90" fill="#bfdbfe" stroke="#93c5fd" name="p90" fillOpacity={0.4} />
@@ -147,7 +194,11 @@ export default function AssetChart({
   // ── 口座内訳タブ ─────────────────────────────────────────
   if (tab === 'breakdown') {
     const data = baseSnaps.map(s => ({
-      age: s.age, NISA: s.nisa, iDeCo: s.ideco, 特定: s.tax, 現金: s.cash,
+      age: s.age,
+      NISA:  s.nisa  + (s.spNisa  ?? 0),
+      iDeCo: s.ideco + (s.spIdeco ?? 0),
+      特定:  s.tax   + (s.spTax   ?? 0),
+      現金:  s.cash  + (s.spCash  ?? 0),
     }));
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -161,12 +212,12 @@ export default function AssetChart({
             <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
             <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
             <EventLines {...eventProps} />
-            <Bar dataKey="NISA"  stackId="a" fill="#22c55e" />
-            <Bar dataKey="iDeCo" stackId="a" fill="#3b82f6" />
-            <Bar dataKey="特定"  stackId="a" fill="#f97316" />
-            <Bar dataKey="現金"  stackId="a" fill="#94a3b8" />
+            <Bar dataKey="NISA"  stackId="a" fill="#1D9E75" />
+            <Bar dataKey="iDeCo" stackId="a" fill="#0C447C" />
+            <Bar dataKey="特定"  stackId="a" fill="#378ADD" />
+            <Bar dataKey="現金"  stackId="a" fill="#888780" />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -217,7 +268,7 @@ export default function AssetChart({
             <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
             <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
             <EventLines {...eventProps} />
             <FireLines />
             {visibleScenarios.map((sc, idx) => (
@@ -233,10 +284,6 @@ export default function AssetChart({
   }
 
   // ── 戦略比較モード（デフォルト）────────────────────────────
-  // 戦略が1つのとき → "現在の編集内容"（青実線）
-  // 戦略が複数のとき → 各戦略名（先頭=青実線、以降=薄い色）
-  const singleMode = activeStrategies.length === 1;
-
   const data = baseSnaps
     .filter(s => s.age >= curAge)
     .map(s => {
@@ -244,10 +291,10 @@ export default function AssetChart({
       const row: Record<string, number> = { age: s.age };
       addFireLines(row, s);
       if (showRealValue && inflR > 0) {
-        row['実質値（インフレ調整）'] = Math.round(s.totalAssets / inflM);
+        row['実質値'] = Math.round(s.totalAssets / inflM);
       }
       for (const st of activeStrategies) {
-        const label = singleMode ? '現在の編集内容' : (STRATEGY_LABELS[st] ?? st);
+        const label = STRATEGY_LABELS[st] ?? st;
         row[label] = snaps[st]?.find(r => r.age === s.age)?.totalAssets ?? 0;
       }
       return row;
@@ -278,15 +325,15 @@ export default function AssetChart({
           <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
           <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
           <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-          <Legend />
+          <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
           <EventLines {...eventProps} />
           <FireLines />
           {showRealValue && inflR > 0 && (
-            <Line dataKey="実質値（インフレ調整）" stroke="#8b5cf6"
+            <Line dataKey="実質値" stroke="#8b5cf6"
               strokeWidth={1.5} strokeDasharray="2 2" dot={false} />
           )}
           {activeStrategies.map((st, idx) => {
-            const label = singleMode ? '現在の編集内容' : (STRATEGY_LABELS[st] ?? st);
+            const label = STRATEGY_LABELS[st] ?? st;
             const isPrimary = idx === 0;
             return (
               <Line key={st} dataKey={label}

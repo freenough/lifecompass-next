@@ -7,13 +7,8 @@ import type { LifeEvent } from '@/lib/types';
 
 const CASHFLOW_EXPENSE_TYPES = new Set(['education', 'care', 'renovation', 'mortgage', 'other_exp']);
 
-function calcAnnualSurplus(
-  baseInc: number, spInc: number, spRetAge: number, spCurAge: number,
-  baseExp: number, curAge: number, events: LifeEvent[]
-): number {
-  const spActive = spCurAge < spRetAge;
-  const income = baseInc + (spActive ? spInc : 0);
-  const evTotal = events
+function calcAnnualEventExpense(events: LifeEvent[], curAge: number): number {
+  return events
     .filter(ev =>
       ev.category === 'expense' &&
       CASHFLOW_EXPENSE_TYPES.has(ev.subtype) &&
@@ -21,6 +16,15 @@ function calcAnnualSurplus(
       curAge < ev.age + ev.years
     )
     .reduce((s, ev) => s + (ev.amount ?? 0), 0);
+}
+
+function calcAnnualSurplus(
+  baseInc: number, spInc: number, spRetAge: number, spCurAge: number,
+  baseExp: number, curAge: number, events: LifeEvent[]
+): number {
+  const spActive = spCurAge < spRetAge;
+  const income = baseInc + (spActive ? spInc : 0);
+  const evTotal = calcAnnualEventExpense(events, curAge);
   return Math.round(income - baseExp - evTotal);
 }
 
@@ -45,14 +49,19 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
           id={id}
           type="number"
           value={value}
-          onChange={e => onChange(parseFloat(e.target.value) || 0)}
+          onChange={e => {
+            const raw = e.target.value.replace(/^0+(\d)/, '$1');
+            const num = parseFloat(raw);
+            onChange(isNaN(num) ? 0 : num);
+          }}
+          onFocus={e => e.target.select()}
           min={min}
           max={max}
           step={step}
           disabled={disabled}
           className="w-24 rounded border border-slate-300 px-2 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
         />
-        {suffix && <span className="text-xs text-slate-500">{suffix}</span>}
+        {suffix && <span className="text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
       </div>
     </div>
   );
@@ -80,16 +89,33 @@ function Section({ title, children, defaultOpen = true }: SectionProps) {
   );
 }
 
+function SubSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-1 -mx-4 border-y border-slate-100 bg-slate-50">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex w-full items-center justify-between px-4 py-2 text-xs text-slate-500 hover:text-slate-700"
+      >
+        {title}
+        <span>▼</span>
+      </button>
+      {open && <div className="flex flex-col gap-2 px-4 pb-3">{children}</div>}
+    </div>
+  );
+}
+
 export default function SimulatorForm() {
   const { profile, updateProfile, loadProfile } = useSimulatorStore();
   const p = profile.params;
   const up = (patch: Partial<typeof p>) => updateProfile(patch);
   const sameRate = profile.portfolio.retirement.sameAsWorking;
+  const annualEvExp = calcAnnualEventExpense(profile.events, p.curAge);
   const annualCF = calcAnnualSurplus(
     p.baseInc, p.spInc, p.spRetAge, p.spCurAge, p.baseExp, p.curAge, profile.events
   );
-
-  const [spouseOn, setSpouseOn] = useState(p.spInc > 0 || p.spPenAmt > 0);
+  const totalBal = p.bNisa + p.bIdeco + p.bTax + p.bCash +
+    (p.spNisaBal ?? 0) + (p.spIdecoBal ?? 0) + (p.spTaxBal ?? 0) + (p.spCashBal ?? 0);
 
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 text-sm">
@@ -115,10 +141,26 @@ export default function SimulatorForm() {
             <span className={`w-24 rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 ${annualCF >= 0 ? 'text-green-700' : 'text-red-600'}`}>
               {annualCF >= 0 ? '+' : ''}{annualCF.toLocaleString()}
             </span>
-            <span className="text-xs text-slate-500">万円/年</span>
+            <span className="text-xs text-slate-500 whitespace-nowrap">万円/年</span>
           </div>
         </div>
         <p className="text-[10px] text-slate-400 -mt-1 pl-[9.5rem]">収入 − 生活費 − イベント支出</p>
+        <div className="flex items-center gap-2">
+          <span className="w-36 shrink-0 text-xs text-slate-600">実質年間支出</span>
+          <div className="flex items-center gap-1">
+            <span className="w-24 rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 text-slate-700">
+              {(p.baseExp + annualEvExp).toLocaleString()}
+            </span>
+            <span className="text-xs text-slate-500 whitespace-nowrap">万円/年</span>
+          </div>
+        </div>
+        {annualEvExp > 0 && (
+          <p className="text-[10px] text-slate-400 -mt-1 pl-[9.5rem]">生活費{p.baseExp}万 + イベント{annualEvExp}万</p>
+        )}
+        <SubSection title="配偶者の基本情報">
+          <Field label="現在年齢" id="spCurAge" value={p.spCurAge} onChange={v => up({ spCurAge: v })} min={20} suffix="歳" />
+          <Field label="年間収入" id="spInc"    value={p.spInc}    onChange={v => up({ spInc: v })}    min={0}  suffix="万円/年" />
+        </SubSection>
       </Section>
 
       <Section title="口座残高・積立">
@@ -132,6 +174,27 @@ export default function SimulatorForm() {
         <Field label="特定口座積立"   id="cTax"    value={p.cTax}    onChange={v => up({ cTax: v })}    min={0} suffix="万円/年" />
         <Field label="特定口座積立終了" id="cTaxTo" value={p.cTaxTo} onChange={v => up({ cTaxTo: v })} min={p.curAge} max={100} step={0.1} suffix="歳" />
         <Field label="現金残高"       id="bCash"   value={p.bCash}   onChange={v => up({ bCash: v })}   min={0} suffix="万円" />
+        <SubSection title="配偶者の口座情報">
+          <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} suffix="万円" />
+          <Field label="NISA積立"          id="spNisaCon"   value={p.spNisaCon  ?? 0} onChange={v => up({ spNisaCon: v })}  min={0} suffix="万円/年" />
+          <Field label="NISA積立終了"      id="spNisaTo"    value={p.spNisaTo   ?? (p.spRetAge || 60)} onChange={v => up({ spNisaTo: v })}  min={20} max={100} suffix="歳" />
+          <Field label="iDeCo残高"         id="spIdecoBal"  value={p.spIdecoBal ?? 0} onChange={v => up({ spIdecoBal: v })} min={0} suffix="万円" />
+          <Field label="iDeCo積立"         id="spIdecoCon"  value={p.spIdecoCon ?? 0} onChange={v => up({ spIdecoCon: v })} min={0} suffix="万円/年" />
+          <Field label="iDeCo積立終了"     id="spIdecoTo"   value={p.spIdecoTo  ?? (p.spRetAge || 60)} onChange={v => up({ spIdecoTo: v })}  min={20} max={60}  suffix="歳" />
+          <Field label="特定口座残高"      id="spTaxBal"    value={p.spTaxBal   ?? 0} onChange={v => up({ spTaxBal: v })}  min={0} suffix="万円" />
+          <Field label="特定口座積立"      id="spTaxCon"    value={p.spTaxCon   ?? 0} onChange={v => up({ spTaxCon: v })}  min={0} suffix="万円/年" />
+          <Field label="特定口座積立終了"  id="spTaxTo"     value={p.spTaxTo    ?? (p.spRetAge || 60)} onChange={v => up({ spTaxTo: v })}   min={20} max={100} suffix="歳" />
+          <Field label="現金残高"          id="spCashBal"   value={p.spCashBal  ?? 0} onChange={v => up({ spCashBal: v })} min={0} suffix="万円" />
+        </SubSection>
+        <div className="flex items-center gap-2 pt-1 mt-1 border-t border-slate-100">
+          <span className="w-36 shrink-0 text-xs font-medium text-slate-600">総資産合計</span>
+          <div className="flex items-center gap-1">
+            <span className="w-24 rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 text-slate-700 font-medium">
+              {totalBal.toLocaleString()}
+            </span>
+            <span className="text-xs text-slate-500">万円</span>
+          </div>
+        </div>
       </Section>
 
       <Section title="退職・年金">
@@ -156,6 +219,26 @@ export default function SimulatorForm() {
           <Field label="年金受取年数" id="idecoReceiveYears" value={p.idecoReceiveYears} onChange={v => up({ idecoReceiveYears: v })} min={1} max={20} suffix="年" />
         )}
         <Field label="iDeCo受取開始" id="idecoStartAge" value={p.idecoStartAge} onChange={v => up({ idecoStartAge: v })} min={60} max={75} suffix="歳" />
+        <SubSection title="配偶者の退職・年金">
+          <Field label="退職年齢"   id="spRetAge" value={p.spRetAge} onChange={v => up({ spRetAge: v })} min={20} suffix="歳" />
+          <Field label="年金受給開始" id="spPenAge" value={p.spPenAge} onChange={v => up({ spPenAge: v })} min={60} suffix="歳" />
+          <Field label="年金額"     id="spPenAmt" value={p.spPenAmt} onChange={v => up({ spPenAmt: v })} min={0}  suffix="万円/年" />
+          <Field label="勤続年数(退職金控除)" id="spSevYrs" value={p.spSevYrs ?? 0} onChange={v => up({ spSevYrs: v })} min={1} max={45} suffix="年" />
+          <Field label="iDeCo加入年数" id="spIdecoYrs" value={p.spIdecoYrs ?? 0} onChange={v => up({ spIdecoYrs: v })} min={1} max={40} suffix="年" />
+          <div className="flex items-center gap-2 mt-1">
+            <label htmlFor="spIdecoReceiveType" className="w-36 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
+            <select
+              id="spIdecoReceiveType"
+              value={p.spIdecoReceiveType ?? 'lump'}
+              onChange={e => up({ spIdecoReceiveType: e.target.value as 'lump' | 'pension' })}
+              className="rounded border border-slate-300 px-2 py-1 text-sm"
+            >
+              <option value="lump">一括受取</option>
+              <option value="pension">年金受取</option>
+            </select>
+          </div>
+          <Field label="iDeCo受取開始" id="spIdecoStartAge" value={p.spIdecoStartAge ?? 60} onChange={v => up({ spIdecoStartAge: v })} min={60} max={75} suffix="歳" />
+        </SubSection>
       </Section>
 
       <Section title="利回り設定" defaultOpen={false}>
@@ -193,21 +276,6 @@ export default function SimulatorForm() {
         <Field label="取崩期 標準偏差" id="mcStdR" value={p.mcStdR} onChange={v => up({ mcStdR: v })} min={0} max={50} step={1} suffix="%" />
       </Section>
 
-      <Section title="配偶者" defaultOpen={spouseOn}>
-        <div className="flex items-center gap-2">
-          <input id="spouseOn" type="checkbox" checked={spouseOn} onChange={e => setSpouseOn(e.target.checked)} className="rounded" />
-          <label htmlFor="spouseOn" className="text-xs text-slate-600">配偶者あり</label>
-        </div>
-        {spouseOn && (
-          <>
-            <Field label="配偶者現在年齢" id="spCurAge"  value={p.spCurAge}  onChange={v => up({ spCurAge: v })}  min={20} suffix="歳" />
-            <Field label="配偶者収入"     id="spInc"     value={p.spInc}     onChange={v => up({ spInc: v })}     min={0} suffix="万円/年" />
-            <Field label="配偶者退職年齢" id="spRetAge"  value={p.spRetAge}  onChange={v => up({ spRetAge: v })}  min={20} suffix="歳" />
-            <Field label="配偶者年金開始" id="spPenAge"  value={p.spPenAge}  onChange={v => up({ spPenAge: v })}  min={60} suffix="歳" />
-            <Field label="配偶者年金"     id="spPenAmt"  value={p.spPenAmt}  onChange={v => up({ spPenAmt: v })}  min={0} suffix="万円/年" />
-          </>
-        )}
-      </Section>
     </div>
   );
 }

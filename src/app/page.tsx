@@ -1,5 +1,243 @@
-import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import {
+  IconChartBar,
+  IconBuildingBank,
+  IconLock,
+  IconUser,
+  IconUsers,
+  IconBriefcase,
+  IconCode,
+  IconPencil,
+  IconPlayerPlay,
+  IconChartLine,
+} from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
+
+const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
+
+const features: { title: string; body: string; Icon: Icon }[] = [
+  {
+    title: 'モンテカルロ対応',
+    body: '平均値ではなく「1,000通りの市場変動」で破綻確率を計算',
+    Icon: IconChartBar,
+  },
+  {
+    title: '日本制度に完全対応',
+    body: 'NISA・iDeCo・退職金・年金を一体で計算',
+    Icon: IconBuildingBank,
+  },
+  {
+    title: 'データは端末の外に出ない',
+    body: '入力した資産情報はサーバーに送信されません',
+    Icon: IconLock,
+  },
+];
+
+const characters: { name: string; sub: string; worry: string; label: string; Icon: Icon; href?: string }[] = [
+  {
+    name: '田中さん',
+    sub: '42歳・既婚（サラリーマン）',
+    worry: 'NISAもiDeCoも続けてきた。でもゴールが見えない',
+    label: '貯めてきた。でも、いつ辞められる？',
+    Icon: IconUser,
+    href: 'https://note.com/freenough/m/m2d3fea55a06e',
+  },
+  {
+    name: '山本さん',
+    sub: '34歳・独身エンジニア',
+    worry: '積立額を増やしても、開始年齢が本当のボトルネックだった',
+    label: 'FIRE達成は、いつ始めるかで決まる。',
+    Icon: IconCode,
+    href: 'https://note.com/freenough/m/m426fdd7bec8c',
+  },
+  {
+    name: '中村夫婦',
+    sub: '共働き',
+    worry: '収入は高いのに、いつ辞められるか見えない',
+    label: '教育費とFIREを両立したい。',
+    Icon: IconUsers,
+  },
+  {
+    name: '佐々木さん',
+    sub: '53歳',
+    worry: '退職金・年金・NISAをまとめて計算したい',
+    label: '早期退職しても大丈夫？',
+    Icon: IconBriefcase,
+  },
+];
+
+const steps: { step: string; label: string; Icon: Icon }[] = [
+  { step: 'Step 1', label: '資産・収入を入力', Icon: IconPencil },
+  { step: 'Step 2', label: 'シミュレーション実行', Icon: IconPlayerPlay },
+  { step: 'Step 3', label: 'FIRE年齢・資産寿命を確認', Icon: IconChartLine },
+];
 
 export default function HomePage() {
-  redirect('/simulator');
+  return (
+    <div className="flex flex-col">
+
+      {/* ① Hero — 2カラム */}
+      <section className="mx-auto max-w-5xl w-full px-6 py-16">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-8">
+
+          {/* 左カラム：テキスト */}
+          <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl">
+              あなたのFIREは、<br />
+              何歳？
+            </h1>
+            {/* ライブデモ（モバイルのみ・見出しの直下） */}
+            <div className="sm:hidden mt-6 w-full">
+              <HeroDemo />
+            </div>
+            <p className="mt-10 text-base text-slate-500 leading-relaxed text-balance sm:text-lg">
+              未来の選択肢を、自分の数字で確かめる。
+            </p>
+            <p className="mt-2 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
+              1,000通りの市場変動で、破綻確率まで計算します。
+            </p>
+            <Link
+              href="/simulator"
+              className="mt-12 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
+              style={{ backgroundColor: '#334155' }}
+            >
+              今すぐシミュレーションする →
+            </Link>
+            <p className="mt-4 text-sm text-slate-400">無料・登録不要・データは端末内に保存</p>
+          </div>
+
+          {/* 右カラム：ライブデモ（デスクトップのみ） */}
+          <div className="hidden sm:flex sm:w-[460px] sm:shrink-0 sm:self-stretch">
+            <HeroDemo />
+          </div>
+
+        </div>
+      </section>
+
+      {/* ③ 差別化（3カラム） */}
+      <section className="mx-auto max-w-5xl px-6 py-12 w-full">
+        <div className="grid gap-8 sm:grid-cols-3">
+          {features.map((f) => (
+            <div key={f.title} className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+              <f.Icon size={32} className="text-slate-600 mb-3" />
+              <h3 className="text-base font-semibold text-slate-900">{f.title}</h3>
+              <p className="mt-2 text-sm text-slate-500 leading-relaxed">{f.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* AD_SLOT_A: 差別化〜キャラクター間 */}
+      {/* <AdSlot slotId="slot-a" className="mx-auto max-w-5xl px-6" /> */}
+
+      {/* ④ あなたはどのタイプ？ */}
+      <section className="bg-slate-50 py-12">
+        <div className="mx-auto max-w-5xl px-6">
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
+            あなたはどのタイプ？
+          </h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {characters.map((c) => {
+              const cardInner = (
+                <>
+                  <div className="flex items-start justify-between">
+                    <c.Icon size={32} className="text-slate-600" />
+                    {c.href ? (
+                      <span
+                        className="text-[10px] font-semibold text-white rounded-full px-2 py-0.5 shrink-0"
+                        style={{ backgroundColor: '#334155' }}
+                      >
+                        公開中
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 rounded-full px-2 py-0.5 shrink-0">
+                        近日公開
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-base font-semibold text-slate-900">{c.name}</span>
+                    <span className="text-sm text-slate-400">{c.sub}</span>
+                  </div>
+                  <p className="text-sm text-slate-600">{c.label}</p>
+                  <p className="text-sm text-slate-400 before:content-['「'] after:content-['」']">
+                    {c.worry}
+                  </p>
+                </>
+              );
+
+              return c.href ? (
+                <a
+                  key={c.name}
+                  href={c.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-slate-300 transition-all"
+                >
+                  {cardInner}
+                </a>
+              ) : (
+                <div
+                  key={c.name}
+                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 cursor-default"
+                >
+                  {cardInner}
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-10 text-center">
+            <a
+              href="https://note.com/freenough"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors"
+              style={{ backgroundColor: '#334155' }}
+            >
+              → それぞれのシミュレーション結果をnoteで読む
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ⑤ 使い方（3ステップ） */}
+      <section className="mx-auto max-w-4xl px-6 py-20 w-full">
+        <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
+        <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
+          {steps.map((s) => (
+            <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
+              <s.Icon size={32} className="text-slate-600 mb-2" />
+              <span className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
+                {s.step}
+              </span>
+              <span className="mt-1 text-base font-semibold text-slate-900 whitespace-nowrap">{s.label}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* ⑥ CTA */}
+      <section className="bg-slate-50 py-20">
+        <div className="mx-auto max-w-xl px-6 text-center">
+          <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
+            まず、自分の数字を入れてみる。
+          </h2>
+          <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
+          <Link
+            href="/simulator"
+            className="mt-8 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
+            style={{ backgroundColor: '#334155' }}
+          >
+            シミュレーターを開く →
+          </Link>
+          <p className="mt-4 text-sm text-slate-400">無料・登録不要</p>
+        </div>
+      </section>
+
+      {/* AD_SLOT_B: CTA下 */}
+      {/* <AdSlot slotId="slot-b" className="mx-auto max-w-5xl px-6 py-4" /> */}
+
+    </div>
+  );
 }

@@ -2,82 +2,67 @@
 
 import { useState } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
-import { ASSET_CLASSES, calcMu, calcPortfolioMetrics } from '@/lib/profile';
+import { ASSET_CLASSES, calcMu, calcAggregatedSigma } from '@/lib/profile';
 import type { AssetRow } from '@/lib/profile';
 
 type Phase = 'current' | 'working' | 'retirement';
 type Acct  = 'nisa' | 'ideco' | 'tax';
+type SpAcct = 'spNisa' | 'spIdeco' | 'spTax';
 
 const ACCT_LABELS: Record<Acct, string> = { nisa: 'NISA', ideco: 'iDeCo', tax: '特定口座' };
 
-/**
- * 複数口座のrows + 口座残高から、残高加重で正しいグローバルσを計算する（表示用）。
- * simulatorStore.tsのcalcAggregatedSigmaと同等ロジック。
- */
-function calcAggregatedSigma(acctRows: AssetRow[][], acctBals: number[]): number {
-  const total = acctBals.reduce((s, b) => s + b, 0);
-  const weights = total > 0
-    ? acctBals.map(b => b / total)
-    : acctBals.map(() => 1 / acctBals.length);
-
-  const map: Record<string, number> = {};
-  let hasAnyRow = false;
-  for (let i = 0; i < acctRows.length; i++) {
-    const rows = acctRows[i];
-    const w = weights[i];
-    if (w === 0) continue;
-    for (const row of rows) {
-      if (!row.assetClass || !(row.pct > 0)) continue;
-      map[row.assetClass] = (map[row.assetClass] ?? 0) + (row.pct / 100) * w;
-      hasAnyRow = true;
-    }
-  }
-  if (!hasAnyRow) return 0;
-
-  const aggWeights: AssetRow[] = Object.entries(map).map(([assetClass, frac]) => ({
-    assetClass,
-    pct: frac * 100,
-  }));
-  return calcPortfolioMetrics(aggWeights).sigma;
-}
+const SP_ACCT: Record<Acct, SpAcct> = {
+  nisa:  'spNisa',
+  ideco: 'spIdeco',
+  tax:   'spTax',
+};
 
 interface AssetCardProps {
   phase: Phase;
   acct: Acct;
   rows: AssetRow[];
+  spRows?: AssetRow[];
   autoFieldId?: string;
   autoVal?: number;
   isManual?: boolean;
 }
 
-function AssetCard({ phase, acct, rows, autoFieldId, autoVal, isManual }: AssetCardProps) {
-  const { updatePortfolio, profile, updateProfile } = useSimulatorStore();
+function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }: AssetCardProps) {
+  const { updatePortfolio, updateSpousePortfolio, profile, updateProfile } = useSimulatorStore();
+  const [spOpen, setSpOpen] = useState(false);
   const isCurrent = phase === 'current';
 
+  // ── main rows ────────────────────────────────────────────────
   const update = (newRows: AssetRow[]) => updatePortfolio(phase, acct, newRows);
 
-  const setClass = (i: number, val: string) =>
+  const setClass  = (i: number, val: string) =>
     update(rows.map((r, idx) => idx === i ? { ...r, assetClass: val } : r));
-
-  const setPct = (i: number, val: number) =>
-    update(rows.map((r, idx) => idx === i ? { ...r, pct: val } : r));
-
   const setAmount = (i: number, val: number) =>
     update(rows.map((r, idx) => idx === i ? { ...r, amount: val } : r));
-
+  const setPct    = (i: number, val: number) =>
+    update(rows.map((r, idx) => idx === i ? { ...r, pct: val } : r));
   const addRow = () => update([...rows, isCurrent
     ? { assetClass: '全世界株', pct: 0, amount: 0 }
     : { assetClass: '全世界株', pct: 0 }
   ]);
-
   const delRow = (i: number) => update(rows.filter((_, idx) => idx !== i));
 
-  const mu = calcMu(rows);
+  // ── spouse rows ──────────────────────────────────────────────
+  const sp = spRows ?? [];
+  const updateSp = (newRows: AssetRow[]) => updateSpousePortfolio(SP_ACCT[acct], newRows);
 
-  // 現在PFの合計金額
-  const totalAmount = isCurrent
-    ? rows.reduce((s, r) => s + (r.amount ?? 0), 0)
-    : 0;
+  const setSpClass  = (i: number, val: string) =>
+    updateSp(sp.map((r, idx) => idx === i ? { ...r, assetClass: val } : r));
+  const setSpAmount = (i: number, val: number) =>
+    updateSp(sp.map((r, idx) => idx === i ? { ...r, amount: val } : r));
+  const addSpRow = () => updateSp([...sp, { assetClass: '全世界株', pct: 0, amount: 0 }]);
+  const delSpRow = (i: number) => updateSp(sp.filter((_, idx) => idx !== i));
+
+  // ── derived values ───────────────────────────────────────────
+  const mu = calcMu(rows);
+  const mainTotal = isCurrent ? rows.reduce((s, r) => s + (r.amount ?? 0), 0) : 0;
+  const spTotal   = isCurrent ? sp.reduce((s, r) => s + (r.amount ?? 0), 0) : 0;
+  const totalAmount = mainTotal + spTotal;
 
   const handleManualEdit = (fieldId: string, val: number) => {
     const flags = { ...profile.params.pfManualFlags, [fieldId]: true };
@@ -91,6 +76,7 @@ function AssetCard({ phase, acct, rows, autoFieldId, autoVal, isManual }: AssetC
 
   return (
     <div className="rounded-lg border border-slate-200 p-3 flex flex-col gap-2">
+      {/* header */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-600">{ACCT_LABELS[acct]}</span>
         {isCurrent
@@ -99,6 +85,7 @@ function AssetCard({ phase, acct, rows, autoFieldId, autoVal, isManual }: AssetC
         }
       </div>
 
+      {/* main rows */}
       {rows.map((row, i) => (
         <div key={i} className="flex gap-1 items-center">
           <select
@@ -115,9 +102,9 @@ function AssetCard({ phase, acct, rows, autoFieldId, autoVal, isManual }: AssetC
               <input
                 type="number"
                 value={row.amount ?? 0}
-                onChange={e => setAmount(i, parseFloat(e.target.value) || 0)}
+                onFocus={e => e.target.select()} onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); setAmount(i, isNaN(n) ? 0 : n); }}
                 min={0}
-                className="w-20 text-xs border border-slate-300 rounded px-1 py-1 text-right"
+                className="w-16 text-xs border border-slate-300 rounded px-1 py-1 text-right"
               />
               <span className="text-xs text-slate-400">万円</span>
             </>
@@ -126,7 +113,7 @@ function AssetCard({ phase, acct, rows, autoFieldId, autoVal, isManual }: AssetC
               <input
                 type="number"
                 value={row.pct}
-                onChange={e => setPct(i, parseFloat(e.target.value) || 0)}
+                onFocus={e => e.target.select()} onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); setPct(i, isNaN(n) ? 0 : n); }}
                 min={0}
                 max={100}
                 className="w-14 text-xs border border-slate-300 rounded px-1 py-1 text-right"
@@ -147,6 +134,53 @@ function AssetCard({ phase, acct, rows, autoFieldId, autoVal, isManual }: AssetC
         + 追加
       </button>
 
+      {/* spouse collapsible — current phase only */}
+      {isCurrent && (
+        <div className="-mx-3 border-t border-slate-100 bg-slate-50">
+          <button
+            onClick={() => setSpOpen(o => !o)}
+            className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-slate-500 hover:text-slate-700"
+          >
+            <span>配偶者の{ACCT_LABELS[acct]}</span>
+            <span>{spOpen ? '▲' : '▼'}</span>
+          </button>
+          {spOpen && (
+            <div className="flex flex-col gap-2 px-3 pb-3">
+              {sp.map((row, i) => (
+                <div key={i} className="flex gap-1 items-center">
+                  <select
+                    value={row.assetClass}
+                    onChange={e => setSpClass(i, e.target.value)}
+                    className="flex-1 text-xs border border-slate-300 rounded px-1 py-1"
+                  >
+                    {ASSET_CLASSES.map(a => (
+                      <option key={a.key} value={a.key}>{a.key}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    value={row.amount ?? 0}
+                    onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); setSpAmount(i, isNaN(n) ? 0 : n); }}
+                    onFocus={e => e.target.select()}
+                    min={0}
+                    className="w-16 text-xs border border-slate-300 rounded px-1 py-1 text-right"
+                  />
+                  <span className="text-xs text-slate-400">万円</span>
+                  <button onClick={() => delSpRow(i)} className="text-red-400 hover:text-red-600 text-xs px-1">×</button>
+                </div>
+              ))}
+              <button
+                onClick={addSpRow}
+                className="text-xs text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded py-1"
+              >
+                + 追加
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* auto rate block — working / retirement phases only */}
       {autoFieldId && autoVal !== undefined && (
         <div className="flex items-center gap-1 mt-1 pt-1 border-t border-slate-100">
           <span className={`text-[10px] rounded px-1.5 py-0.5 ${isManual ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -156,7 +190,7 @@ function AssetCard({ phase, acct, rows, autoFieldId, autoVal, isManual }: AssetC
           <input
             type="number"
             value={profile.params[autoFieldId as keyof typeof profile.params] as number}
-            onChange={e => handleManualEdit(autoFieldId, parseFloat(e.target.value) || 0)}
+            onFocus={e => e.target.select()} onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); handleManualEdit(autoFieldId, isNaN(n) ? 0 : n); }}
             step={0.1}
             className="w-16 text-xs border border-slate-300 rounded px-1 py-0.5 text-right"
           />
@@ -177,10 +211,10 @@ interface SectionProps {
   badge: string;
   badgeColor: string;
   children: React.ReactNode;
-  action?: React.ReactNode;
+  subAction?: React.ReactNode;
 }
 
-function Section({ label, badge, badgeColor, children, action }: SectionProps) {
+function Section({ label, badge, badgeColor, children, subAction }: SectionProps) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-slate-100 last:border-0">
@@ -191,10 +225,17 @@ function Section({ label, badge, badgeColor, children, action }: SectionProps) {
         >
           <span className={`text-[10px] font-semibold rounded px-2 py-0.5 ${badgeColor}`}>{badge}</span>
           <span className="text-xs font-medium text-slate-700 flex-1">{label}</span>
-          <span className="text-slate-400 text-xs">{open ? '▲' : '▼'}</span>
         </button>
-        {action && <div onClick={e => e.stopPropagation()}>{action}</div>}
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="py-2 px-1 text-slate-400 text-xs hover:bg-slate-50 rounded shrink-0"
+        >
+          {open ? '▲' : '▼'}
+        </button>
       </div>
+      {open && subAction && (
+        <div className="px-1 pb-1">{subAction}</div>
+      )}
       {open && <div className="flex flex-col gap-3 pb-3 px-1">{children}</div>}
     </div>
   );
@@ -215,11 +256,11 @@ export default function PortfolioPanel() {
   const bIdeco = totalCurBal > 0 ? bIdecoCur : p.bIdeco;
   const bTax   = totalCurBal > 0 ? bTaxCur   : p.bTax;
 
-  // σ表示: 残高加重集計（修正済み）
+  // σ表示: 残高加重集計
   const sigmaW = calcAggregatedSigma(
     [pf.working.nisa, pf.working.ideco, pf.working.tax],
     [bNisa, bIdeco, bTax],
-  );
+  ) ?? 0;
 
   const retNisaRows  = pf.retirement.sameAsWorking ? pf.working.nisa  : pf.retirement.nisa;
   const retIdecoRows = pf.retirement.sameAsWorking ? pf.working.ideco : pf.retirement.ideco;
@@ -227,7 +268,7 @@ export default function PortfolioPanel() {
   const sigmaR = calcAggregatedSigma(
     [retNisaRows, retIdecoRows, retTaxRows],
     [bNisa, bIdeco, bTax],
-  );
+  ) ?? 0;
 
   // μ表示: 残高加重平均
   const totalBal = bNisa + bIdeco + bTax;
@@ -245,17 +286,17 @@ export default function PortfolioPanel() {
     <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col gap-1">
       <h2 className="text-sm font-bold text-slate-800 mb-2">ポートフォリオ</h2>
 
-      <Section label="現在のPF（任意・分析用）" badge="① 現在" badgeColor="bg-slate-100 text-slate-600">
-        <AssetCard phase="current" acct="nisa"  rows={pf.current.nisa}  />
-        <AssetCard phase="current" acct="ideco" rows={pf.current.ideco} />
-        <AssetCard phase="current" acct="tax"   rows={pf.current.tax}   />
+      <Section label="現在のPF" badge="① 現在" badgeColor="bg-slate-100 text-slate-600">
+        <AssetCard phase="current" acct="nisa"  rows={pf.current.nisa}  spRows={pf.current.spNisa  ?? []} />
+        <AssetCard phase="current" acct="ideco" rows={pf.current.ideco} spRows={pf.current.spIdeco ?? []} />
+        <AssetCard phase="current" acct="tax"   rows={pf.current.tax}   spRows={pf.current.spTax   ?? []} />
       </Section>
 
       <Section
-        label="シミュレーションPF（積立期）"
+        label="シミュレーションPF"
         badge="② 積立期"
         badgeColor="bg-blue-100 text-blue-700"
-        action={
+        subAction={
           <button
             onClick={copyCurrentToWorking}
             className="text-[10px] border border-slate-300 rounded-full px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
@@ -283,7 +324,7 @@ export default function PortfolioPanel() {
         </div>
       </Section>
 
-      <Section label="シミュレーションPF（取崩期）" badge="③ 取崩期" badgeColor="bg-green-100 text-green-700">
+      <Section label="シミュレーションPF" badge="③ 取崩期" badgeColor="bg-green-100 text-green-700">
         <div className="flex items-center gap-2 mb-1">
           <input
             id="sameAsWorking"

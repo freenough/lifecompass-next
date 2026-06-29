@@ -17,8 +17,10 @@ function fmt(v: number): string {
 
 // 旧HTML getIdecoDisplayBalance() と同等
 // iDeCo受取年は受取前残高を表示（受取後は0になるため）
+// 旧HTML版は単一プール: 本人＋配偶者の合算値を表示する
 function idecoDisplay(s: YearSnap): number {
-  return s.idecoBalanceBeforeWithdrawal ?? s.ideco;
+  const main = s.idecoBalanceBeforeWithdrawal ?? s.ideco;
+  return main + (s.spIdeco ?? 0);
 }
 
 function downloadCSV(snaps: YearSnap[], showFill: boolean) {
@@ -28,10 +30,10 @@ function downloadCSV(snaps: YearSnap[], showFill: boolean) {
     const base = [
       s.age,
       Math.round(s.totalAssets),
-      Math.round(s.nisa),
+      Math.round(s.nisa + (s.spNisa ?? 0)),
       Math.round(idecoDisplay(s)),
-      Math.round(s.tax),
-      Math.round(s.cash),
+      Math.round(s.tax + (s.spTax ?? 0)),
+      Math.round(s.cash + (s.spCash ?? 0)),
       Math.round(s.income + (s.severanceNet ?? 0)),
       Math.round(s.expense),
       Math.round(s.cashFlow),
@@ -86,7 +88,7 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
                   '年齢', '総資産', 'NISA', 'iDeCo', '特定', '現金', '収入', '支出', 'CF',
                   ...(showFill ? ['補填現金', '補填NISA'] : []),
                 ].map(h => (
-                  <th key={h} className="px-2 py-2 text-right text-slate-500 font-medium first:text-left">{h}</th>
+                  <th key={h} className="px-2 py-2 text-right text-slate-500 font-medium whitespace-nowrap first:text-left">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -115,10 +117,10 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
                       {label && <span className={`ml-1 text-[10px] ${isRetYear ? 'text-yellow-600' : isPenYear ? 'text-blue-600' : isIdecoYear ? 'text-green-600' : hasInc ? 'text-emerald-600' : 'text-orange-600'}`}>{label}</span>}
                     </td>
                     <td className="px-2 py-1 text-right">{fmt(s.totalAssets)}</td>
-                    <td className="px-2 py-1 text-right">{fmt(s.nisa)}</td>
+                    <td className="px-2 py-1 text-right">{fmt(s.nisa + (s.spNisa ?? 0))}</td>
                     <td className="px-2 py-1 text-right">{fmt(idecoDisplay(s))}</td>
-                    <td className="px-2 py-1 text-right">{fmt(s.tax)}</td>
-                    <td className="px-2 py-1 text-right">{fmt(s.cash)}</td>
+                    <td className="px-2 py-1 text-right">{fmt(s.tax + (s.spTax ?? 0))}</td>
+                    <td className="px-2 py-1 text-right">{fmt(s.cash + (s.spCash ?? 0))}</td>
                     <td className="px-2 py-1 text-right">{fmt(s.income + (s.severanceNet ?? 0))}</td>
                     <td className="px-2 py-1 text-right">{fmt(s.expense)}</td>
                     <td className={`px-2 py-1 text-right ${s.cashFlow < 0 ? 'text-red-600' : 'text-green-700'}`}>

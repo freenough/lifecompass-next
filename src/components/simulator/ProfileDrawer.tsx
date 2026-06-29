@@ -9,17 +9,30 @@ export default function ProfileDrawer() {
   const { profile, loadProfile } = useSimulatorStore();
   const [open, setOpen]         = useState(false);
   const [profiles, setProfiles] = useState<ProfileV3[]>([]);
+  const [saveName, setSaveName] = useState('');
   const [copied, setCopied]     = useState(false);
 
   useEffect(() => {
-    if (open) setProfiles(loadProfiles());
+    if (open) {
+      setSaveName(profile.name || '');
+      setProfiles(loadProfiles());
+    }
   }, [open]);
 
   const handleSave = () => {
-    const toSave: ProfileV3 = { ...profile, id: profile.id || Date.now() };
+    const name = saveName.trim() || '名称なし';
+    const existing = profiles.find(p => p.name === name);
+    if (existing) {
+      const confirmed = window.confirm(`「${name}」はすでに存在します。上書きしますか？`);
+      if (!confirmed) return;
+    }
+    const id = existing ? existing.id : Date.now();
+    const toSave: ProfileV3 = { ...profile, id, name };
     saveProfile(toSave);
     setProfiles(loadProfiles());
   };
+
+  const isUpdate = profiles.some(p => p.name === saveName.trim() && saveName.trim() !== '');
 
   const handleDelete = (id: number) => {
     deleteProfile(id);
@@ -81,7 +94,16 @@ export default function ProfileDrawer() {
 
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-2 mb-4">
-                <button onClick={handleSave} className="w-full rounded-lg bg-slate-800 py-2 text-sm text-white hover:bg-slate-700">現在の設定を保存</button>
+                <input
+                  type="text"
+                  value={saveName}
+                  onChange={e => setSaveName(e.target.value)}
+                  placeholder="プロファイル名を入力"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                />
+                <button onClick={handleSave} className="w-full rounded-lg bg-slate-800 py-2 text-sm text-white hover:bg-slate-700">
+                  {isUpdate ? '上書き保存' : '新規保存'}
+                </button>
                 <button onClick={handleShare} className="w-full rounded-lg border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50">
                   {copied ? 'コピーしました！' : 'URLで共有'}
                 </button>
