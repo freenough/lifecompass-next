@@ -50,10 +50,10 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
           type="number"
           value={value}
           onChange={e => {
-            const raw = e.target.value.replace(/^0+(\d)/, '$1');
-            const num = parseFloat(raw);
+            const num = e.target.valueAsNumber;
             onChange(isNaN(num) ? 0 : num);
           }}
+          onBlur={e => { e.target.value = String(value || 0); }}
           onFocus={e => e.target.select()}
           min={min}
           max={max}

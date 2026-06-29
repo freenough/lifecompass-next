@@ -52,5 +52,12 @@ note.com/freenoughで連載中の4シリーズ小説（田中誠／山本恒一�
 - オンボーディング：Welcomeモーダル廃止。初回アクセス時はサンプルプロファイルを自動読み込みしてグラフを表示
 - ロジック不変：simulate()/analyze()のシグネチャ変更禁止。full-verify.jsが常にPASSであること
 
+## セッション管理
+
+### コミットルール
+- セッション開始時: `git add . && git commit -m "before session[N]"` を必ず実行
+- セッション終了時: `git add . && git commit -m "session[N]完了: [実装内容]"` を実行
+- 実装前にコミットがない場合は、コミットしてから作業開始すること
+
 
 @reference/simulation_fixtures.md

@@ -1,16 +1,17 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-lg font-bold text-slate-800 tracking-tight">
+        <Link href="/" className="flex items-center gap-2 text-lg font-bold text-slate-800 tracking-tight">
+          <Image src="/images/compass_logo.png" alt="" width={28} height={28} className="shrink-0" />
           LifeCompass
         </Link>
         <nav className="flex gap-6 text-sm text-slate-600">
           <Link href="/simulator" className="hover:text-slate-900 transition-colors">シミュレーター</Link>
-          <Link href="/blog"       className="hover:text-slate-900 transition-colors">ブログ</Link>
-          <Link href="/disclosure" className="hover:text-slate-900 transition-colors">広告開示</Link>
+          <Link href="/blog"      className="hover:text-slate-900 transition-colors">ブログ</Link>
         </nav>
       </div>
     </header>

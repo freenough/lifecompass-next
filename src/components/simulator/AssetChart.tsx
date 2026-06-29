@@ -173,12 +173,12 @@ export default function AssetChart({
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <h3 className="text-sm font-semibold text-slate-700 mb-3">モンテカルロ — 総資産推移（1,000試行）</h3>
           <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart data={data}>
+            <ComposedChart data={data} margin={{ top: 4, right: 10, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
+              <YAxis width={52} tick={{ fontSize: 11 }} tickFormatter={formatYen} />
               <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-              <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
+              <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
               <EventLines {...eventProps} />
               <FireLines />
               <Area dataKey="p90" fill="#bfdbfe" stroke="#93c5fd" name="p90" fillOpacity={0.4} />
@@ -207,12 +207,12 @@ export default function AssetChart({
           <TabButtons tab={tab} setTab={setTab} />
         </div>
         <ResponsiveContainer width="100%" height={320}>
-          <ComposedChart data={data}>
+          <ComposedChart data={data} margin={{ top: 4, right: 10, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
+            <YAxis width={52} tick={{ fontSize: 11 }} tickFormatter={formatYen} />
             <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-            <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
+            <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
             <EventLines {...eventProps} />
             <Bar dataKey="NISA"  stackId="a" fill="#1D9E75" />
             <Bar dataKey="iDeCo" stackId="a" fill="#0C447C" />
@@ -263,12 +263,12 @@ export default function AssetChart({
           <TabButtons tab={tab} setTab={setTab} disabled />
         </div>
         <ResponsiveContainer width="100%" height={320}>
-          <ComposedChart data={data}>
+          <ComposedChart data={data} margin={{ top: 4, right: 10, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
+            <YAxis width={52} tick={{ fontSize: 11 }} tickFormatter={formatYen} />
             <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-            <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
+            <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
             <EventLines {...eventProps} />
             <FireLines />
             {visibleScenarios.map((sc, idx) => (
@@ -306,7 +306,7 @@ export default function AssetChart({
         <h3 className="text-sm font-semibold text-slate-700">総資産推移</h3>
         <div className="flex items-center gap-3">
           {inflR > 0 && (
-            <label className="flex items-center gap-1 text-xs text-slate-500 cursor-pointer">
+            <label className="flex items-center gap-1 text-xs text-slate-500 cursor-pointer whitespace-nowrap">
               <input
                 type="checkbox"
                 checked={showRealValue}
@@ -320,12 +320,12 @@ export default function AssetChart({
         </div>
       </div>
       <ResponsiveContainer width="100%" height={320}>
-        <ComposedChart data={data}>
+        <ComposedChart data={data} margin={{ top: 4, right: 10, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
-          <YAxis tick={{ fontSize: 11 }} tickFormatter={formatYen} />
+          <YAxis width={52} tick={{ fontSize: 11 }} tickFormatter={formatYen} />
           <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-          <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto' }} />
+          <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
           <EventLines {...eventProps} />
           <FireLines />
           {showRealValue && inflR > 0 && (

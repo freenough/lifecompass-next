@@ -21,9 +21,10 @@ interface KpiCardProps {
   variant?: 'good' | 'warn' | 'danger' | 'neutral';
   footer?: React.ReactNode;
   tooltip?: string;
+  wrapperClassName?: string;
 }
 
-function KpiCard({ label, value, sub, variant = 'neutral', footer, tooltip }: KpiCardProps) {
+function KpiCard({ label, value, sub, variant = 'neutral', footer, tooltip, wrapperClassName }: KpiCardProps) {
   const [showTip, setShowTip] = useState(false);
 
   const bg: Record<string, string> = {
@@ -39,7 +40,7 @@ function KpiCard({ label, value, sub, variant = 'neutral', footer, tooltip }: Kp
     neutral: 'text-slate-700',
   };
   return (
-    <div className={`rounded-xl border p-4 relative ${bg[variant]}`}>
+    <div className={`rounded-xl border p-3 sm:p-4 relative ${bg[variant]} ${wrapperClassName ?? ''}`}>
       {tooltip && (
         <div className="absolute top-2 right-2">
           <button
@@ -60,9 +61,9 @@ function KpiCard({ label, value, sub, variant = 'neutral', footer, tooltip }: Kp
           )}
         </div>
       )}
-      <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>
-      <p className={`text-xl font-bold leading-tight ${text[variant]}`}>{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+      <p className="text-[10px] sm:text-xs font-medium text-slate-500 mb-1 truncate">{label}</p>
+      <p className={`text-base sm:text-xl font-bold leading-tight ${text[variant]}`}>{value}</p>
+      {sub && <p className="text-[10px] text-slate-400 mt-1 leading-tight">{sub}</p>}
       {footer}
     </div>
   );
@@ -146,7 +147,7 @@ export default function KpiGrid({
         <KpiCard
           label="FIRE達成"
           value={ageStr(a.fA)}
-          sub="資産 ≥ 支出×25 を維持"
+          sub="資産≥支出×25"
           variant={a.fA != null ? 'good' : 'neutral'}
           tooltip="取崩期を通じて資産が「年間支出×25」を下回らない最速の退職年齢。達成できない場合は「—」を表示します。"
         />
@@ -171,14 +172,14 @@ export default function KpiGrid({
         <KpiCard
           label="初年度取崩率"
           value={wrStr}
-          sub="退職直後の実効引出率"
+          sub="退職直後の引出率"
           variant={wrVariant}
           tooltip="退職初年度の実質引出額 ÷ 退職時総資産。4%ルールでは4%以下が長期的に持続可能な目安とされています。"
         />
         <KpiCard
           label="収支転換点"
           value={ageStr(a.breakEven)}
-          sub="CF がマイナスに転じる年齢"
+          sub="CF転換点の年齢"
           tooltip="年金等の収入が生活費を下回り始める年齢。この年齢以降、資産の取崩ペースが加速します。年金受給開始により後ろにずれることがあります。"
         />
       </div>

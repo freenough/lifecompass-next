@@ -39,7 +39,8 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
 
   const idecoStartSnap = snaps.find(s => s.age === p.idecoStartAge);
   const idecoLumpNet   = idecoStartSnap ? (idecoStartSnap.idecoWithdrawalAmount || 0) : 0;
-  const idecoLumpTax   = idecoStartSnap ? (idecoStartSnap.retirementTaxPaid     || 0) : 0;
+  // Sum retirementTaxPaid across all snaps (covers severance at retAge ≠ idecoStartAge)
+  const idecoLumpTax   = snaps.reduce((sum, s) => sum + (s.retirementTaxPaid || 0), 0);
   const severanceSnap   = snaps.find(s => s.hasSeverance);
   const severanceNetKPI = severanceSnap ? (severanceSnap.severanceNet || 0) : 0;
   const idecoTotalTax   = snaps
@@ -51,9 +52,15 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
   const idecoTotalNetWithdrawal = Math.max(0, idecoTotalGross - idecoTotalTax);
   const idecoStartBalance = idecoStartSnap ? getIdecoDisplayBalance(idecoStartSnap) : 0;
 
+  // Spouse KPI values
+  const spIdecoLumpNet    = snaps.reduce((s, snap) => s + (snap.spIdecoWithdrawalAmount ?? 0), 0);
+  const spSeveranceNetKPI = snaps.reduce((s, snap) => s + (snap.spSeveranceNet          ?? 0), 0);
+  const spRetirementTaxKPI = snaps.reduce((s, snap) => s + (snap.spRetirementTaxPaid    ?? 0), 0);
+
   return {
     last: snaps[snaps.length - 1].totalAssets,
     pV, pA, dA, fA, assetLife, withdrawalRate, breakEven,
     idecoLumpNet, idecoLumpTax, idecoTotalTax, idecoTotalNetWithdrawal, idecoStartBalance, severanceNetKPI,
+    spIdecoLumpNet, spSeveranceNetKPI, spRetirementTaxKPI,
   };
 }

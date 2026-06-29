@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import type { ScenarioKey } from '@/store/simulatorStore';
@@ -32,14 +32,31 @@ const SCENARIO_OPTIONS: { key: ScenarioKey; label: string; color: string }[] = [
   { key: 'pessimistic', label: '悲観(-2%)',  color: 'text-red-600'  },
 ];
 
+/** useSearchParams を Suspense 境界内で使うための分離コンポーネント */
+function SearchParamsLoader() {
+  const searchParams = useSearchParams();
+  const { loadProfile } = useSimulatorStore();
+  useEffect(() => {
+    const s = searchParams.get('s');
+    if (s) {
+      try {
+        loadProfile(decodeProfileUrl(s));
+        window.history.replaceState(null, '', '/simulator');
+      } catch {
+        // ignore malformed URL param
+      }
+    }
+  }, []);
+  return null;
+}
+
 export default function SimulatorPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const searchParams = useSearchParams();
   const {
     profile, snaps, analysis, mcResult, mode, cmpMode, activeStrategies, activeScenarios,
-    isMcRunning, loadProfile, setMode, setCmpMode, setActiveStrategies, setActiveScenarios,
+    isMcRunning, setMode, setCmpMode, setActiveStrategies, setActiveScenarios,
     runMonteCarlo,
   } = useSimulatorStore();
 
@@ -48,20 +65,6 @@ export default function SimulatorPage() {
   // Default collapse on mobile
   useEffect(() => {
     if (window.innerWidth <= 640) setFormOpen(false);
-  }, []);
-
-  // URL share param
-  useEffect(() => {
-    const s = searchParams.get('s');
-    if (s) {
-      try {
-        const decoded = decodeProfileUrl(s);
-        loadProfile(decoded);
-        window.history.replaceState(null, '', '/simulator');
-      } catch {
-        // ignore malformed URL param
-      }
-    }
   }, []);
 
   const strategy     = activeStrategies[0] ?? 'proportional';
@@ -92,9 +95,11 @@ export default function SimulatorPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-slate-800">FIRE資産シミュレーター</h1>
+    <div className="mx-auto max-w-7xl px-4 pt-2 pb-6">
+      <Suspense fallback={null}>
+        <SearchParamsLoader />
+      </Suspense>
+      <div className="flex justify-end mb-2">
         <ProfileDrawer />
       </div>
 
@@ -207,7 +212,7 @@ export default function SimulatorPage() {
             mode={mode}
             strategy={strategy}
             retAge={p.retAge}
-            idecoReceiveType={profile.params.idecoReceiveType}
+            idecoReceiveType={profile.params.idecoReceiveType ?? 'lump'}
             hasIdeco={profile.params.bIdeco > 0 || profile.params.cIdeco > 0}
             hasSeverance={baseAnalysis.severanceNetKPI > 0}
           />

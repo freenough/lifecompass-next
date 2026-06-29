@@ -6,7 +6,7 @@ import { calcIdecoEligibleAge } from './helpers';
 export interface AssetRow {
   assetClass: string;
   pct: number;
-  amount?: number; // 現在PF（① 現在）のみ使用。単位：万円
+  amount?: number;   // 現在PF（① 現在）のみ使用。単位：万円
 }
 
 export const ASSET_CLASSES: { key: string; mu: number; sigma: number; group: string }[] = [
@@ -102,9 +102,30 @@ export interface ProfileV3 {
     spPenAge: number;
     spPenAmt: number;
     spCurAge: number;
+    spNisaBal: number;
+    spNisaCon: number;
+    spNisaTo: number;
+    spIdecoBal: number;
+    spIdecoCon: number;
+    spIdecoTo: number;
+    spTaxBal: number;
+    spTaxCon: number;
+    spTaxTo: number;
+    spSevYrs: number;
+    spIdecoYrs: number;
+    spIdecoReceiveType: 'lump' | 'pension';
+    spIdecoStartAge: number;
+    spCashBal: number;
   };
   portfolio: {
-    current:    { nisa: AssetRow[]; ideco: AssetRow[]; tax: AssetRow[] };
+    current: {
+      nisa:    AssetRow[];
+      ideco:   AssetRow[];
+      tax:     AssetRow[];
+      spNisa:  AssetRow[];
+      spIdeco: AssetRow[];
+      spTax:   AssetRow[];
+    };
     working:    { nisa: AssetRow[]; ideco: AssetRow[]; tax: AssetRow[] };
     retirement: { nisa: AssetRow[]; ideco: AssetRow[]; tax: AssetRow[]; sameAsWorking: boolean };
   };
@@ -140,9 +161,13 @@ export const SAMPLE_PROFILE: ProfileV3 = {
     bCash: 300,
     penAmt: 150,
     spInc: 0, spRetAge: 0, spPenAge: 0, spPenAmt: 0, spCurAge: 0,
+    spNisaBal: 0, spNisaCon: 0, spNisaTo: 60,
+    spIdecoBal: 0, spIdecoCon: 0, spIdecoTo: 60,
+    spTaxBal: 0, spTaxCon: 0, spTaxTo: 60,
+    spSevYrs: 0, spIdecoYrs: 0, spIdecoReceiveType: 'lump', spIdecoStartAge: 60, spCashBal: 0,
   },
   portfolio: {
-    current:    { nisa: [], ideco: [], tax: [] },
+    current:    { nisa: [], ideco: [], tax: [], spNisa: [], spIdeco: [], spTax: [] },
     working:    { nisa: [{ assetClass: '全世界株', pct: 100 }], ideco: [{ assetClass: '全世界株', pct: 100 }], tax: [{ assetClass: '全世界株', pct: 100 }] },
     retirement: { nisa: [], ideco: [], tax: [], sameAsWorking: true },
   },
@@ -155,6 +180,33 @@ export const SAMPLE_PROFILE: ProfileV3 = {
     balSync: { nisa: false, ideco: false, tax: false, cash: false },
   },
 };
+
+export function calcAggregatedSigma(acctRows: AssetRow[][], acctBals: number[]): number | null {
+  const total = acctBals.reduce((s, b) => s + b, 0);
+  const weights: number[] = total > 0
+    ? acctBals.map(b => b / total)
+    : acctBals.map(() => 1 / acctBals.length);
+
+  const map: Record<string, number> = {};
+  let hasAnyRow = false;
+  for (let i = 0; i < acctRows.length; i++) {
+    const rows = acctRows[i];
+    const w = weights[i];
+    if (w === 0) continue;
+    for (const row of rows) {
+      if (!row.assetClass || !(row.pct > 0)) continue;
+      map[row.assetClass] = (map[row.assetClass] ?? 0) + (row.pct / 100) * w;
+      hasAnyRow = true;
+    }
+  }
+  if (!hasAnyRow) return null;
+
+  const aggWeights: AssetRow[] = Object.entries(map).map(([assetClass, frac]) => ({
+    assetClass,
+    pct: frac * 100,
+  }));
+  return calcPortfolioMetrics(aggWeights).sigma;
+}
 
 export function profileToSimParams(profile: ProfileV3): SimParams {
   const p = profile.params;
@@ -170,7 +222,11 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
     p.bIdeco > 0 ||
     (p.cIdeco > 0 && p.cIdecoTo > p.curAge);
 
-  const spousePresent = p.spInc !== 0 || p.spPenAmt !== 0;
+  const spousePresent =
+    p.spInc !== 0 || p.spPenAmt !== 0 ||
+    (p.spNisaCon  ?? 0) > 0 || (p.spIdecoCon ?? 0) > 0 || (p.spTaxCon ?? 0) > 0 ||
+    (p.spNisaBal  ?? 0) > 0 || (p.spIdecoBal ?? 0) > 0 || (p.spTaxBal ?? 0) > 0 ||
+    (p.spCashBal  ?? 0) > 0;
 
   return {
     curAge:   p.curAge,
@@ -218,11 +274,22 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
     },
     spouse: spousePresent
       ? {
-          inc:      p.spInc,
-          retAge:   p.spRetAge || p.retAge,
-          penAge:   p.spPenAge || p.penAge,
-          penAmt:   p.spPenAmt,
-          spCurAge: p.spCurAge,
+          inc:              p.spInc,
+          retAge:           p.spRetAge || p.retAge,
+          penAge:           p.spPenAge || p.penAge,
+          penAmt:           p.spPenAmt,
+          spCurAge:         p.spCurAge,
+          idecoYrs:         p.spIdecoYrs || 0,
+          sevYrs:           p.spSevYrs   || 0,
+          idecoReceiveType: p.spIdecoReceiveType  || 'lump',
+          idecoReceiveYears: 10,
+          idecoStartAge:    p.spIdecoStartAge || p.spRetAge || 60,
+          acct: {
+            nisa:  { bal: p.spNisaBal  ?? 0, con: p.spNisaCon  ?? 0, toAge: p.spNisaTo  ?? p.spRetAge ?? 60 },
+            ideco: { bal: p.spIdecoBal ?? 0, con: p.spIdecoCon ?? 0, toAge: p.spIdecoTo ?? p.spRetAge ?? 60 },
+            tax:   { bal: p.spTaxBal   ?? 0, con: p.spTaxCon   ?? 0, toAge: p.spTaxTo   ?? p.spRetAge ?? 60 },
+            cash:  { bal: p.spCashBal  ?? 0 },
+          },
         }
       : null,
   };

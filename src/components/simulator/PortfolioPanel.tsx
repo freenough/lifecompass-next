@@ -102,7 +102,7 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
               <input
                 type="number"
                 value={row.amount ?? 0}
-                onFocus={e => e.target.select()} onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); setAmount(i, isNaN(n) ? 0 : n); }}
+                onFocus={e => e.target.select()} onChange={e => { const n = e.target.valueAsNumber; setAmount(i, isNaN(n) ? 0 : n); }}
                 min={0}
                 className="w-16 text-xs border border-slate-300 rounded px-1 py-1 text-right"
               />
@@ -113,7 +113,7 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
               <input
                 type="number"
                 value={row.pct}
-                onFocus={e => e.target.select()} onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); setPct(i, isNaN(n) ? 0 : n); }}
+                onFocus={e => e.target.select()} onChange={e => { const n = e.target.valueAsNumber; setPct(i, isNaN(n) ? 0 : n); }}
                 min={0}
                 max={100}
                 className="w-14 text-xs border border-slate-300 rounded px-1 py-1 text-right"
@@ -160,7 +160,7 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
                   <input
                     type="number"
                     value={row.amount ?? 0}
-                    onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); setSpAmount(i, isNaN(n) ? 0 : n); }}
+                    onChange={e => { const n = e.target.valueAsNumber; setSpAmount(i, isNaN(n) ? 0 : n); }}
                     onFocus={e => e.target.select()}
                     min={0}
                     className="w-16 text-xs border border-slate-300 rounded px-1 py-1 text-right"
@@ -190,7 +190,7 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
           <input
             type="number"
             value={profile.params[autoFieldId as keyof typeof profile.params] as number}
-            onFocus={e => e.target.select()} onChange={e => { const n = parseFloat(e.target.value.replace(/^0+(\d)/, '$1')); handleManualEdit(autoFieldId, isNaN(n) ? 0 : n); }}
+            onFocus={e => e.target.select()} onChange={e => { const n = e.target.valueAsNumber; handleManualEdit(autoFieldId, isNaN(n) ? 0 : n); }}
             step={0.1}
             className="w-16 text-xs border border-slate-300 rounded px-1 py-0.5 text-right"
           />

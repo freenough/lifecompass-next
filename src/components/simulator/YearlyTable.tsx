@@ -81,7 +81,7 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
 
       {open && (
         <div className="overflow-x-auto">
-          <table className="w-full text-xs border-t border-slate-200">
+          <table className="min-w-full text-xs border-t border-slate-200">
             <thead className="bg-slate-50">
               <tr>
                 {[

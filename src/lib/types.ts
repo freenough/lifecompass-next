@@ -21,12 +21,25 @@ export interface AccountState {
   cash: CashAccountConfig;
 }
 
+export interface SpouseAcct {
+  nisa:  { bal: number; con: number; toAge: number };
+  ideco: { bal: number; con: number; toAge: number };
+  tax:   { bal: number; con: number; toAge: number };
+  cash?: { bal: number };
+}
+
 export interface SpouseParams {
   inc: number;
   retAge: number;
   penAge: number;
   penAmt: number;
   spCurAge: number;
+  idecoYrs?: number;
+  sevYrs?: number;
+  idecoReceiveType?: 'lump' | 'pension';
+  idecoReceiveYears?: number;
+  idecoStartAge?: number;
+  acct?: SpouseAcct;
 }
 
 export interface SimParams {
@@ -64,6 +77,7 @@ interface BaseLifeEvent {
   age: number;
   years: number;
   amount: number;
+  owner?: 'self' | 'spouse';
 }
 
 export interface IncomeEvent extends BaseLifeEvent {
@@ -92,6 +106,10 @@ export interface YearSnap {
   ideco: number;
   tax: number;
   cash: number;
+  spNisa: number;
+  spIdeco: number;
+  spTax: number;
+  spCash: number;
   income: number;
   expense: number;
   cashFlow: number;
@@ -111,6 +129,9 @@ export interface YearSnap {
   idecoBalanceBeforeWithdrawal: number | null;
   idecoWithdrawalAmount: number | null;
   severanceNet: number;
+  spIdecoWithdrawalAmount: number | null;
+  spRetirementTaxPaid: number;
+  spSeveranceNet: number;
 }
 
 export interface AnalysisResult {
@@ -128,6 +149,9 @@ export interface AnalysisResult {
   idecoTotalNetWithdrawal: number;
   idecoStartBalance: number;
   severanceNetKPI: number;
+  spIdecoLumpNet: number;
+  spSeveranceNetKPI: number;
+  spRetirementTaxKPI: number;
 }
 
 export interface WithdrawResult {

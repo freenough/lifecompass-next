@@ -36,7 +36,7 @@ function calcMortgage(principal: number, rate: number, termYears: number): numbe
   const n = termYears * 12;
   if (r === 0) return termYears > 0 ? Math.round(principal / termYears) : 0;
   const monthly = principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
-  return Math.round(monthly * 12);
+  return Math.round(monthly * 12 * 100) / 100;
 }
 
 function calcMortgageMonthly(principal: number, rate: number, termYears: number): number {
@@ -53,6 +53,7 @@ interface FormState {
   age: number;
   years: number;
   amount: number;
+  owner: 'self' | 'spouse';
   // 住宅ローン専用フィールド
   principal: number;
   rate: number;
@@ -66,6 +67,11 @@ const POINT_CHANGE_SUBTYPES = new Set([
   'base_change', 'inc_change', 'nisa_con_change', 'ideco_con_change', 'tax_con_change',
 ]);
 
+// Subtypes that can belong to a spouse
+const OWNER_SUBTYPES = new Set([
+  'severance', 'nisa_con_change', 'ideco_con_change', 'tax_con_change',
+]);
+
 const CHANGE_AMT_LABEL: Record<string, string> = {
   base_change:      '変更後の年間生活費（万円・現在価格）',
   inc_change:       '変更後の年間手取り収入（万円）',
@@ -77,6 +83,7 @@ const CHANGE_AMT_LABEL: Record<string, string> = {
 function blankForm(retAge: number): FormState {
   return {
     category: 'income', subtype: 'reemploy', name: '', age: retAge, years: 1, amount: 0,
+    owner: 'self',
     ...DEFAULT_MORTGAGE,
   };
 }
@@ -85,6 +92,7 @@ function eventToForm(ev: LifeEvent): FormState {
   const base: FormState = {
     category: ev.category, subtype: ev.subtype, name: ev.name,
     age: ev.age, years: ev.years, amount: ev.amount,
+    owner: ev.owner ?? 'self',
     ...DEFAULT_MORTGAGE,
   };
   if (ev.category === 'expense' && ev.subtype === 'mortgage') {
@@ -97,6 +105,7 @@ function eventToForm(ev: LifeEvent): FormState {
 }
 
 function formToEvent(f: FormState): LifeEvent {
+  const owner = OWNER_SUBTYPES.has(f.subtype) && f.owner === 'spouse' ? 'spouse' : undefined;
   if (f.category === 'expense' && f.subtype === 'mortgage') {
     return {
       category: 'expense',
@@ -112,13 +121,14 @@ function formToEvent(f: FormState): LifeEvent {
   }
   const isChange = POINT_CHANGE_SUBTYPES.has(f.subtype);
   return f.category === 'income'
-    ? { category: 'income',  subtype: f.subtype as IncomeSubtype,  name: f.name, age: f.age, years: isChange ? 1 : f.years, amount: f.amount }
-    : { category: 'expense', subtype: f.subtype as ExpenseSubtype, name: f.name, age: f.age, years: isChange ? 1 : f.years, amount: f.amount };
+    ? { category: 'income',  subtype: f.subtype as IncomeSubtype,  name: f.name, age: f.age, years: isChange ? 1 : f.years, amount: f.amount, ...(owner ? { owner } : {}) }
+    : { category: 'expense', subtype: f.subtype as ExpenseSubtype, name: f.name, age: f.age, years: isChange ? 1 : f.years, amount: f.amount, ...(owner ? { owner } : {}) };
 }
 
 export default function LifeEventTimeline() {
   const { profile, updateEvents } = useSimulatorStore();
   const events = profile.events;
+  const spRetAge = profile.params.spRetAge || undefined;
   const [open, setOpen] = useState(false);
   // null = form closed, -1 = adding new, >=0 = editing that index
   const [editIdx, setEditIdx] = useState<number | null>(null);
@@ -179,7 +189,12 @@ export default function LifeEventTimeline() {
                     {ev.category === 'income' ? '収入' : '支出'}
                   </span>
                   <span className="font-medium text-slate-700 truncate">{ev.name || SUBTYPE_LABEL[ev.subtype] || ev.subtype}</span>
-                  <span className="text-slate-400 shrink-0">{ev.age}歳{ev.years > 1 ? `〜${ev.age + ev.years - 1}歳` : ''} / {ev.amount.toLocaleString()}万</span>
+                  {ev.owner === 'spouse' && (
+                    <span className="shrink-0 rounded border border-slate-300 px-1 py-0.5 text-[10px] text-slate-500">配偶者</span>
+                  )}
+                  <span className="text-slate-400 shrink-0">
+                    {ev.age}歳{ev.years > 1 ? `〜${ev.age + ev.years - 1}歳` : ''} / {ev.amount.toLocaleString()}万
+                  </span>
                 </div>
                 <div className="flex items-center gap-1 ml-2 shrink-0">
                   <button
@@ -200,6 +215,7 @@ export default function LifeEventTimeline() {
                   onSave={save}
                   onCancel={closeForm}
                   isEdit
+                  spRetAge={spRetAge}
                 />
               )}
             </div>
@@ -213,6 +229,7 @@ export default function LifeEventTimeline() {
               onSave={save}
               onCancel={closeForm}
               isEdit={false}
+              spRetAge={spRetAge}
             />
           ) : (
             <button
@@ -235,11 +252,15 @@ interface EventFormProps {
   onSave: () => void;
   onCancel: () => void;
   isEdit: boolean;
+  spRetAge?: number;
 }
 
-function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: EventFormProps) {
-  const isMortgage   = form.subtype === 'mortgage';
+function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRetAge }: EventFormProps) {
+  const isMortgage    = form.subtype === 'mortgage';
   const isPointChange = POINT_CHANGE_SUBTYPES.has(form.subtype);
+  const hasOwner      = OWNER_SUBTYPES.has(form.subtype);
+  const isSpouseEvent = hasOwner && form.owner === 'spouse';
+  const [showAgeTip, setShowAgeTip] = useState(false);
 
   const updateMortgage = (patch: { principal?: number; rate?: number; termYears?: number }) => {
     setForm(f => {
@@ -265,7 +286,8 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: Eve
   const monthly = isMortgage ? calcMortgageMonthly(form.principal, form.rate, form.termYears) : 0;
   const total   = isMortgage ? Math.round(annual * form.termYears) : 0;
 
-  const inputCls = 'text-xs border border-slate-300 rounded px-1 py-1 text-right bg-white';
+  const inputCls  = 'text-xs border border-slate-300 rounded px-1 py-1 text-right bg-white';
+  const selectCls = 'text-xs border border-slate-300 rounded px-1 py-1 bg-white text-left';
 
   return (
     <div className="mt-2 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -274,7 +296,7 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: Eve
         <select
           value={form.category}
           onChange={e => setCategory(e.target.value as 'income' | 'expense')}
-          className={`${inputCls} text-left`}
+          className={selectCls}
         >
           <option value="income">収入</option>
           <option value="expense">支出</option>
@@ -282,7 +304,7 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: Eve
         <select
           value={form.subtype}
           onChange={e => handleSubtypeChange(e.target.value)}
-          className={`flex-1 ${inputCls} text-left`}
+          className={`flex-1 ${selectCls}`}
         >
           {(form.category === 'income' ? INCOME_SUBTYPES : EXPENSE_SUBTYPES).map(s => (
             <option key={s.value} value={s.value}>{s.label}</option>
@@ -298,6 +320,22 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: Eve
         className="w-full text-xs border border-slate-300 rounded px-2 py-1 bg-white"
       />
 
+      {/* 対象者（owner対応subtypeのみ） */}
+      {hasOwner && (
+        <div className="flex gap-1 items-center">
+          <span className="text-xs text-slate-500 w-16 shrink-0">対象者</span>
+          {(['self', 'spouse'] as const).map(o => (
+            <button
+              key={o}
+              onClick={() => setForm(f => ({ ...f, owner: o }))}
+              className={`px-3 py-0.5 text-xs rounded border ${form.owner === o ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-300 hover:border-slate-400'}`}
+            >
+              {o === 'self' ? '本人' : '配偶者'}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* 開始年齢（共通） */}
       <div className="flex gap-2 items-center">
         <label className="text-xs text-slate-500 w-16 shrink-0">開始年齢</label>
@@ -308,6 +346,25 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: Eve
           className={`w-16 ${inputCls}`}
         />
         <span className="text-xs text-slate-400">歳</span>
+        {isSpouseEvent && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowAgeTip(v => !v)}
+              className="w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:bg-slate-300"
+              aria-label="入力説明を表示"
+            >?</button>
+            {showAgeTip && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowAgeTip(false)} />
+                <div className="absolute left-0 top-6 z-20 w-44 rounded-lg bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed">
+                  <div className="absolute -top-1.5 left-1 w-3 h-3 bg-slate-800 rotate-45" />
+                  配偶者の年齢で入力してください
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {isMortgage ? (
@@ -353,7 +410,7 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit }: Eve
               <p className="font-medium text-blue-700 mb-1">試算（元利均等返済）</p>
               <div className="flex gap-4 text-slate-600 flex-wrap">
                 <span>月次 <strong>{monthly.toLocaleString()}万円</strong></span>
-                <span>年次 <strong>{annual.toLocaleString()}万円</strong></span>
+                <span>年次 <strong>{(Math.round(annual * 10) / 10).toLocaleString()}万円</strong></span>
                 <span>総返済 <strong>{total.toLocaleString()}万円</strong></span>
               </div>
             </div>

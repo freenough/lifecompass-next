@@ -109,15 +109,15 @@ export default function HeroDemo() {
         {KPI_LABELS.map((label, i) => (
           <div
             key={label}
-            className="bg-slate-800 rounded-lg p-4 text-center"
+            className="bg-slate-800 rounded-lg p-2 sm:p-4 text-center"
             style={{
               opacity:   visible ? 1 : 0,
               transform: visible ? 'translateY(0)' : 'translateY(8px)',
               transition: `opacity 0.4s ease ${i * 0.15}s, transform 0.4s ease ${i * 0.15}s`,
             }}
           >
-            <div className="text-xs text-white/70 mb-1">{label}</div>
-            <div className={`font-bold text-white whitespace-nowrap ${kpiValues[i] === '枯渇なし' ? 'text-2xl' : 'text-3xl'}`}>
+            <div className="text-[9px] sm:text-xs text-white/70 mb-1 whitespace-nowrap">{label}</div>
+            <div className={`font-bold text-white whitespace-nowrap ${kpiValues[i] === '枯渇なし' ? 'text-base sm:text-2xl' : 'text-xl sm:text-3xl'}`}>
               {kpiValues[i]}
             </div>
           </div>

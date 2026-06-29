@@ -4,56 +4,13 @@ import { create } from 'zustand';
 import { simulate, analyze, runMC } from '@/lib';
 import type { YearSnap, AnalysisResult, MCResult, WithdrawalStrategy, LifeEvent } from '@/lib/types';
 import type { ProfileV3, AssetRow } from '@/lib/profile';
-import { profileToSimParams, SAMPLE_PROFILE, calcMu, calcPortfolioMetrics } from '@/lib/profile';
+import { profileToSimParams, SAMPLE_PROFILE, calcMu, calcAggregatedSigma } from '@/lib/profile';
 
-type PortfolioPhase = 'current' | 'working' | 'retirement';
-type PortfolioAcct  = 'nisa' | 'ideco' | 'tax';
+type PortfolioPhase   = 'current' | 'working' | 'retirement';
+type PortfolioAcct    = 'nisa' | 'ideco' | 'tax';
+type SpPortfolioAcct  = 'spNisa' | 'spIdeco' | 'spTax';
 
 export type ScenarioKey = 'optimistic' | 'neutral' | 'pessimistic';
-
-/**
- * 複数口座のrows + 口座残高から、残高加重で正しいグローバルσを計算する。
- *
- * 旧HTMLのpfAggregateWeights()と同等のロジック。
- * 各口座のpctは「口座内100%基準」なので、口座間の集計には残高比率によるウェイト付けが必要。
- * 残高0の口座は除外される（その口座のデフォルト全世界株100%が混入しない）。
- *
- * @param acctRows - 各口座のAssetRow配列 [nisa, ideco, tax]
- * @param acctBals - 各口座の残高 [nisaBal, idecoBal, taxBal]
- * @returns ポートフォリオσ（%）。全口座が空/無効な場合はnull
- */
-function calcAggregatedSigma(acctRows: AssetRow[][], acctBals: number[]): number | null {
-  const total = acctBals.reduce((s, b) => s + b, 0);
-
-  // 全残高0 → 等分フォールバック（全口座未入力の初期状態のみ）
-  const weights: number[] = total > 0
-    ? acctBals.map(b => b / total)
-    : acctBals.map(() => 1 / acctBals.length);
-
-  // 資産クラスごとのグローバルウェイトを集計
-  const map: Record<string, number> = {};
-  let hasAnyRow = false;
-  for (let i = 0; i < acctRows.length; i++) {
-    const rows = acctRows[i];
-    const w = weights[i];
-    if (w === 0) continue; // 残高0の口座は除外
-    for (const row of rows) {
-      if (!row.assetClass || !(row.pct > 0)) continue;
-      map[row.assetClass] = (map[row.assetClass] ?? 0) + (row.pct / 100) * w;
-      hasAnyRow = true;
-    }
-  }
-
-  if (!hasAnyRow) return null;
-
-  // 0-100スケールに戻してcalcPortfolioMetricsへ渡す
-  const aggWeights: AssetRow[] = Object.entries(map).map(([assetClass, frac]) => ({
-    assetClass,
-    pct: frac * 100,
-  }));
-
-  return calcPortfolioMetrics(aggWeights).sigma;
-}
 
 function loadInitialProfile(): ProfileV3 {
   if (typeof window === 'undefined') return SAMPLE_PROFILE;
@@ -62,7 +19,13 @@ function loadInitialProfile(): ProfileV3 {
     if (raw) {
       const profiles = JSON.parse(raw) as ProfileV3[];
       if (Array.isArray(profiles) && profiles.length > 0) {
-        return profiles[profiles.length - 1];
+        const loaded = profiles[profiles.length - 1];
+        return {
+          ...SAMPLE_PROFILE,
+          ...loaded,
+          params:    { ...SAMPLE_PROFILE.params,    ...loaded.params    },
+          portfolio: { ...SAMPLE_PROFILE.portfolio, ...loaded.portfolio },
+        };
       }
     }
   } catch {
@@ -100,6 +63,7 @@ interface SimulatorState {
   updateProfile: (patch: Partial<ProfileV3['params']>) => void;
   updateEvents: (events: LifeEvent[]) => void;
   updatePortfolio: (phase: PortfolioPhase, acct: PortfolioAcct, rows: AssetRow[]) => void;
+  updateSpousePortfolio: (acct: SpPortfolioAcct, rows: AssetRow[]) => void;
   copyCurrentToWorking: () => void;
   setSameAsWorking: (val: boolean) => void;
   runSimulation: () => void;
@@ -231,6 +195,22 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         ...profile,
         params: { ...profile.params, ...paramPatch },
         portfolio: newPortfolio,
+      };
+      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      set({ profile: newProfile, snaps, analysis, mcResult: null });
+    },
+
+    updateSpousePortfolio: (acct, rows) => {
+      const { profile, activeStrategies } = get();
+      const newCurrent = { ...profile.portfolio.current, [acct]: rows };
+      // Sync spNisaBal/spIdecoBal/spTaxBal from spouse portfolio rows
+      const spNisaBal  = (newCurrent.spNisa  ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
+      const spIdecoBal = (newCurrent.spIdeco ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
+      const spTaxBal   = (newCurrent.spTax   ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
+      const newProfile: ProfileV3 = {
+        ...profile,
+        params: { ...profile.params, spNisaBal, spIdecoBal, spTaxBal },
+        portfolio: { ...profile.portfolio, current: newCurrent },
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies);
       set({ profile: newProfile, snaps, analysis, mcResult: null });
