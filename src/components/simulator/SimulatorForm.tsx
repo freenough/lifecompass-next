@@ -41,6 +41,7 @@ interface FieldProps {
 }
 
 function Field({ label, id, value, onChange, min, max, step = 1, suffix, disabled }: FieldProps) {
+  const isIntegerStep = Number.isInteger(step);
   return (
     <div className="flex items-center gap-2">
       <label htmlFor={id} className="w-36 shrink-0 text-xs text-slate-600">{label}</label>
@@ -50,10 +51,21 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
           type="number"
           value={value}
           onChange={e => {
-            const num = e.target.valueAsNumber;
-            onChange(isNaN(num) ? 0 : num);
+            const raw = e.target.valueAsNumber;
+            if (isNaN(raw)) { onChange(0); return; }
+            const next = isIntegerStep ? Math.round(raw) : raw;
+            onChange(next);
+            // ブラウザ側のDOM表示が丸め後の値と食い違う場合に備えて強制同期
+            if (isIntegerStep && raw !== next) {
+              e.target.value = String(next);
+            }
           }}
-          onBlur={e => { e.target.value = String(value || 0); }}
+          onBlur={e => {
+            const raw = e.target.valueAsNumber;
+            const safe = isNaN(raw) ? (value || 0) : (isIntegerStep ? Math.round(raw) : raw);
+            if (safe !== value) onChange(safe);
+            e.target.value = String(safe);
+          }}
           onFocus={e => e.target.select()}
           min={min}
           max={max}
@@ -166,13 +178,13 @@ export default function SimulatorForm() {
       <Section title="口座残高・積立">
         <Field label="NISA残高"       id="bNisa"   value={p.bNisa}   onChange={v => up({ bNisa: v })}   min={0} suffix="万円" />
         <Field label="NISA積立"       id="cNisa"   value={p.cNisa}   onChange={v => up({ cNisa: v })}   min={0} suffix="万円/年" />
-        <Field label="NISA積立終了"   id="cNisaTo" value={p.cNisaTo} onChange={v => up({ cNisaTo: v })} min={p.curAge} max={100} step={0.1} suffix="歳" />
+        <Field label="NISA積立終了"   id="cNisaTo" value={p.cNisaTo} onChange={v => up({ cNisaTo: v })} min={p.curAge} max={100} suffix="歳" />
         <Field label="iDeCo残高"      id="bIdeco"  value={p.bIdeco}  onChange={v => up({ bIdeco: v })}  min={0} suffix="万円" />
         <Field label="iDeCo積立"      id="cIdeco"  value={p.cIdeco}  onChange={v => up({ cIdeco: v })}  min={0} suffix="万円/年" />
-        <Field label="iDeCo積立終了"  id="cIdecoTo" value={p.cIdecoTo} onChange={v => up({ cIdecoTo: v })} min={p.curAge} max={60} step={0.1} suffix="歳" />
+        <Field label="iDeCo積立終了"  id="cIdecoTo" value={p.cIdecoTo} onChange={v => up({ cIdecoTo: v })} min={p.curAge} max={60} suffix="歳" />
         <Field label="特定口座残高"   id="bTax"    value={p.bTax}    onChange={v => up({ bTax: v })}    min={0} suffix="万円" />
         <Field label="特定口座積立"   id="cTax"    value={p.cTax}    onChange={v => up({ cTax: v })}    min={0} suffix="万円/年" />
-        <Field label="特定口座積立終了" id="cTaxTo" value={p.cTaxTo} onChange={v => up({ cTaxTo: v })} min={p.curAge} max={100} step={0.1} suffix="歳" />
+        <Field label="特定口座積立終了" id="cTaxTo" value={p.cTaxTo} onChange={v => up({ cTaxTo: v })} min={p.curAge} max={100} suffix="歳" />
         <Field label="現金残高"       id="bCash"   value={p.bCash}   onChange={v => up({ bCash: v })}   min={0} suffix="万円" />
         <SubSection title="配偶者の口座情報">
           <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} suffix="万円" />
