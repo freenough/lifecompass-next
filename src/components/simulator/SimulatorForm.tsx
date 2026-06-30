@@ -143,8 +143,8 @@ export default function SimulatorForm() {
 
       <Section title="基本情報">
         <Field label="現在年齢"     id="curAge"   value={p.curAge}   onChange={v => up({ curAge: v })}   min={20} max={80} suffix="歳" />
-        <Field label="手取り収入"   id="baseInc"  value={p.baseInc}  onChange={v => up({ baseInc: v })}  min={0}  suffix="万円/年" />
-        <Field label="年間生活費"   id="baseExp"  value={p.baseExp}  onChange={v => up({ baseExp: v })}  min={0}  suffix="万円/年" />
+        <Field label="手取り収入"   id="baseInc"  value={p.baseInc}  onChange={v => up({ baseInc: v })}  min={0} step={0.1} suffix="万円/年" />
+        <Field label="年間生活費"   id="baseExp"  value={p.baseExp}  onChange={v => up({ baseExp: v })}  min={0} step={0.1} suffix="万円/年" />
         <Field label="インフレ率"   id="inflR"    value={p.inflR}    onChange={v => up({ inflR: v })}    min={0}  max={10} step={0.1} suffix="%" />
         <Field label="余命(終端年齢)" id="lifeEx" value={p.lifeEx}  onChange={v => up({ lifeEx: v })}   min={60} max={120} suffix="歳" />
         <div className="flex items-center gap-2">
@@ -171,32 +171,32 @@ export default function SimulatorForm() {
         )}
         <SubSection title="配偶者の基本情報">
           <Field label="現在年齢" id="spCurAge" value={p.spCurAge} onChange={v => up({ spCurAge: v })} min={20} suffix="歳" />
-          <Field label="年間収入" id="spInc"    value={p.spInc}    onChange={v => up({ spInc: v })}    min={0}  suffix="万円/年" />
+          <Field label="年間収入" id="spInc"    value={p.spInc}    onChange={v => up({ spInc: v })}    min={0} step={0.1} suffix="万円/年" />
         </SubSection>
       </Section>
 
       <Section title="口座残高・積立">
-        <Field label="NISA残高"       id="bNisa"   value={p.bNisa}   onChange={v => up({ bNisa: v })}   min={0} suffix="万円" />
-        <Field label="NISA積立"       id="cNisa"   value={p.cNisa}   onChange={v => up({ cNisa: v })}   min={0} suffix="万円/年" />
+        <Field label="NISA残高"       id="bNisa"   value={p.bNisa}   onChange={v => up({ bNisa: v })}   min={0} step={0.1} suffix="万円" />
+        <Field label="NISA積立"       id="cNisa"   value={p.cNisa}   onChange={v => up({ cNisa: v })}   min={0} step={0.1} suffix="万円/年" />
         <Field label="NISA積立終了"   id="cNisaTo" value={p.cNisaTo} onChange={v => up({ cNisaTo: v })} min={p.curAge} max={100} suffix="歳" />
-        <Field label="iDeCo残高"      id="bIdeco"  value={p.bIdeco}  onChange={v => up({ bIdeco: v })}  min={0} suffix="万円" />
-        <Field label="iDeCo積立"      id="cIdeco"  value={p.cIdeco}  onChange={v => up({ cIdeco: v })}  min={0} suffix="万円/年" />
+        <Field label="iDeCo残高"      id="bIdeco"  value={p.bIdeco}  onChange={v => up({ bIdeco: v })}  min={0} step={0.1} suffix="万円" />
+        <Field label="iDeCo積立"      id="cIdeco"  value={p.cIdeco}  onChange={v => up({ cIdeco: v })}  min={0} step={0.1} suffix="万円/年" />
         <Field label="iDeCo積立終了"  id="cIdecoTo" value={p.cIdecoTo} onChange={v => up({ cIdecoTo: v })} min={p.curAge} max={60} suffix="歳" />
-        <Field label="特定口座残高"   id="bTax"    value={p.bTax}    onChange={v => up({ bTax: v })}    min={0} suffix="万円" />
-        <Field label="特定口座積立"   id="cTax"    value={p.cTax}    onChange={v => up({ cTax: v })}    min={0} suffix="万円/年" />
+        <Field label="特定口座残高"   id="bTax"    value={p.bTax}    onChange={v => up({ bTax: v })}    min={0} step={0.1} suffix="万円" />
+        <Field label="特定口座積立"   id="cTax"    value={p.cTax}    onChange={v => up({ cTax: v })}    min={0} step={0.1} suffix="万円/年" />
         <Field label="特定口座積立終了" id="cTaxTo" value={p.cTaxTo} onChange={v => up({ cTaxTo: v })} min={p.curAge} max={100} suffix="歳" />
-        <Field label="現金残高"       id="bCash"   value={p.bCash}   onChange={v => up({ bCash: v })}   min={0} suffix="万円" />
+        <Field label="現金残高"       id="bCash"   value={p.bCash}   onChange={v => up({ bCash: v })}   min={0} step={0.1} suffix="万円" />
         <SubSection title="配偶者の口座情報">
-          <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} suffix="万円" />
-          <Field label="NISA積立"          id="spNisaCon"   value={p.spNisaCon  ?? 0} onChange={v => up({ spNisaCon: v })}  min={0} suffix="万円/年" />
+          <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} step={0.1} suffix="万円" />
+          <Field label="NISA積立"          id="spNisaCon"   value={p.spNisaCon  ?? 0} onChange={v => up({ spNisaCon: v })}  min={0} step={0.1} suffix="万円/年" />
           <Field label="NISA積立終了"      id="spNisaTo"    value={p.spNisaTo   ?? (p.spRetAge || 60)} onChange={v => up({ spNisaTo: v })}  min={20} max={100} suffix="歳" />
-          <Field label="iDeCo残高"         id="spIdecoBal"  value={p.spIdecoBal ?? 0} onChange={v => up({ spIdecoBal: v })} min={0} suffix="万円" />
-          <Field label="iDeCo積立"         id="spIdecoCon"  value={p.spIdecoCon ?? 0} onChange={v => up({ spIdecoCon: v })} min={0} suffix="万円/年" />
+          <Field label="iDeCo残高"         id="spIdecoBal"  value={p.spIdecoBal ?? 0} onChange={v => up({ spIdecoBal: v })} min={0} step={0.1} suffix="万円" />
+          <Field label="iDeCo積立"         id="spIdecoCon"  value={p.spIdecoCon ?? 0} onChange={v => up({ spIdecoCon: v })} min={0} step={0.1} suffix="万円/年" />
           <Field label="iDeCo積立終了"     id="spIdecoTo"   value={p.spIdecoTo  ?? (p.spRetAge || 60)} onChange={v => up({ spIdecoTo: v })}  min={20} max={60}  suffix="歳" />
-          <Field label="特定口座残高"      id="spTaxBal"    value={p.spTaxBal   ?? 0} onChange={v => up({ spTaxBal: v })}  min={0} suffix="万円" />
-          <Field label="特定口座積立"      id="spTaxCon"    value={p.spTaxCon   ?? 0} onChange={v => up({ spTaxCon: v })}  min={0} suffix="万円/年" />
+          <Field label="特定口座残高"      id="spTaxBal"    value={p.spTaxBal   ?? 0} onChange={v => up({ spTaxBal: v })}  min={0} step={0.1} suffix="万円" />
+          <Field label="特定口座積立"      id="spTaxCon"    value={p.spTaxCon   ?? 0} onChange={v => up({ spTaxCon: v })}  min={0} step={0.1} suffix="万円/年" />
           <Field label="特定口座積立終了"  id="spTaxTo"     value={p.spTaxTo    ?? (p.spRetAge || 60)} onChange={v => up({ spTaxTo: v })}   min={20} max={100} suffix="歳" />
-          <Field label="現金残高"          id="spCashBal"   value={p.spCashBal  ?? 0} onChange={v => up({ spCashBal: v })} min={0} suffix="万円" />
+          <Field label="現金残高"          id="spCashBal"   value={p.spCashBal  ?? 0} onChange={v => up({ spCashBal: v })} min={0} step={0.1} suffix="万円" />
         </SubSection>
         <div className="flex items-center gap-2 pt-1 mt-1 border-t border-slate-100">
           <span className="w-36 shrink-0 text-xs font-medium text-slate-600">総資産合計</span>
@@ -212,7 +212,7 @@ export default function SimulatorForm() {
       <Section title="退職・年金">
         <Field label="退職年齢"     id="retAge"     value={p.retAge}     onChange={v => up({ retAge: v })}     min={p.curAge + 1} max={80} suffix="歳" />
         <Field label="年金受給開始" id="penAge"     value={p.penAge}     onChange={v => up({ penAge: v })}     min={60} max={75} suffix="歳" />
-        <Field label="年金受給額"   id="penAmtVal"  value={p.penAmtVal}  onChange={v => up({ penAmtVal: v, penAmt: v })} min={0} suffix="万円/年" />
+        <Field label="年金受給額"   id="penAmtVal"  value={p.penAmtVal}  onChange={v => up({ penAmtVal: v, penAmt: v })} min={0} step={0.1} suffix="万円/年" />
         <Field label="勤続年数(退職金控除)" id="sevYrs" value={p.sevYrs} onChange={v => up({ sevYrs: v })} min={1} max={45} suffix="年" />
         <Field label="iDeCo加入年数"  id="idecoYrs"  value={p.idecoYrs}  onChange={v => up({ idecoYrs: v })}  min={1} max={40} suffix="年" />
         <div className="flex items-center gap-2 mt-1">
@@ -234,7 +234,7 @@ export default function SimulatorForm() {
         <SubSection title="配偶者の退職・年金">
           <Field label="退職年齢"   id="spRetAge" value={p.spRetAge} onChange={v => up({ spRetAge: v })} min={20} suffix="歳" />
           <Field label="年金受給開始" id="spPenAge" value={p.spPenAge} onChange={v => up({ spPenAge: v })} min={60} suffix="歳" />
-          <Field label="年金額"     id="spPenAmt" value={p.spPenAmt} onChange={v => up({ spPenAmt: v })} min={0}  suffix="万円/年" />
+          <Field label="年金額"     id="spPenAmt" value={p.spPenAmt} onChange={v => up({ spPenAmt: v })} min={0} step={0.1} suffix="万円/年" />
           <Field label="勤続年数(退職金控除)" id="spSevYrs" value={p.spSevYrs ?? 0} onChange={v => up({ spSevYrs: v })} min={1} max={45} suffix="年" />
           <Field label="iDeCo加入年数" id="spIdecoYrs" value={p.spIdecoYrs ?? 0} onChange={v => up({ spIdecoYrs: v })} min={1} max={40} suffix="年" />
           <div className="flex items-center gap-2 mt-1">
