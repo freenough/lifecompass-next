@@ -223,9 +223,9 @@ export default function SimulatorForm() {
             onChange={e => up({ idecoReceiveType: e.target.value as 'lump' | 'pension' | 'split' })}
             className="rounded border border-slate-300 px-2 py-1 text-sm"
           >
-            <option value="lump">一括受取</option>
-            <option value="pension">年金受取</option>
-            <option value="split">併用（一時金＋年金）</option>
+            <option value="lump">一時金</option>
+            <option value="pension">年金</option>
+            <option value="split">併用</option>
           </select>
         </div>
         {p.idecoReceiveType === 'split' && (
@@ -233,19 +233,12 @@ export default function SimulatorForm() {
             <div className="flex items-center gap-2">
               <label htmlFor="idecoSplitRatio" className="w-36 shrink-0 text-xs text-slate-600">一時金割合</label>
               <input
-                type="range"
+                type="number"
                 id="idecoSplitRatio"
                 min={10} max={90} step={10}
                 value={p.idecoSplitRatio ?? 50}
-                onChange={e => up({ idecoSplitRatio: Number(e.target.value) })}
-                className="flex-1 accent-blue-500"
-              />
-              <input
-                type="number"
-                min={10} max={90} step={10}
-                value={p.idecoSplitRatio ?? 50}
                 onChange={e => up({ idecoSplitRatio: Math.min(90, Math.max(10, Number(e.target.value))) })}
-                className="w-14 rounded border border-slate-300 px-1 py-0.5 text-sm text-right"
+                className="w-20 rounded border border-slate-300 px-2 py-1 text-sm text-right"
               />
               <span className="text-xs text-slate-500">%</span>
             </div>
