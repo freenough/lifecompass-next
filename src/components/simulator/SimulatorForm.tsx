@@ -220,14 +220,41 @@ export default function SimulatorForm() {
           <select
             id="idecoReceiveType"
             value={p.idecoReceiveType}
-            onChange={e => up({ idecoReceiveType: e.target.value as 'lump' | 'pension' })}
+            onChange={e => up({ idecoReceiveType: e.target.value as 'lump' | 'pension' | 'split' })}
             className="rounded border border-slate-300 px-2 py-1 text-sm"
           >
             <option value="lump">一括受取</option>
             <option value="pension">年金受取</option>
+            <option value="split">併用（一時金＋年金）</option>
           </select>
         </div>
-        {p.idecoReceiveType === 'pension' && (
+        {p.idecoReceiveType === 'split' && (
+          <div className="mt-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <label htmlFor="idecoSplitRatio" className="w-36 shrink-0 text-xs text-slate-600">一時金割合</label>
+              <input
+                type="range"
+                id="idecoSplitRatio"
+                min={10} max={90} step={10}
+                value={p.idecoSplitRatio ?? 50}
+                onChange={e => up({ idecoSplitRatio: Number(e.target.value) })}
+                className="flex-1 accent-blue-500"
+              />
+              <input
+                type="number"
+                min={10} max={90} step={10}
+                value={p.idecoSplitRatio ?? 50}
+                onChange={e => up({ idecoSplitRatio: Math.min(90, Math.max(10, Number(e.target.value))) })}
+                className="w-14 rounded border border-slate-300 px-1 py-0.5 text-sm text-right"
+              />
+              <span className="text-xs text-slate-500">%</span>
+            </div>
+            <p className="text-[11px] text-slate-400 pl-[9.5rem]">
+              一時金 {p.idecoSplitRatio ?? 50}% ／ 年金 {100 - (p.idecoSplitRatio ?? 50)}%
+            </p>
+          </div>
+        )}
+        {(p.idecoReceiveType === 'pension' || p.idecoReceiveType === 'split') && (
           <Field label="年金受取年数" id="idecoReceiveYears" value={p.idecoReceiveYears} onChange={v => up({ idecoReceiveYears: v })} min={1} max={20} suffix="年" />
         )}
         <Field label="iDeCo受取開始" id="idecoStartAge" value={p.idecoStartAge} onChange={v => up({ idecoStartAge: v })} min={60} max={75} suffix="歳" />

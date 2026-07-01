@@ -51,6 +51,7 @@ export function simulate(
   let idecoBalanceBeforeWithdrawal: number | null = null;
   let idecoWithdrawalAmount: number | null = null;
   const isPension = p.idecoReceiveType === 'pension';
+  const isSplit   = p.idecoReceiveType === 'split';
   let idecoRemainingYears = p.idecoReceiveYears;
 
   // ── Spouse iDeCo state ──
@@ -200,7 +201,9 @@ export function simulate(
       cash += severanceGross;
     }
     if (isIdecoStart && !idecoExitDone && !isPension) {
-      retirementIncomes.push({ type: 'ideco', amount: ideco });
+      // split: push only the lump portion; the pension portion stays in ideco
+      const lumpAmount = isSplit ? ideco * ((p.idecoSplitRatio ?? 50) / 100) : ideco;
+      retirementIncomes.push({ type: 'ideco', amount: lumpAmount });
     }
     if (retirementIncomes.length > 0) {
       const totalSev   = retirementIncomes.filter(r => r.type === 'severance').reduce((s, r) => s + r.amount, 0);
@@ -212,13 +215,18 @@ export function simulate(
         idecoBalanceBeforeWithdrawalThisYear = Math.round(ideco);
         idecoWithdrawalAmount = Math.round(res.idecoNet);
         cash += res.idecoNet;
-        ideco = 0;
-        idecoStatus = 'closed';
+        if (isSplit) {
+          // Keep the pension portion; only the lump portion was withdrawn
+          ideco = ideco * (1 - (p.idecoSplitRatio ?? 50) / 100);
+        } else {
+          ideco = 0;
+          idecoStatus = 'closed';
+        }
       }
       retirementTaxPaid = Math.round((totalSev - res.severanceNet) + (totalIdeco - res.idecoNet));
     }
     if (isIdecoStart && !idecoExitDone) {
-      if (isPension) { idecoStatus = 'pension'; idecoRemainingYears = p.idecoReceiveYears; }
+      if (isPension || isSplit) { idecoStatus = 'pension'; idecoRemainingYears = p.idecoReceiveYears; }
       idecoExitDone = true;
     }
 

@@ -13,7 +13,7 @@ const DEMO_PROFILE: SimParams = {
   retAge: 60, penAge: 65, penAmt: 120,
   mcStd: 12, mcStdR: 8,
   hasIdeco: true, idecoYrs: 10,
-  idecoReceiveType: 'pension', idecoReceiveYears: 15, idecoStartAge: 60,
+  idecoReceiveType: 'pension', idecoReceiveYears: 15, idecoSplitRatio: 50, idecoStartAge: 60,
   sevYrs: 12,
   acct: {
     nisa:  { bal: 400, con: 120, toAge: 60, rW: 5, rR: 3.5 },

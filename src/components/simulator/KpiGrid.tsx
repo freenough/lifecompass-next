@@ -9,7 +9,7 @@ interface KpiGridProps {
   mode: 'fixed' | 'mc';
   strategy: string;
   retAge: number;
-  idecoReceiveType?: 'lump' | 'pension';
+  idecoReceiveType?: 'lump' | 'pension' | 'split';
   hasIdeco: boolean;
   hasSeverance: boolean;
 }
@@ -115,9 +115,12 @@ export default function KpiGrid({
   const wrVariant: 'good' | 'warn' | 'danger' | 'neutral' =
     wr == null ? 'neutral' : wr <= 4 ? 'good' : wr <= 6 ? 'warn' : 'danger';
 
-  const idecoSub = idecoReceiveType === 'lump' && a.idecoLumpTax > 0
-    ? `一時金税 ${Math.round(a.idecoLumpTax).toLocaleString()}万円`
-    : undefined;
+  const idecoSub =
+    idecoReceiveType === 'split'
+      ? `一時金 ${fmt(a.idecoLumpNet)} ／ 年金 ${fmt(a.idecoTotalNetWithdrawal)}`
+      : (idecoReceiveType === 'lump' && a.idecoLumpTax > 0)
+        ? `一時金税 ${Math.round(a.idecoLumpTax).toLocaleString()}万円`
+        : undefined;
 
   const showIdecoTier3 = hasIdeco;
 
@@ -127,7 +130,10 @@ export default function KpiGrid({
   const tier4Expandable = hasIdeco || hasSeverance;
 
   // Tier3 iDeCo value: household total (main + spouse)
-  const idecoSelfNet = idecoReceiveType === 'lump' ? a.idecoLumpNet : a.idecoTotalNetWithdrawal;
+  const idecoSelfNet =
+    idecoReceiveType === 'lump'    ? a.idecoLumpNet :
+    idecoReceiveType === 'pension' ? a.idecoTotalNetWithdrawal :
+    /* split */                      a.idecoLumpNet + a.idecoTotalNetWithdrawal;
   const idecoTier3Value = idecoSelfNet + (a.spIdecoLumpNet ?? 0);
 
   void mode;
@@ -195,7 +201,9 @@ export default function KpiGrid({
             tooltip={
               idecoReceiveType === 'lump'
                 ? `iDeCo一時金から退職所得控除（退職金と合算）を適用した税引後の手取り額。${showSpouseRetirement ? '配偶者のiDeCo受取を含む世帯合計。' : ''}`
-                : 'iDeCo年金受取期間の合計受取額から、公的年金等控除を適用した税引後の手取り総額。'
+                : idecoReceiveType === 'split'
+                  ? '一時金部分は退職所得控除を適用した手取り額、年金部分は公的年金等控除を適用した累計手取り額の合計。'
+                  : 'iDeCo年金受取期間の合計受取額から、公的年金等控除を適用した税引後の手取り総額。'
             }
             footer={
               tier4Expandable ? (
@@ -248,6 +256,18 @@ export default function KpiGrid({
               />
             }
           />
+          {idecoReceiveType === 'split' && (
+            <KpiCard
+              label="iDeCo内訳（本人）"
+              value={fmt(idecoSelfNet)}
+              footer={
+                <div className="mt-2 border-t border-slate-200 pt-2 space-y-1">
+                  <SpouseRow label={`一時金(${fmt(a.idecoLumpNet)})`} value={`税 ${fmt(a.idecoLumpTax)}`} />
+                  <SpouseRow label={`年金累計(${fmt(a.idecoTotalNetWithdrawal)})`} value={`税 ${fmt(a.idecoTotalTax - a.idecoLumpTax)}`} />
+                </div>
+              }
+            />
+          )}
         </div>
       )}
     </div>

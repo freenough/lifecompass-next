@@ -89,8 +89,9 @@ export interface ProfileV3 {
     cIdecoTo: number;
     idecoYrs: number;
     sevYrs: number;
-    idecoReceiveType: 'lump' | 'pension';
+    idecoReceiveType: 'lump' | 'pension' | 'split';
     idecoReceiveYears: number;
+    idecoSplitRatio: number;
     idecoStartAge: number;
     bTax: number;
     cTax: number;
@@ -156,7 +157,7 @@ export const SAMPLE_PROFILE: ProfileV3 = {
     bNisa: 200, cNisa: 72, cNisaTo: 60,
     bIdeco: 0, cIdeco: 0, cIdecoTo: 60,
     idecoYrs: 0, sevYrs: 20,
-    idecoReceiveType: 'lump', idecoReceiveYears: 10, idecoStartAge: 60,
+    idecoReceiveType: 'lump', idecoReceiveYears: 10, idecoSplitRatio: 50, idecoStartAge: 60,
     bTax: 0, cTax: 0, cTaxTo: 60,
     bCash: 300,
     penAmt: 150,
@@ -244,6 +245,7 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
     sevYrs,
     idecoReceiveType:  p.idecoReceiveType  || 'lump',
     idecoReceiveYears: p.idecoReceiveYears || 10,
+    idecoSplitRatio:   p.idecoSplitRatio   ?? 50,
     idecoStartAge,
     acct: {
       nisa: {

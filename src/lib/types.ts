@@ -55,9 +55,10 @@ export interface SimParams {
   mcStdR: number;
   hasIdeco: boolean;
   idecoYrs: number;
-  idecoReceiveType: 'lump' | 'pension';
+  idecoReceiveType: 'lump' | 'pension' | 'split';
   idecoReceiveYears: number;
   idecoStartAge: number;
+  idecoSplitRatio: number;
   sevYrs: number;
   acct: AccountState;
   spouse: SpouseParams | null;
