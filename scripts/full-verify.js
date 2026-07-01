@@ -109,19 +109,19 @@ const NAKAMURA_EVENTS = [
   { category: 'income',  subtype: 'severance',   name: '退職金',    age: 58, years:  1, amount: 2299 },
 ];
 
-// 確定数値（年次資産表）
+// 確定数値（年次資産表）※iDeCo取崩前ロック修正後 proportional (2026-07-01)
 const NAKAMURA_EXPECTED = [
-  { age: 38, totalAssets: 2608, income_disp: 835, expense: 518 },
-  { age: 49, totalAssets: 7930, income_disp: 835, expense: 856 },
-  { age: 52, totalAssets: 8986, income_disp: 835, expense: 1133 },
-  { age: 55, totalAssets:10547, income_disp: 835, expense: 1012 },
-  { age: 56, totalAssets:11345, income_disp: 835, expense: 772 },
-  { age: 57, totalAssets:12192, income_disp: 835, expense: 783 },
-  { age: 58, totalAssets:14272, income_disp:2299, expense: 693 },
-  { age: 65, totalAssets:12409, income_disp: 228, expense: 773 },
-  { age: 68, totalAssets:12367, income_disp: 348, expense: 435 },
-  { age: 80, totalAssets:15677, income_disp: 290, expense: 551 },
-  { age: 90, totalAssets:18685, income_disp: 290, expense: 672 },
+  { age: 38, totalAssets:  2608, income_disp:  835, expense:  518 },
+  { age: 49, totalAssets:  7930, income_disp:  835, expense:  856 },
+  { age: 52, totalAssets:  8986, income_disp:  835, expense: 1133 },
+  { age: 55, totalAssets: 10547, income_disp:  835, expense: 1012 },
+  { age: 56, totalAssets: 11345, income_disp:  835, expense:  772 },
+  { age: 57, totalAssets: 12192, income_disp:  835, expense:  783 },
+  { age: 58, totalAssets: 14271, income_disp: 2299, expense:  693 },
+  { age: 65, totalAssets: 12404, income_disp:  254, expense:  773 },
+  { age: 68, totalAssets: 12350, income_disp:  374, expense:  435 },
+  { age: 80, totalAssets: 15563, income_disp:  290, expense:  551 },
+  { age: 90, totalAssets: 18521, income_disp:  290, expense:  672 },
 ];
 
 // ---- 佐々木シリーズ ----
@@ -155,21 +155,21 @@ const SASAKI_EVENTS = [
   { category: 'income',  subtype: 'reemploy',  name: '再雇用②', age: 66, years: 5, amount: 100 },
 ];
 
-// 確定数値（年次資産表・全37行 CSV突き合わせ済み 2026-06-22）
+// 確定数値（修正後 proportional・iDeCo取崩前ロック適用済み・2026-07-01更新）
 const SASAKI_EXPECTED = [
   { age: 53, totalAssets:  6889, income_disp:  720, expense:  360 },
   { age: 59, totalAssets: 11734, income_disp:  720, expense:  382 },
-  { age: 60, totalAssets: 13744, income_disp: 2049, expense:  386 },
+  { age: 60, totalAssets: 13742, income_disp: 2049, expense:  386 },
   { age: 61, totalAssets: 14163, income_disp:  450, expense:  390 },
   { age: 62, totalAssets: 14492, income_disp:  350, expense:  394 },
-  { age: 65, totalAssets: 15653, income_disp:  641, expense:  406 },
-  { age: 66, totalAssets: 15882, income_disp:  397, expense:  410 },
-  { age: 67, totalAssets: 16195, income_disp:  484, expense:  414 },
-  { age: 70, totalAssets: 17160, income_disp:  503, expense:  426 },
-  { age: 71, totalAssets: 17390, income_disp:  411, expense:  431 },
-  { age: 79, totalAssets: 19365, income_disp:  479, expense:  466 },
-  { age: 80, totalAssets: 19670, income_disp:  230, expense:  471 },
-  { age: 90, totalAssets: 23277, income_disp:  230, expense:  520 },
+  { age: 65, totalAssets: 15655, income_disp:  646, expense:  406 },
+  { age: 66, totalAssets: 15883, income_disp:  402, expense:  410 },
+  { age: 67, totalAssets: 16196, income_disp:  489, expense:  414 },
+  { age: 70, totalAssets: 17160, income_disp:  509, expense:  426 },
+  { age: 71, totalAssets: 17390, income_disp:  417, expense:  431 },
+  { age: 79, totalAssets: 19352, income_disp:  488, expense:  466 },
+  { age: 80, totalAssets: 19654, income_disp:  230, expense:  471 },
+  { age: 90, totalAssets: 23235, income_disp:  230, expense:  520 },
 ];
 
 // ================================================================
@@ -356,41 +356,41 @@ const TANAKA_INFLE2_EVENTS = [
   { category: 'expense', subtype: 'education',   name: '教育費2',   age: 48, years: 4, amount: 250 },
 ];
 
-// 確定値：tanakaFIRE_2026-06-21.csv（完全FIRE・inflR=1%・教育費なし）
+// 確定値：修正後 proportional（iDeCo取崩前ロック適用済み・2026-07-01更新）
 const TANAKA_FIRE_EXPECTED = [
   { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
   { age: 45, totalAssets: 4272, income_disp:  850, expense:  495 },
   { age: 54, totalAssets: 8710, income_disp:  850, expense:  541 },
   { age: 55, totalAssets: 9369, income_disp:  972, expense:  546 }, // 退職金net772+妻収入200=972万
-  { age: 56, totalAssets: 9252, income_disp:  200, expense:  552 }, // 妻のみ収入（年齢54<55）
+  { age: 56, totalAssets: 9251, income_disp:  200, expense:  552 }, // 妻のみ収入（年齢54<55）
   { age: 57, totalAssets: 8925, income_disp:    0, expense:  557 }, // 妻も退職（年齢55=spRetAge）
-  { age: 65, totalAssets: 5955, income_disp:  150, expense:  603 }, // 主年金150・妻63歳未達
-  { age: 67, totalAssets: 5364, income_disp:  230, expense:  616 }, // 妻65歳→年金80追加
+  { age: 65, totalAssets: 5914, income_disp:  150, expense:  603 }, // 主年金150・妻63歳未達
+  { age: 67, totalAssets: 5289, income_disp:  230, expense:  616 }, // 妻65歳→年金80追加
   { age: 82, totalAssets:    0, income_disp:  230, expense:  715 }, // 枯渇（82歳）
   { age: 90, totalAssets:    0, income_disp:  230, expense:  715 },
 ];
 
-// 確定値：tanankasemiretire_simulation_2026-06-21.csv（セミリタイヤ・生活費300万/年）
+// 確定値：修正後 proportional（iDeCo取崩前ロック適用済み・2026-07-01更新）
 const TANAKA_SEMIRETIRE_EXPECTED = [
   { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
   { age: 55, totalAssets: 9369, income_disp:  972, expense:  546 },
   { age: 56, totalAssets: 9462, income_disp:  200, expense:  345 }, // 300*(1.01)^14≈345万
-  { age: 57, totalAssets: 9354, income_disp:    0, expense:  348 },
-  { age: 65, totalAssets: 8428, income_disp:  150, expense:  377 }, // 300*(1.01)^23≈377万
-  { age: 67, totalAssets: 8438, income_disp:  230, expense:  385 },
-  { age: 90, totalAssets: 9337, income_disp:  230, expense:  484 }, // 生涯枯渇なし
+  { age: 57, totalAssets: 9353, income_disp:    0, expense:  348 },
+  { age: 65, totalAssets: 8402, income_disp:  150, expense:  377 }, // 300*(1.01)^23≈377万
+  { age: 67, totalAssets: 8387, income_disp:  230, expense:  385 },
+  { age: 90, totalAssets: 8902, income_disp:  230, expense:  484 }, // 生涯枯渇なし
 ];
 
-// 確定値：tanaka_インフレ2%_simulation_2026-06-21.csv（セミリタイヤ+教育・inflR=2%）
+// 確定値：修正後 proportional（iDeCo取崩前ロック適用済み・2026-07-01更新）
 const TANAKA_INFLE2_EXPECTED = [
   { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
   { age: 45, totalAssets: 3993, income_disp:  850, expense:  759 }, // 480*(1.02)^3+250≈759万
   { age: 48, totalAssets: 4316, income_disp:  850, expense: 1041 }, // 480*(1.02)^6+250+250≈1041万
   { age: 52, totalAssets: 5368, income_disp:  850, expense:  585 }, // 480*(1.02)^10≈585万（教育終了）
-  { age: 55, totalAssets: 6874, income_disp:  972, expense:  621 }, // 480*(1.02)^13≈621万
-  { age: 56, totalAssets: 6908, income_disp:  200, expense:  396 }, // 300*(1.02)^14≈396万
-  { age: 84, totalAssets:    0, income_disp:  230, expense:  689 }, // 枯渇（84歳）
-  { age: 90, totalAssets:    0, income_disp:  230, expense:  689 },
+  { age: 55, totalAssets: 6872, income_disp:  972, expense:  621 }, // 480*(1.02)^13≈621万
+  { age: 56, totalAssets: 6906, income_disp:  200, expense:  396 }, // 300*(1.02)^14≈396万
+  { age: 84, totalAssets:    0, income_disp:  230, expense:  676 }, // 枯渇（84歳）
+  { age: 90, totalAssets:    0, income_disp:  230, expense:  676 },
 ];
 
 function runTanakaSection(p, events, expected) {

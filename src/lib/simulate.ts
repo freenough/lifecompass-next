@@ -328,22 +328,22 @@ export function simulate(
       if (cash < 0) {
         const def = -cash; cash = 0;
         if (strategy === 'proportional') {
-          const inv = nisa + spNisa + ideco + spIdeco + tax + spTax;
+          // iDeCoは積立期に引き出し不可のため除外
+          const inv = nisa + spNisa + tax + spTax;
           if (inv > 0) {
             const r = Math.min(1, def / inv);
             nisa  = Math.max(0, nisa  - nisa  * r);
             spNisa = Math.max(0, spNisa - spNisa * r);
-            ideco = Math.max(0, ideco - ideco * r);
-            spIdeco = Math.max(0, spIdeco - spIdeco * r);
             taxCostBasis = Math.max(0, taxCostBasis - taxCostBasis * r);
             spTaxCostBasis = Math.max(0, spTaxCostBasis - spTaxCostBasis * r);
             tax   = Math.max(0, tax   - tax   * r);
             spTax = Math.max(0, spTax - spTax * r);
           }
         } else {
-          const orders: Array<'tax' | 'nisa' | 'ideco'> = ['tax', 'nisa', 'ideco'];
+          // iDeCoは積立期に引き出し不可のため除外
+          const orders: Array<'tax' | 'nisa'> = ['tax', 'nisa'];
           let rem = def;
-          const a = { nisa: nisa + spNisa, ideco: ideco + spIdeco, tax: tax + spTax };
+          const a = { nisa: nisa + spNisa, tax: tax + spTax };
           for (const k of orders) {
             if (rem <= 0) break;
             if (k === 'tax') {
@@ -358,8 +358,7 @@ export function simulate(
             } else {
               const t = Math.min(rem, a[k]);
               const ratio2 = a[k] > 0 ? t / a[k] : 0;
-              if (k === 'nisa')  { nisa   = Math.max(0, nisa   - nisa   * ratio2); spNisa  = Math.max(0, spNisa  - spNisa  * ratio2); }
-              if (k === 'ideco') { ideco  = Math.max(0, ideco  - ideco  * ratio2); spIdeco = Math.max(0, spIdeco - spIdeco * ratio2); }
+              if (k === 'nisa') { nisa  = Math.max(0, nisa  - nisa  * ratio2); spNisa = Math.max(0, spNisa - spNisa * ratio2); }
               a[k] -= t; rem -= t;
             }
           }
@@ -372,13 +371,19 @@ export function simulate(
         cash += surplus;
       } else {
         const need = -surplus;
-        const cn = nisa + spNisa, ci = ideco + spIdeco, ct = tax + spTax, cc = cash + spCash;
+        // idecoStartAge未到達の間はiDeCoを取崩対象から除外
+        const idecoLocked = idecoStatus === 'accumulation';
+        const cn = nisa + spNisa;
+        const ci = idecoLocked ? 0 : (ideco + spIdeco);
+        const ct = tax + spTax, cc = cash + spCash;
         const ccb = taxCostBasis + spTaxCostBasis;
         const res = withdraw(cn, ci, ct, cc, ccb, need, strategy);
         if (cn > 0) { const r = res.nisa  / cn; nisa  = r * (cn - spNisa);  spNisa  = r * spNisa;  }
         else        { nisa = 0; spNisa = 0; }
-        if (ci > 0) { const r = res.ideco / ci; ideco = r * (ci - spIdeco); spIdeco = r * spIdeco; }
-        else        { ideco = 0; spIdeco = 0; }
+        if (!idecoLocked) {
+          if (ci > 0) { const r = res.ideco / ci; ideco = r * (ci - spIdeco); spIdeco = r * spIdeco; }
+          else        { ideco = 0; spIdeco = 0; }
+        }
         if (ct > 0) { const r = res.tax   / ct; tax   = r * (ct - spTax);   spTax   = r * spTax;   }
         else        { tax = 0; spTax = 0; }
         if (cc > 0) { const r = res.cash  / cc; cash  = r * (cc - spCash);  spCash  = r * spCash;  }
