@@ -13,6 +13,7 @@ export interface BlogPostMeta {
   slug: string;
   category: string;
   description: string;
+  eyecatch?: string;
 }
 
 export interface BlogPost extends BlogPostMeta {
@@ -32,6 +33,7 @@ export function getAllPosts(): BlogPostMeta[] {
       slug:        data.slug        ?? slug,
       category:    data.category    ?? '',
       description: data.description ?? '',
+      eyecatch:    data.eyecatch,
     } as BlogPostMeta;
   });
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -49,6 +51,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     slug:        data.slug        ?? slug,
     category:    data.category    ?? '',
     description: data.description ?? '',
+    eyecatch:    data.eyecatch,
     content:     processed.toString(),
   };
 }

@@ -54,6 +54,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <span className="text-slate-600 truncate max-w-[200px]">{post.title}</span>
       </nav>
 
+      {/* アイキャッチ画像 */}
+      {post.eyecatch && (
+        <div className="mb-8 rounded-xl overflow-hidden">
+          <img
+            src={post.eyecatch}
+            alt={post.title}
+            className="w-full object-cover"
+          />
+        </div>
+      )}
+
       {/* 記事ヘッダー */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
@@ -82,7 +93,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           prose-table:text-sm
           prose-th:bg-[#0F2A4A] prose-th:text-white prose-th:p-2
           prose-td:p-2 prose-td:border prose-td:border-slate-200
-          prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded
+          prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded prose-code:text-[#0F2A4A] prose-code:before:content-none prose-code:after:content-none
+          prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded-lg
           prose-blockquote:border-l-4 prose-blockquote:border-blue-300 prose-blockquote:text-slate-500"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
