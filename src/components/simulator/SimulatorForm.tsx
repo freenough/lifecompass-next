@@ -118,7 +118,7 @@ function SubSection({ title, children }: { title: string; children: React.ReactN
 }
 
 export default function SimulatorForm() {
-  const { profile, updateProfile, loadProfile } = useSimulatorStore();
+  const { profile, updateProfile, loadProfile, setSameAsWorking } = useSimulatorStore();
   const p = profile.params;
   const up = (patch: Partial<typeof p>) => updateProfile(patch);
   const sameRate = profile.portfolio.retirement.sameAsWorking;
@@ -286,17 +286,7 @@ export default function SimulatorForm() {
             id="sameAsWorking"
             type="checkbox"
             checked={sameRate}
-            onChange={e => {
-              // Update portfolio separately — requires direct store manipulation
-              const { profile: pr, loadProfile } = useSimulatorStore.getState();
-              loadProfile({
-                ...pr,
-                portfolio: {
-                  ...pr.portfolio,
-                  retirement: { ...pr.portfolio.retirement, sameAsWorking: e.target.checked },
-                },
-              });
-            }}
+            onChange={e => setSameAsWorking(e.target.checked)}
             className="rounded"
           />
           <label htmlFor="sameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ利回りを使う</label>
@@ -304,8 +294,8 @@ export default function SimulatorForm() {
       </Section>
 
       <Section title="MC設定" defaultOpen={false}>
-        <Field label="積立期 標準偏差" id="mcStd"  value={p.mcStd}  onChange={v => up({ mcStd: v })}  min={0} max={50} step={1} suffix="%" />
-        <Field label="取崩期 標準偏差" id="mcStdR" value={p.mcStdR} onChange={v => up({ mcStdR: v })} min={0} max={50} step={1} suffix="%" />
+        <Field label="積立期 標準偏差" id="mcStd"  value={p.mcStd}  onChange={v => up({ mcStd: v })}  min={0} max={50} step={0.1} suffix="%" />
+        <Field label="取崩期 標準偏差" id="mcStdR" value={sameRate ? p.mcStd : p.mcStdR} onChange={v => up({ mcStdR: v })} min={0} max={50} step={0.1} suffix="%" disabled={sameRate} />
       </Section>
 
     </div>
