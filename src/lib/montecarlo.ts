@@ -16,12 +16,13 @@ export function runMC(
     return s[lo] + (s[hi] - s[lo]) * (i - lo);
   };
 
-  // 共通乱数法（CRN）：全戦略で同じショック列を共有
+  // 共通乱数法（CRN）：全戦略で同じショック列を共有。
+  // ここでは標準正規乱数（Zスコア）のみ生成する。実際のσ倍率（mcStd/mcStdR固定値、
+  // または動的モード時は年ごとの口座別残高加重σ）はsimulate()内で年ごとに決定する。
+  // randNorm(0,1)×σ は randNorm(0,σ) と数学的に同一分布（正規分布のスケーリング）なので、
+  // 静的モード（mcStdDynamic未設定）の既存の挙動は変化しない。
   const trialReturns: number[][] = Array.from({ length: N }, () =>
-    Array.from({ length: years }, (_, yr) => {
-      const isRet = (p.curAge + yr) >= p.retAge;
-      return randNorm(0, isRet ? p.mcStdR : p.mcStd);
-    })
+    Array.from({ length: years }, () => randNorm(0, 1))
   );
 
   const results: MCResult['strategies'] = {} as MCResult['strategies'];

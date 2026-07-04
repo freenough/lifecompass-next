@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
-import { ASSET_CLASSES, calcMu, calcAggregatedSigma } from '@/lib/profile';
+import { ASSET_CLASSES, calcMu, calcAggregateMu, calcAggregateSigma } from '@/lib/profile';
 import type { AssetRow } from '@/lib/profile';
+import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 
 type Phase = 'current' | 'working' | 'retirement';
 type Acct  = 'nisa' | 'ideco' | 'tax';
@@ -22,13 +23,10 @@ interface AssetCardProps {
   acct: Acct;
   rows: AssetRow[];
   spRows?: AssetRow[];
-  autoFieldId?: string;
-  autoVal?: number;
-  isManual?: boolean;
 }
 
-function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }: AssetCardProps) {
-  const { updatePortfolio, updateSpousePortfolio, profile, updateProfile } = useSimulatorStore();
+function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
+  const { updatePortfolio, updateSpousePortfolio } = useSimulatorStore();
   const [spOpen, setSpOpen] = useState(false);
   const isCurrent = phase === 'current';
 
@@ -59,20 +57,12 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
   const delSpRow = (i: number) => updateSp(sp.filter((_, idx) => idx !== i));
 
   // ── derived values ───────────────────────────────────────────
-  const mu = calcMu(rows);
+  // μはこのカードの資産配分から常にライブで再計算する読み取り専用の値。
+  // 手動上書きの有無は「利回り設定」側の責務であり、PFカードのμ表示には影響しない。
+  const displayMu = calcMu(rows);
   const mainTotal = isCurrent ? rows.reduce((s, r) => s + (r.amount ?? 0), 0) : 0;
   const spTotal   = isCurrent ? sp.reduce((s, r) => s + (r.amount ?? 0), 0) : 0;
   const totalAmount = mainTotal + spTotal;
-
-  const handleManualEdit = (fieldId: string, val: number) => {
-    const flags = { ...profile.params.pfManualFlags, [fieldId]: true };
-    updateProfile({ pfManualFlags: flags, [fieldId]: val } as Record<string, unknown> as Partial<typeof profile.params>);
-  };
-
-  const handleRevert = (fieldId: string, autoValue: number) => {
-    const flags = { ...profile.params.pfManualFlags, [fieldId]: false };
-    updateProfile({ pfManualFlags: flags, [fieldId]: autoValue } as Record<string, unknown> as Partial<typeof profile.params>);
-  };
 
   return (
     <div className="rounded-lg border border-slate-200 p-3 flex flex-col gap-2">
@@ -81,7 +71,7 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
         <span className="text-xs font-semibold text-slate-600">{ACCT_LABELS[acct]}</span>
         {isCurrent
           ? <span className="text-xs text-slate-400">合計: {totalAmount.toLocaleString()}万円</span>
-          : <span className="text-xs text-slate-400">μ: {mu.toFixed(1)}%</span>
+          : <span className="text-sm font-bold text-slate-800">μ: {displayMu.toFixed(1)}%</span>
         }
       </div>
 
@@ -102,7 +92,14 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
               <input
                 type="number"
                 value={row.amount ?? 0}
-                onFocus={e => e.target.select()} onChange={e => { const n = e.target.valueAsNumber; setAmount(i, isNaN(n) ? 0 : n); }}
+                onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                onClick={e => clearZeroOrSelect(e.currentTarget)}
+                onChange={e => {
+                  const cleaned = stripLeadingZero(e.target.value);
+                  if (cleaned !== e.target.value) e.target.value = cleaned;
+                  const n = e.target.valueAsNumber;
+                  setAmount(i, isNaN(n) ? 0 : n);
+                }}
                 min={0}
                 className="w-16 text-xs border border-slate-300 rounded px-1 py-1 text-right"
               />
@@ -113,7 +110,14 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
               <input
                 type="number"
                 value={row.pct}
-                onFocus={e => e.target.select()} onChange={e => { const n = e.target.valueAsNumber; setPct(i, isNaN(n) ? 0 : n); }}
+                onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                onClick={e => clearZeroOrSelect(e.currentTarget)}
+                onChange={e => {
+                  const cleaned = stripLeadingZero(e.target.value);
+                  if (cleaned !== e.target.value) e.target.value = cleaned;
+                  const n = e.target.valueAsNumber;
+                  setPct(i, isNaN(n) ? 0 : n);
+                }}
                 min={0}
                 max={100}
                 className="w-14 text-xs border border-slate-300 rounded px-1 py-1 text-right"
@@ -121,9 +125,7 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
               <span className="text-xs text-slate-400">%</span>
             </>
           )}
-          {rows.length > 1 && (
-            <button onClick={() => delRow(i)} className="text-red-400 hover:text-red-600 text-xs px-1">×</button>
-          )}
+          <button onClick={() => delRow(i)} className="text-red-400 hover:text-red-600 text-xs px-1">×</button>
         </div>
       ))}
 
@@ -160,8 +162,14 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
                   <input
                     type="number"
                     value={row.amount ?? 0}
-                    onChange={e => { const n = e.target.valueAsNumber; setSpAmount(i, isNaN(n) ? 0 : n); }}
-                    onFocus={e => e.target.select()}
+                    onChange={e => {
+                      const cleaned = stripLeadingZero(e.target.value);
+                      if (cleaned !== e.target.value) e.target.value = cleaned;
+                      const n = e.target.valueAsNumber;
+                      setSpAmount(i, isNaN(n) ? 0 : n);
+                    }}
+                    onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                    onClick={e => clearZeroOrSelect(e.currentTarget)}
                     min={0}
                     className="w-16 text-xs border border-slate-300 rounded px-1 py-1 text-right"
                   />
@@ -180,28 +188,6 @@ function AssetCard({ phase, acct, rows, spRows, autoFieldId, autoVal, isManual }
         </div>
       )}
 
-      {/* auto rate block — working / retirement phases only */}
-      {autoFieldId && autoVal !== undefined && (
-        <div className="flex items-center gap-1 mt-1 pt-1 border-t border-slate-100">
-          <span className={`text-[10px] rounded px-1.5 py-0.5 ${isManual ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
-            {isManual ? '手動' : '自動'}
-          </span>
-          <span className="text-xs text-slate-500 flex-1">rW: </span>
-          <input
-            type="number"
-            value={profile.params[autoFieldId as keyof typeof profile.params] as number}
-            onFocus={e => e.target.select()} onChange={e => { const n = e.target.valueAsNumber; handleManualEdit(autoFieldId, isNaN(n) ? 0 : n); }}
-            step={0.1}
-            className="w-16 text-xs border border-slate-300 rounded px-1 py-0.5 text-right"
-          />
-          <span className="text-xs text-slate-400">%</span>
-          {isManual && (
-            <button onClick={() => handleRevert(autoFieldId, autoVal)} className="text-[10px] text-blue-600 hover:underline ml-1">
-              自動に戻す
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -243,44 +229,20 @@ function Section({ label, badge, badgeColor, children, subAction }: SectionProps
 
 export default function PortfolioPanel() {
   const { profile, setSameAsWorking, copyCurrentToWorking } = useSimulatorStore();
-  const p = profile.params;
   const pf = profile.portfolio;
-  const flags = p.pfManualFlags;
 
-  // 口座残高: currentのamount合計を優先、未入力ならprofile.paramsの残高を使う
-  const bNisaCur  = pf.current.nisa.reduce((s, r) => s + (r.amount ?? 0), 0);
-  const bIdecoCur = pf.current.ideco.reduce((s, r) => s + (r.amount ?? 0), 0);
-  const bTaxCur   = pf.current.tax.reduce((s, r) => s + (r.amount ?? 0), 0);
-  const totalCurBal = bNisaCur + bIdecoCur + bTaxCur;
-  const bNisa  = totalCurBal > 0 ? bNisaCur  : p.bNisa;
-  const bIdeco = totalCurBal > 0 ? bIdecoCur : p.bIdeco;
-  const bTax   = totalCurBal > 0 ? bTaxCur   : p.bTax;
-
-  // σ表示: 残高加重集計
-  const sigmaW = calcAggregatedSigma(
-    [pf.working.nisa, pf.working.ideco, pf.working.tax],
-    [bNisa, bIdeco, bTax],
-  ) ?? 0;
-
+  // μ/σ表示: calcAggregateMu/calcAggregateSigma（プロフィール側でMC設定の実効値計算とも共有）
+  // だけを参照する読み取り専用のライブ値。別ロジックでの再計算は行わない。
+  // 重みはμ・σとも実際の残高・積立額（getAggregateWeights）で統一する——資産配分の
+  // 入力有無とは無関係に、残高・積立額が0円の口座は重み0のままにする。
   const retNisaRows  = pf.retirement.sameAsWorking ? pf.working.nisa  : pf.retirement.nisa;
   const retIdecoRows = pf.retirement.sameAsWorking ? pf.working.ideco : pf.retirement.ideco;
   const retTaxRows   = pf.retirement.sameAsWorking ? pf.working.tax   : pf.retirement.tax;
-  const sigmaR = calcAggregatedSigma(
-    [retNisaRows, retIdecoRows, retTaxRows],
-    [bNisa, bIdeco, bTax],
-  ) ?? 0;
 
-  // μ表示: 残高加重平均
-  const totalBal = bNisa + bIdeco + bTax;
-  const wN = totalBal > 0 ? bNisa / totalBal : 1 / 3;
-  const wI = totalBal > 0 ? bIdeco / totalBal : 1 / 3;
-  const wT = totalBal > 0 ? bTax / totalBal : 1 / 3;
-  const muW = calcMu(pf.working.nisa) * wN
-            + calcMu(pf.working.ideco) * wI
-            + calcMu(pf.working.tax) * wT;
-  const muR = calcMu(retNisaRows) * wN
-            + calcMu(retIdecoRows) * wI
-            + calcMu(retTaxRows) * wT;
+  const muW = calcAggregateMu(profile, [pf.working.nisa, pf.working.ideco, pf.working.tax], 'working');
+  const muR = calcAggregateMu(profile, [retNisaRows, retIdecoRows, retTaxRows], 'retirement');
+  const sigmaW = calcAggregateSigma(profile, [pf.working.nisa, pf.working.ideco, pf.working.tax], 'working');
+  const sigmaR = calcAggregateSigma(profile, [retNisaRows, retIdecoRows, retTaxRows], 'retirement');
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col gap-1">
@@ -305,18 +267,9 @@ export default function PortfolioPanel() {
           </button>
         }
       >
-        <AssetCard
-          phase="working" acct="nisa" rows={pf.working.nisa}
-          autoFieldId="rWNisa" autoVal={calcMu(pf.working.nisa)} isManual={!!flags['rWNisa']}
-        />
-        <AssetCard
-          phase="working" acct="ideco" rows={pf.working.ideco}
-          autoFieldId="rWIdeco" autoVal={calcMu(pf.working.ideco)} isManual={!!flags['rWIdeco']}
-        />
-        <AssetCard
-          phase="working" acct="tax" rows={pf.working.tax}
-          autoFieldId="rWTax" autoVal={calcMu(pf.working.tax)} isManual={!!flags['rWTax']}
-        />
+        <AssetCard phase="working" acct="nisa"  rows={pf.working.nisa} />
+        <AssetCard phase="working" acct="ideco" rows={pf.working.ideco} />
+        <AssetCard phase="working" acct="tax"   rows={pf.working.tax} />
         <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">
           <span className="text-slate-500">全口座集計</span>
           <span>μ: <strong>{muW.toFixed(1)}%</strong></span>
@@ -337,18 +290,9 @@ export default function PortfolioPanel() {
         </div>
         {!pf.retirement.sameAsWorking && (
           <>
-            <AssetCard
-              phase="retirement" acct="nisa" rows={pf.retirement.nisa}
-              autoFieldId="rRNisa" autoVal={calcMu(pf.retirement.nisa)} isManual={!!flags['rRNisa']}
-            />
-            <AssetCard
-              phase="retirement" acct="ideco" rows={pf.retirement.ideco}
-              autoFieldId="rRIdeco" autoVal={calcMu(pf.retirement.ideco)} isManual={!!flags['rRIdeco']}
-            />
-            <AssetCard
-              phase="retirement" acct="tax" rows={pf.retirement.tax}
-              autoFieldId="rRTax" autoVal={calcMu(pf.retirement.tax)} isManual={!!flags['rRTax']}
-            />
+            <AssetCard phase="retirement" acct="nisa"  rows={pf.retirement.nisa} />
+            <AssetCard phase="retirement" acct="ideco" rows={pf.retirement.ideco} />
+            <AssetCard phase="retirement" acct="tax"   rows={pf.retirement.tax} />
           </>
         )}
         <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">

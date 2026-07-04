@@ -2,8 +2,12 @@
 
 import { useState } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
-import { SAMPLE_PROFILE } from '@/lib/profile';
+import { SAMPLE_PROFILE, getEffectiveRW, getEffectiveRR, getEffectiveMcStd, getEffectiveMcStdR } from '@/lib/profile';
+import type { ProfileV3 } from '@/lib/profile';
 import type { LifeEvent } from '@/lib/types';
+import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
+
+type RateFieldKey = 'rWNisa' | 'rWIdeco' | 'rWTax' | 'rRNisa' | 'rRIdeco' | 'rRTax' | 'mcStd' | 'mcStdR';
 
 const CASHFLOW_EXPENSE_TYPES = new Set(['education', 'care', 'renovation', 'mortgage', 'other_exp']);
 
@@ -51,6 +55,9 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
           type="number"
           value={value}
           onChange={e => {
+            // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
+            const cleaned = stripLeadingZero(e.target.value);
+            if (cleaned !== e.target.value) e.target.value = cleaned;
             const raw = e.target.valueAsNumber;
             if (isNaN(raw)) { onChange(0); return; }
             const next = isIntegerStep ? Math.round(raw) : raw;
@@ -66,7 +73,8 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
             if (safe !== value) onChange(safe);
             e.target.value = String(safe);
           }}
-          onFocus={e => e.target.select()}
+          onFocus={e => clearZeroOrSelect(e.currentTarget)}
+          onClick={e => clearZeroOrSelect(e.currentTarget)}
           min={min}
           max={max}
           step={step}
@@ -79,23 +87,146 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
   );
 }
 
+interface MiniToggleProps {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  title: string;
+  disabled?: boolean;
+}
+
+/** 省スペースなON/OFFスイッチ。ラベルは持たず title でツールチップのみ表示する。 */
+function MiniToggle({ checked, onChange, title, disabled }: MiniToggleProps) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      title={title}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-4 w-8 shrink-0 items-center rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+        checked ? 'bg-blue-500' : 'bg-slate-300'
+      }`}
+    >
+      <span
+        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+          checked ? 'translate-x-4' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  );
+}
+
+interface RateFieldProps {
+  label: string;
+  id: string;
+  value: number;
+  onChange: (v: number) => void;
+  linked: boolean;
+  onToggleLinked: (linked: boolean) => void;
+  rowDisabled?: boolean;
+  min?: number;
+  max?: number;
+  toggleTitle?: string;
+}
+
+/** 利回り設定・MC設定の1項目。PF計算値を使う場合は読み取り専用、OFFなら直接編集できる。1行に収める省スペースレイアウト。 */
+function RateField({
+  label, id, value, onChange, linked, onToggleLinked, rowDisabled,
+  min = 0, max = 20, toggleTitle = 'ONでポートフォリオの計算値を使用します',
+}: RateFieldProps) {
+  const inputDisabled = rowDisabled || linked;
+  return (
+    <div className="flex items-center gap-1.5">
+      <label htmlFor={id} className="w-16 shrink-0 text-xs text-slate-600 truncate">{label}</label>
+      <input
+        id={id}
+        type="number"
+        value={value}
+        onFocus={e => clearZeroOrSelect(e.currentTarget)}
+        onClick={e => clearZeroOrSelect(e.currentTarget)}
+        onChange={e => {
+          // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
+          const cleaned = stripLeadingZero(e.target.value);
+          if (cleaned !== e.target.value) e.target.value = cleaned;
+          const raw = e.target.valueAsNumber;
+          onChange(isNaN(raw) ? 0 : raw);
+        }}
+        onBlur={e => {
+          const raw = e.target.valueAsNumber;
+          const safe = isNaN(raw) ? (value || 0) : raw;
+          if (safe !== value) onChange(safe);
+          e.target.value = String(safe);
+        }}
+        min={min}
+        max={max}
+        step={0.1}
+        disabled={inputDisabled}
+        className="w-14 min-w-0 rounded border border-slate-300 px-1 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed"
+      />
+      <span className="text-xs text-slate-500 shrink-0">%</span>
+      <MiniToggle
+        checked={linked}
+        onChange={onToggleLinked}
+        disabled={rowDisabled}
+        title={toggleTitle}
+      />
+    </div>
+  );
+}
+
+/** KpiGridのKpiCardと同じ「?」アイコン+クリックで吹き出し表示するツールチップ。 */
+function InfoTooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); setShow(v => !v); }}
+        className="w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:bg-slate-300"
+        aria-label="説明を表示"
+      >
+        ?
+      </button>
+      {show && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={e => { e.stopPropagation(); setShow(false); }} />
+          <div className="absolute right-0 top-6 z-20 w-52 rounded-lg bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed normal-case font-normal tracking-normal">
+            <div className="absolute -top-1.5 right-1 w-3 h-3 bg-slate-800 rotate-45" />
+            {text}
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
+
 interface SectionProps {
   title: string;
+  tooltip?: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
 }
 
-function Section({ title, children, defaultOpen = true }: SectionProps) {
+function Section({ title, tooltip, children, defaultOpen = true }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border-b border-slate-100 last:border-0">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex w-full items-center justify-between py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700"
-      >
-        {title}
-        <span>{open ? '▲' : '▼'}</span>
-      </button>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="flex flex-1 items-center py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700 text-left"
+        >
+          {title}
+        </button>
+        {tooltip && <InfoTooltip text={tooltip} />}
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="py-2 pl-1 text-xs text-slate-500 hover:text-slate-700 shrink-0"
+        >
+          {open ? '▲' : '▼'}
+        </button>
+      </div>
       {open && <div className="flex flex-col gap-2 pb-3">{children}</div>}
     </div>
   );
@@ -118,10 +249,33 @@ function SubSection({ title, children }: { title: string; children: React.ReactN
 }
 
 export default function SimulatorForm() {
-  const { profile, updateProfile, loadProfile, setSameAsWorking } = useSimulatorStore();
+  const { profile, updateProfile, loadProfile, setRateSameAsWorking, setSigmaSameAsWorking } = useSimulatorStore();
   const p = profile.params;
   const up = (patch: Partial<typeof p>) => updateProfile(patch);
-  const sameRate = profile.portfolio.retirement.sameAsWorking;
+  // 利回り側「取崩期は積立期と同じ利回りを使う」。PF側・σ側のsameAsWorkingとは独立したフラグ。
+  const rateSameAsWorking = p.rateSameAsWorking;
+  // MC設定側「取崩期は積立期と同じ標準偏差を使う」。PF側・利回り側のsameAsWorkingとは独立したフラグ。
+  const sigmaSameAsWorking = p.sigmaSameAsWorking;
+
+  const setLinked = (fieldKey: RateFieldKey, linked: boolean) => {
+    if (linked) {
+      up({ pfManualFlags: { ...p.pfManualFlags, [fieldKey]: false } });
+      return;
+    }
+    let seed: number;
+    if (fieldKey === 'mcStd') {
+      seed = getEffectiveMcStd(profile);
+    } else if (fieldKey === 'mcStdR') {
+      seed = getEffectiveMcStdR(profile);
+    } else {
+      const acct = fieldKey.slice(2) as 'Nisa' | 'Ideco' | 'Tax';
+      seed = fieldKey.startsWith('rW') ? getEffectiveRW(profile, acct) : getEffectiveRR(profile, acct);
+    }
+    updateProfile({
+      pfManualFlags: { ...p.pfManualFlags, [fieldKey]: true },
+      [fieldKey]: seed,
+    } as Partial<ProfileV3['params']>);
+  };
   const annualEvExp = calcAnnualEventExpense(profile.events, p.curAge);
   const annualCF = calcAnnualSurplus(
     p.baseInc, p.spInc, p.spRetAge, p.spCurAge, p.baseExp, p.curAge, profile.events
@@ -237,7 +391,13 @@ export default function SimulatorForm() {
                 id="idecoSplitRatio"
                 min={10} max={90} step={10}
                 value={p.idecoSplitRatio ?? 50}
-                onChange={e => up({ idecoSplitRatio: Math.min(90, Math.max(10, Number(e.target.value))) })}
+                onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                onClick={e => clearZeroOrSelect(e.currentTarget)}
+                onChange={e => {
+                  const cleaned = stripLeadingZero(e.target.value);
+                  if (cleaned !== e.target.value) e.target.value = cleaned;
+                  up({ idecoSplitRatio: Math.min(90, Math.max(10, Number(cleaned))) });
+                }}
                 className="w-20 rounded border border-slate-300 px-2 py-1 text-sm text-right"
               />
               <span className="text-xs text-slate-500">%</span>
@@ -273,29 +433,84 @@ export default function SimulatorForm() {
         </SubSection>
       </Section>
 
-      <Section title="利回り設定" defaultOpen={false}>
-        <p className="text-xs text-slate-400 mb-1">積立期（rW）/ 取崩期（rR）</p>
-        <Field label="NISA rW"   id="rWNisa"  value={p.rWNisa}  onChange={v => up({ rWNisa: v })}  min={0} max={20} step={0.5} suffix="%" />
-        <Field label="NISA rR"   id="rRNisa"  value={sameRate ? p.rWNisa  : p.rRNisa}  onChange={v => up({ rRNisa: v })}  min={0} max={20} step={0.5} suffix="%" disabled={sameRate} />
-        <Field label="iDeCo rW"  id="rWIdeco" value={p.rWIdeco} onChange={v => up({ rWIdeco: v })} min={0} max={20} step={0.5} suffix="%" />
-        <Field label="iDeCo rR"  id="rRIdeco" value={sameRate ? p.rWIdeco : p.rRIdeco} onChange={v => up({ rRIdeco: v })} min={0} max={20} step={0.5} suffix="%" disabled={sameRate} />
-        <Field label="特定 rW"   id="rWTax"   value={p.rWTax}   onChange={v => up({ rWTax: v })}   min={0} max={20} step={0.5} suffix="%" />
-        <Field label="特定 rR"   id="rRTax"   value={sameRate ? p.rWTax   : p.rRTax}   onChange={v => up({ rRTax: v })}   min={0} max={20} step={0.5} suffix="%" disabled={sameRate} />
+      <Section
+        title="利回り設定"
+        defaultOpen={false}
+        tooltip="積立期（rW）/ 取崩期（rR）・スイッチONでPF計算値を使用"
+      >
+        <RateField
+          label="NISA rW" id="rWNisa"
+          value={getEffectiveRW(profile, 'Nisa')} onChange={v => up({ rWNisa: v })}
+          linked={!p.pfManualFlags['rWNisa']} onToggleLinked={linked => setLinked('rWNisa', linked)}
+        />
+        <RateField
+          label="NISA rR" id="rRNisa"
+          value={getEffectiveRR(profile, 'Nisa')} onChange={v => up({ rRNisa: v })}
+          linked={rateSameAsWorking || !p.pfManualFlags['rRNisa']} onToggleLinked={linked => setLinked('rRNisa', linked)}
+          rowDisabled={rateSameAsWorking}
+        />
+        <RateField
+          label="iDeCo rW" id="rWIdeco"
+          value={getEffectiveRW(profile, 'Ideco')} onChange={v => up({ rWIdeco: v })}
+          linked={!p.pfManualFlags['rWIdeco']} onToggleLinked={linked => setLinked('rWIdeco', linked)}
+        />
+        <RateField
+          label="iDeCo rR" id="rRIdeco"
+          value={getEffectiveRR(profile, 'Ideco')} onChange={v => up({ rRIdeco: v })}
+          linked={rateSameAsWorking || !p.pfManualFlags['rRIdeco']} onToggleLinked={linked => setLinked('rRIdeco', linked)}
+          rowDisabled={rateSameAsWorking}
+        />
+        <RateField
+          label="特定 rW" id="rWTax"
+          value={getEffectiveRW(profile, 'Tax')} onChange={v => up({ rWTax: v })}
+          linked={!p.pfManualFlags['rWTax']} onToggleLinked={linked => setLinked('rWTax', linked)}
+        />
+        <RateField
+          label="特定 rR" id="rRTax"
+          value={getEffectiveRR(profile, 'Tax')} onChange={v => up({ rRTax: v })}
+          linked={rateSameAsWorking || !p.pfManualFlags['rRTax']} onToggleLinked={linked => setLinked('rRTax', linked)}
+          rowDisabled={rateSameAsWorking}
+        />
         <div className="flex items-center gap-2 mt-1">
           <input
-            id="sameAsWorking"
+            id="rateSameAsWorking"
             type="checkbox"
-            checked={sameRate}
-            onChange={e => setSameAsWorking(e.target.checked)}
+            checked={rateSameAsWorking}
+            onChange={e => setRateSameAsWorking(e.target.checked)}
             className="rounded"
           />
-          <label htmlFor="sameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ利回りを使う</label>
+          <label htmlFor="rateSameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ利回りを使う</label>
         </div>
       </Section>
 
-      <Section title="MC設定" defaultOpen={false}>
-        <Field label="積立期 標準偏差" id="mcStd"  value={p.mcStd}  onChange={v => up({ mcStd: v })}  min={0} max={50} step={0.1} suffix="%" />
-        <Field label="取崩期 標準偏差" id="mcStdR" value={sameRate ? p.mcStd : p.mcStdR} onChange={v => up({ mcStdR: v })} min={0} max={50} step={0.1} suffix="%" disabled={sameRate} />
+      <Section
+        title="MC設定"
+        defaultOpen={false}
+        tooltip="積立期（σ）/ 取崩期（σ）・スイッチONでPF計算値を使用"
+      >
+        <RateField
+          label="積立期σ" id="mcStd"
+          value={getEffectiveMcStd(profile)} onChange={v => up({ mcStd: v })}
+          linked={!p.pfManualFlags['mcStd']} onToggleLinked={linked => setLinked('mcStd', linked)}
+          min={0} max={50}
+        />
+        <RateField
+          label="取崩期σ" id="mcStdR"
+          value={getEffectiveMcStdR(profile)} onChange={v => up({ mcStdR: v })}
+          linked={sigmaSameAsWorking || !p.pfManualFlags['mcStdR']} onToggleLinked={linked => setLinked('mcStdR', linked)}
+          rowDisabled={sigmaSameAsWorking}
+          min={0} max={50}
+        />
+        <div className="flex items-center gap-2 mt-1">
+          <input
+            id="sigmaSameAsWorking"
+            type="checkbox"
+            checked={sigmaSameAsWorking}
+            onChange={e => setSigmaSameAsWorking(e.target.checked)}
+            className="rounded"
+          />
+          <label htmlFor="sigmaSameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ標準偏差を使う</label>
+        </div>
       </Section>
 
     </div>

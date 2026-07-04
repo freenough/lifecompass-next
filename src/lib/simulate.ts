@@ -27,7 +27,9 @@ export function simulate(
   p: SimParams,
   evs: LifeEvent[],
   strategy: WithdrawalStrategy,
-  shockOverrides: number[] | null = null
+  // モンテカルロ用の標準正規乱数（Zスコア）列。実際のshock幅（%）はこの関数内で
+  // 年ごとに、mcStd/mcStdR固定値、または動的モード時はその年の口座別残高加重σで決定する。
+  shockZOverrides: number[] | null = null
 ): YearSnap[] {
   const snaps: YearSnap[] = [];
 
@@ -96,7 +98,25 @@ export function simulate(
     const isSpRet = age >= spRetireAtAge;
     const isIdecoStart   = age >= p.idecoStartAge;
     const isSpIdecoStart = age >= spIdecoStartAtAge;
-    const shock = shockOverrides ? shockOverrides[yr] : 0;
+    // ── モンテカルロshock（%）: 静的モードはmcStd/mcStdR固定値、動的モードは
+    // その年の期首残高（nisa/ideco/tax + 配偶者分）で加重平均した口座別σを使う。
+    // 相関=1（全口座が同じshockを受ける）という設計は維持し、そのshock幅を決める
+    // σの重み付けだけを実残高ベース・年次更新に変更している。
+    let sigmaT = isRet ? p.mcStdR : p.mcStd;
+    const dynamicOn = isRet ? (p.mcStdRDynamic ?? false) : (p.mcStdDynamic ?? false);
+    if (dynamicOn) {
+      const bN = nisa + spNisa, bI = ideco + spIdeco, bT = tax + spTax;
+      const totalB = bN + bI + bT;
+      if (totalB > 0) {
+        const sN = (isRet ? p.acct.nisa.sigmaR  : p.acct.nisa.sigmaW)  ?? sigmaT;
+        const sI = (isRet ? p.acct.ideco.sigmaR : p.acct.ideco.sigmaW) ?? sigmaT;
+        const sT = (isRet ? p.acct.tax.sigmaR   : p.acct.tax.sigmaW)   ?? sigmaT;
+        // 相関=1想定なので残高加重平均が数学的に正確: σ(aX+bY)=|a|σX+|b|σY when ρ(X,Y)=1
+        sigmaT = (bN * sN + bI * sI + bT * sT) / totalB;
+      }
+    }
+    const z = shockZOverrides ? shockZOverrides[yr] : 0;
+    const shock = shockZOverrides ? Math.max(-50, Math.min(50, z * sigmaT)) : 0;
     const nisaRate  = (isRet ? p.acct.nisa.rR  : p.acct.nisa.rW)  + shock;
     const idecoRate = (isRet ? p.acct.ideco.rR : p.acct.ideco.rW) + shock;
     const taxRate   = (isRet ? p.acct.tax.rR   : p.acct.tax.rW)   + shock;

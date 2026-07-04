@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { simulate, analyze, runMC } from '@/lib';
 import type { YearSnap, AnalysisResult, MCResult, WithdrawalStrategy, LifeEvent } from '@/lib/types';
 import type { ProfileV3, AssetRow } from '@/lib/profile';
-import { profileToSimParams, SAMPLE_PROFILE, calcMu, calcAggregatedSigma } from '@/lib/profile';
+import { profileToSimParams, SAMPLE_PROFILE, getUnconfiguredAccounts, getEffectiveRW, getEffectiveMcStd } from '@/lib/profile';
 
 type PortfolioPhase   = 'current' | 'working' | 'retirement';
 type PortfolioAcct    = 'nisa' | 'ideco' | 'tax';
@@ -55,6 +55,7 @@ interface SimulatorState {
   snaps: Record<string, YearSnap[]>;
   analysis: Record<string, AnalysisResult>;
   mcResult: MCResult | null;
+  mcError: string | null;
   mode: 'fixed' | 'mc';
   cmpMode: 'strategy' | 'scenario';
   activeStrategies: WithdrawalStrategy[];
@@ -66,6 +67,8 @@ interface SimulatorState {
   updateSpousePortfolio: (acct: SpPortfolioAcct, rows: AssetRow[]) => void;
   copyCurrentToWorking: () => void;
   setSameAsWorking: (val: boolean) => void;
+  setRateSameAsWorking: (val: boolean) => void;
+  setSigmaSameAsWorking: (val: boolean) => void;
   runSimulation: () => void;
   runMonteCarlo: () => void;
   loadProfile: (profile: ProfileV3) => void;
@@ -86,6 +89,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
     snaps,
     analysis,
     mcResult: null,
+    mcError: null,
     mode: 'fixed',
     cmpMode: 'strategy',
     activeStrategies: INITIAL_STRATEGIES,
@@ -99,25 +103,33 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         params: { ...profile.params, ...patch },
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies);
-      set({ profile: newProfile, snaps, analysis, mcResult: null });
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     updateEvents: (events) => {
       const { profile, activeStrategies } = get();
       const newProfile: ProfileV3 = { ...profile, events };
       const { snaps, analysis } = runAll(newProfile, activeStrategies);
-      set({ profile: newProfile, snaps, analysis, mcResult: null });
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     runSimulation: () => {
       const { profile, activeStrategies } = get();
       const { snaps, analysis } = runAll(profile, activeStrategies);
-      set({ snaps, analysis, mcResult: null });
+      set({ snaps, analysis, mcResult: null, mcError: null });
     },
 
     runMonteCarlo: () => {
       const { profile, activeStrategies } = get();
-      set({ isMcRunning: true });
+      const unconfigured = getUnconfiguredAccounts(profile);
+      if (unconfigured.length > 0) {
+        set({
+          mcError: `${unconfigured.join('、')}の資産配分が未設定です。ポートフォリオに1行追加するか、利回り設定で直接利回りを入力してください`,
+          mode: 'mc',
+        });
+        return;
+      }
+      set({ isMcRunning: true, mcError: null });
       const p = profileToSimParams(profile);
       const evs = profile.events;
       const result = runMC(p, evs, activeStrategies, 1000);
@@ -127,7 +139,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
     loadProfile: (profile) => {
       const { activeStrategies } = get();
       const { snaps, analysis } = runAll(profile, activeStrategies);
-      set({ profile, snaps, analysis, mcResult: null });
+      set({ profile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     updatePortfolio: (phase, acct, rows) => {
@@ -136,7 +148,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         ...profile.portfolio,
         [phase]: { ...profile.portfolio[phase], [acct]: rows },
       };
-      let paramPatch: Partial<ProfileV3['params']> = {};
+      const paramPatch: Partial<ProfileV3['params']> = {};
 
       // current PF編集時: amount合計をbNisa/bIdeco/bTaxに即時同期
       if (phase === 'current') {
@@ -146,50 +158,8 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         paramPatch.bTax   = cur.tax.reduce((s, r) => s + (r.amount ?? 0), 0);
       }
 
-      if (phase === 'working') {
-        const nisa  = newPortfolio.working.nisa;
-        const ideco = newPortfolio.working.ideco;
-        const tax   = newPortfolio.working.tax;
-        // μは口座別（変更なし）
-        if (!profile.params.pfManualFlags['rWNisa'])  paramPatch.rWNisa  = parseFloat(calcMu(nisa).toFixed(1));
-        if (!profile.params.pfManualFlags['rWIdeco']) paramPatch.rWIdeco = parseFloat(calcMu(ideco).toFixed(1));
-        if (!profile.params.pfManualFlags['rWTax'])   paramPatch.rWTax   = parseFloat(calcMu(tax).toFixed(1));
-        // σは残高加重集計（修正済み）
-        if (!profile.params.pfManualFlags['mcStd']) {
-          const sigma = calcAggregatedSigma(
-            [nisa, ideco, tax],
-            [profile.params.bNisa,   profile.params.bIdeco,   profile.params.bTax],
-          );
-          if (sigma !== null) paramPatch.mcStd = parseFloat(sigma.toFixed(1));
-        }
-      }
-
-      if (phase === 'retirement') {
-        if (newPortfolio.retirement.sameAsWorking) {
-          // sameAsWorking=true: mcStdRはmcStdと同値に同期
-          if (!profile.params.pfManualFlags['mcStdR']) {
-            const sigma = calcAggregatedSigma(
-              [newPortfolio.working.nisa, newPortfolio.working.ideco, newPortfolio.working.tax],
-              [profile.params.bNisa,   profile.params.bIdeco,   profile.params.bTax],
-            );
-            if (sigma !== null) paramPatch.mcStdR = parseFloat(sigma.toFixed(1));
-          }
-        } else {
-          const nisa  = newPortfolio.retirement.nisa;
-          const ideco = newPortfolio.retirement.ideco;
-          const tax   = newPortfolio.retirement.tax;
-          if (!profile.params.pfManualFlags['rRNisa'])  paramPatch.rRNisa  = parseFloat(calcMu(nisa).toFixed(1));
-          if (!profile.params.pfManualFlags['rRIdeco']) paramPatch.rRIdeco = parseFloat(calcMu(ideco).toFixed(1));
-          if (!profile.params.pfManualFlags['rRTax'])   paramPatch.rRTax   = parseFloat(calcMu(tax).toFixed(1));
-          if (!profile.params.pfManualFlags['mcStdR']) {
-            const sigma = calcAggregatedSigma(
-              [nisa, ideco, tax],
-              [profile.params.bNisa,   profile.params.bIdeco,   profile.params.bTax],
-            );
-            if (sigma !== null) paramPatch.mcStdR = parseFloat(sigma.toFixed(1));
-          }
-        }
-      }
+      // rW/rR（μ）・mcStd/mcStdR（σ）はいずれもgetEffectiveRW/RR・getEffectiveMcStd/StdR経由の
+      // 算出値に一本化したため、ここでの同期は不要（各表示が再レンダリングで自動追従する）
 
       const newProfile: ProfileV3 = {
         ...profile,
@@ -197,7 +167,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         portfolio: newPortfolio,
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies);
-      set({ profile: newProfile, snaps, analysis, mcResult: null });
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     updateSpousePortfolio: (acct, rows) => {
@@ -213,7 +183,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         portfolio: { ...profile.portfolio, current: newCurrent },
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies);
-      set({ profile: newProfile, snaps, analysis, mcResult: null });
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     copyCurrentToWorking: () => {
@@ -240,12 +210,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
             pct: Math.round(((r.amount ?? 0) / total) * 1000) / 10,
           }));
         }
-        // コピーされた口座もされなかった口座も、μは現在のworking rowsから再計算
-        const flagKey = `rW${acct[0].toUpperCase()}${acct.slice(1)}`;
-        if (!profile.params.pfManualFlags[flagKey]) {
-          paramPatch[flagKey as keyof ProfileV3['params']] =
-            parseFloat(calcMu(newWorking[acct]).toFixed(1)) as never;
-        }
+        // rW（μ）はgetEffectiveRW経由の算出値に一本化したため、ここでの同期は不要
       }
 
       // 口座残高をprofile.paramsに同期（bNisa/bIdeco/bTax）
@@ -253,18 +218,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
       if (bIdeco > 0) paramPatch.bIdeco = bIdeco;
       if (bTax > 0)   paramPatch.bTax   = bTax;
 
-      // σ計算: currentのamount合計を口座残高として使い、残高加重で集計（修正済み）
-      const aggSigmaW = calcAggregatedSigma(
-        [newWorking.nisa, newWorking.ideco, newWorking.tax],
-        [bNisa, bIdeco, bTax],
-      );
-      if (aggSigmaW !== null) {
-        if (!profile.params.pfManualFlags['mcStd'])  paramPatch.mcStd  = parseFloat(aggSigmaW.toFixed(1));
-        // sameAsWorking=true のとき取崩期σも同値に同期
-        if (!profile.params.pfManualFlags['mcStdR'] && profile.portfolio.retirement.sameAsWorking) {
-          paramPatch.mcStdR = parseFloat(aggSigmaW.toFixed(1));
-        }
-      }
+      // σ（mcStd/mcStdR）はgetEffectiveMcStd/StdR経由の算出値に一本化したため、ここでの同期は不要
 
       const newProfile: ProfileV3 = {
         ...profile,
@@ -272,26 +226,57 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         portfolio: { ...profile.portfolio, working: newWorking },
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies);
-      set({ profile: newProfile, snaps, analysis, mcResult: null });
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     setSameAsWorking: (val) => {
+      // PF側「同じPFを使う」は資産配分の同期のみに専念する（σ/mcStdRは
+      // sigmaSameAsWorking経由の独立したgetterで扱うため、ここでは動かさない）。
       const { profile, activeStrategies } = get();
-      let paramPatch: Partial<ProfileV3['params']> = {};
-      // sameAsWorking=true に切り替えたとき、mcStdRをmcStdに同期
-      if (val && !profile.params.pfManualFlags['mcStdR']) {
-        paramPatch.mcStdR = profile.params.mcStd;
-      }
       const newProfile: ProfileV3 = {
         ...profile,
-        params: { ...profile.params, ...paramPatch },
         portfolio: {
           ...profile.portfolio,
           retirement: { ...profile.portfolio.retirement, sameAsWorking: val },
         },
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies);
-      set({ profile: newProfile, snaps, analysis, mcResult: null });
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
+    },
+
+    setRateSameAsWorking: (val) => {
+      const { profile, activeStrategies } = get();
+      const paramPatch: Partial<ProfileV3['params']> = { rateSameAsWorking: val };
+      if (!val) {
+        // OFFにした瞬間、その時点の積立期側の実効値を取崩期用の独立値としてコピーし、
+        // 以降は「PF計算値を使う」フラグをOFF（手動）にして個別に編集可能にする。
+        // ONの間は独立したstateを持たず、常にgetEffectiveRW経由の算出値を参照する（同期漏れ防止）。
+        const flags = { ...profile.params.pfManualFlags };
+        (['Nisa', 'Ideco', 'Tax'] as const).forEach(acct => {
+          const valueKey = `rR${acct}` as 'rRNisa' | 'rRIdeco' | 'rRTax';
+          paramPatch[valueKey] = getEffectiveRW(profile, acct);
+          flags[`rR${acct}`] = true;
+        });
+        paramPatch.pfManualFlags = flags;
+      }
+      const newProfile: ProfileV3 = { ...profile, params: { ...profile.params, ...paramPatch } };
+      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
+    },
+
+    setSigmaSameAsWorking: (val) => {
+      const { profile, activeStrategies } = get();
+      const paramPatch: Partial<ProfileV3['params']> = { sigmaSameAsWorking: val };
+      if (!val) {
+        // OFFにした瞬間、その時点の積立期側の実効σを取崩期用の独立値としてコピーし、
+        // 以降は「PF計算値を使う」フラグをOFF（手動）にして個別に編集可能にする。
+        // ONの間は独立したstateを持たず、常にgetEffectiveMcStd経由の算出値を参照する（同期漏れ防止）。
+        paramPatch.mcStdR = getEffectiveMcStd(profile);
+        paramPatch.pfManualFlags = { ...profile.params.pfManualFlags, mcStdR: true };
+      }
+      const newProfile: ProfileV3 = { ...profile, params: { ...profile.params, ...paramPatch } };
+      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     setMode: (mode) => set({ mode }),

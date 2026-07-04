@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import type { ScenarioKey } from '@/store/simulatorStore';
 import { decodeProfileUrl } from '@/lib/storage';
-import { profileToSimParams } from '@/lib/profile';
+import { profileToSimParams, getUnconfiguredAccounts } from '@/lib/profile';
 import type { WithdrawalStrategy } from '@/lib/types';
 import KpiGrid             from '@/components/simulator/KpiGrid';
 import AssetChart          from '@/components/simulator/AssetChart';
@@ -55,7 +55,7 @@ export default function SimulatorPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const {
-    profile, snaps, analysis, mcResult, mode, cmpMode, activeStrategies, activeScenarios,
+    profile, snaps, analysis, mcResult, mcError, mode, cmpMode, activeStrategies, activeScenarios,
     isMcRunning, setMode, setCmpMode, setActiveStrategies, setActiveScenarios,
     runMonteCarlo,
   } = useSimulatorStore();
@@ -71,6 +71,7 @@ export default function SimulatorPage() {
   const baseSnaps    = snaps[strategy] ?? [];
   const baseAnalysis = analysis[strategy];
   const p            = profileToSimParams(profile);
+  const unconfiguredAccounts = getUnconfiguredAccounts(profile);
 
   if (!mounted) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -123,6 +124,12 @@ export default function SimulatorPage() {
         {/* 右: 結果パネル */}
         <div className="flex flex-1 flex-col gap-4 min-w-0">
 
+          {unconfiguredAccounts.length > 0 && (
+            <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+              {unconfiguredAccounts.join('、')}の資産配分が未設定です（利回り0%として計算されています）。ポートフォリオに1行追加するか、利回り設定で直接利回りを入力してください。
+            </p>
+          )}
+
           {/* MC ↔ 固定 toggle */}
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
@@ -150,6 +157,9 @@ export default function SimulatorPage() {
               </button>
             )}
           </div>
+          {mode === 'mc' && mcError && (
+            <p className="text-xs text-red-600">{mcError}</p>
+          )}
 
           {/* 比較モード */}
           <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 flex flex-col gap-2">

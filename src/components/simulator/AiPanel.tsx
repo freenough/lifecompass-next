@@ -293,7 +293,7 @@ ${
 
 export default function AiPanel() {
   const store = useSimulatorStore();
-  const { mcResult, isMcRunning, runMonteCarlo, analysis, activeStrategies } = store;
+  const { mcResult, mcError, isMcRunning, runMonteCarlo, analysis, activeStrategies } = store;
   const strategy = (activeStrategies[0] ?? 'proportional') as WithdrawalStrategy;
   const a = analysis[strategy];
 
@@ -453,7 +453,7 @@ export default function AiPanel() {
             </button>
           )}
 
-          {error && <p className="text-xs text-red-600">{error}</p>}
+          {(error || mcError) && <p className="text-xs text-red-600">{error || mcError}</p>}
 
           {result && (
             <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">

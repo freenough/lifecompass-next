@@ -4,6 +4,12 @@ export interface AccountConfig {
   toAge: number;
   rW: number;
   rR: number;
+  // その口座自身のσ（資産配分から算出。SIGMA-AUTO/相関行列込み）。
+  // モンテカルロの動的σ計算（mcStdDynamic/mcStdRDynamic）でのみ使う内部値。
+  // オプショナルなのは、SimParamsを直接組み立てる呼び出し元（scripts/full-verify.js等）との
+  // 後方互換性のため——未設定なら動的モードは自動的に無効化され、従来通りmcStd/mcStdRを使う。
+  sigmaW?: number;
+  sigmaR?: number;
 }
 
 export interface TaxAccountConfig extends AccountConfig {
@@ -53,6 +59,11 @@ export interface SimParams {
   penAmt: number;
   mcStd: number;
   mcStdR: number;
+  // trueのとき、モンテカルロのshockはmcStd/mcStdR固定値ではなく、年ごとにその時点の
+  // 口座別残高×口座別σ（acct.*.sigmaW/sigmaR）で動的に再計算する（相関=1想定の残高加重平均）。
+  // 未設定/false＝従来通りmcStd/mcStdR固定値を使う静的モード。
+  mcStdDynamic?: boolean;
+  mcStdRDynamic?: boolean;
   hasIdeco: boolean;
   idecoYrs: number;
   idecoReceiveType: 'lump' | 'pension' | 'split';
