@@ -14,6 +14,13 @@ export interface BlogPostMeta {
   category: string;
   description: string;
   eyecatch?: string;
+  // LP「FIREガイド」セクション用（既存のdescriptionは長文でblog一覧・記事ヘッダー用途のため、
+  // 短い一言説明として別フィールドにする）
+  excerpt?: string;
+  tags?: string[];
+  featured?: boolean;
+  priority?: number;
+  readingTime?: number;
 }
 
 export interface BlogPost extends BlogPostMeta {
@@ -34,9 +41,24 @@ export function getAllPosts(): BlogPostMeta[] {
       category:    data.category    ?? '',
       description: data.description ?? '',
       eyecatch:    data.eyecatch,
+      excerpt:     data.excerpt,
+      tags:        data.tags,
+      featured:    data.featured,
+      priority:    data.priority,
+      readingTime: data.readingTime,
     } as BlogPostMeta;
   });
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/**
+ * LP「FIREガイド」セクションに表示する記事。featured: trueの記事のみ、priority昇順で返す。
+ * 最新順ソートは意図的に不採用（SEO記事が増えてもLPの見え方を安定させるため）。
+ */
+export function getFeaturedPosts(): BlogPostMeta[] {
+  return getAllPosts()
+    .filter((post) => post.featured === true)
+    .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
@@ -52,6 +74,11 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     category:    data.category    ?? '',
     description: data.description ?? '',
     eyecatch:    data.eyecatch,
+    excerpt:     data.excerpt,
+    tags:        data.tags,
+    featured:    data.featured,
+    priority:    data.priority,
+    readingTime: data.readingTime,
     content:     processed.toString(),
   };
 }

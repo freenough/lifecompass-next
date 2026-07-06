@@ -13,6 +13,7 @@ import {
   IconChartLine,
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
+import { getFeaturedPosts } from '@/lib/blog';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
 
@@ -74,6 +75,8 @@ const steps: { step: string; label: string; Icon: Icon }[] = [
 ];
 
 export default function HomePage() {
+  const featuredPosts = getFeaturedPosts().slice(0, 4);
+
   return (
     <div className="flex flex-col">
 
@@ -131,8 +134,59 @@ export default function HomePage() {
       {/* AD_SLOT_A: 差別化〜キャラクター間 */}
       {/* <AdSlot slotId="slot-a" className="mx-auto max-w-5xl px-6" /> */}
 
-      {/* ④ あなたはどのタイプ？ */}
+      {/* ③.5 FIREガイド */}
       <section className="bg-slate-50 py-12">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-slate-900">FIREガイド</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              シミュレーターをより活用するための解説記事を公開しています
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            {featuredPosts.map((post) => (
+              <a
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="rounded-xl border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
+              >
+                {/* サムネイル: 固定幅190px・3:2比率固定（高さに追従させない）。
+                    stretchにするとタイトルが増えた分だけサムネ幅も伸びてテキストエリアを
+                    圧迫し、さらに折り返しが増えて高さが伸びる…という悪循環が起きるため、
+                    意図的に固定サイズ+self-centerにしている。 */}
+                <div className="relative w-[190px] aspect-[3/2] shrink-0 self-center overflow-hidden bg-slate-100">
+                  {post.eyecatch && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={post.eyecatch}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 p-[14px] flex flex-col gap-1">
+                  <h3 className="text-base font-semibold text-slate-900 leading-snug line-clamp-3">
+                    {post.title}
+                  </h3>
+                  <p className="text-xs text-slate-500">{post.excerpt}</p>
+                  {/* 「◯分で読む→」は表示しない（noteのタイプ診断カードとの統一感を優先。
+                      readingTimeフィールド自体は将来の用途のため残す） */}
+                </div>
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link href="/blog" className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
+              記事一覧を見る →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ④ あなたはどのタイプ？ */}
+      <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
             あなたはどのタイプ？
@@ -192,33 +246,35 @@ export default function HomePage() {
               href="https://note.com/freenough"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors"
-              style={{ backgroundColor: '#334155' }}
+              className="text-sm font-semibold hover:underline"
+              style={{ color: '#334155' }}
             >
-              → それぞれのシミュレーション結果をnoteで読む
+              それぞれのシミュレーション結果をnoteで読む →
             </a>
           </div>
         </div>
       </section>
 
       {/* ⑤ 使い方（3ステップ） */}
-      <section className="mx-auto max-w-4xl px-6 py-20 w-full">
-        <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
-        <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
-          {steps.map((s) => (
-            <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
-              <s.Icon size={32} className="text-slate-600 mb-2" />
-              <span className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
-                {s.step}
-              </span>
-              <span className="mt-1 text-base font-semibold text-slate-900 whitespace-nowrap">{s.label}</span>
-            </li>
-          ))}
-        </ol>
+      <section className="bg-slate-50 py-20">
+        <div className="mx-auto max-w-4xl px-6 w-full">
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
+          <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
+            {steps.map((s) => (
+              <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
+                <s.Icon size={32} className="text-slate-600 mb-2" />
+                <span className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
+                  {s.step}
+                </span>
+                <span className="mt-1 text-base font-semibold text-slate-900 whitespace-nowrap">{s.label}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
 
       {/* ⑥ CTA */}
-      <section className="bg-slate-50 py-20">
+      <section className="py-20">
         <div className="mx-auto max-w-xl px-6 text-center">
           <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
             まず、自分の数字を入れてみる。
