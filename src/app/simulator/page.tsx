@@ -70,6 +70,18 @@ export default function SimulatorPage() {
   const baseAnalysis = analysis[strategy];
   const p            = profileToSimParams(profile);
   const unconfiguredAccounts = getUnconfiguredAccounts(profile);
+  // 最終資産KPIの黄/緑判定用：最終年（インフレ調整後・名目）の年間支出
+  const lastExpense  = baseSnaps.length > 0 ? baseSnaps[baseSnaps.length - 1].expense : 0;
+  // FIRE達成率（未達成時）：初年度取崩率と同じretSnap取得パターンに揃える（退職時点のスナップショット）
+  const retSnap = baseSnaps.find(s => s.age === p.retAge);
+  const fireAchievementRate = retSnap && retSnap.expense > 0
+    ? Math.round((retSnap.totalAssets / (retSnap.expense * 25)) * 100)
+    : null;
+  // FIRE達成率（達成時）：同じパターンでage===p.retAgeをage===a.fAに差し替え、FIRE達成年齢時点のスナップショットを使う
+  const fireAgeSnap = baseAnalysis.fA != null ? baseSnaps.find(s => s.age === baseAnalysis.fA) : undefined;
+  const fireAchievementRateAtFA = fireAgeSnap && fireAgeSnap.expense > 0
+    ? Math.round((fireAgeSnap.totalAssets / (fireAgeSnap.expense * 25)) * 100)
+    : null;
 
   if (!mounted) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -221,6 +233,11 @@ export default function SimulatorPage() {
             mode={mode}
             strategy={strategy}
             retAge={p.retAge}
+            lifeEx={p.lifeEx}
+            idecoStartAge={p.idecoStartAge}
+            lastExpense={lastExpense}
+            fireAchievementRate={fireAchievementRate}
+            fireAchievementRateAtFA={fireAchievementRateAtFA}
             idecoReceiveType={profile.params.idecoReceiveType ?? 'lump'}
             hasIdeco={profile.params.bIdeco > 0 || profile.params.cIdeco > 0}
             hasSeverance={baseAnalysis.severanceNetKPI > 0}
