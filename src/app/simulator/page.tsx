@@ -12,8 +12,6 @@ import AssetChart          from '@/components/simulator/AssetChart';
 import YearlyTable         from '@/components/simulator/YearlyTable';
 import CashFlowChart       from '@/components/simulator/CashFlowChart';
 import SimulatorForm       from '@/components/simulator/SimulatorForm';
-import LifeEventTimeline   from '@/components/simulator/LifeEventTimeline';
-import PortfolioPanel      from '@/components/simulator/PortfolioPanel';
 import MonteCarloPanel     from '@/components/simulator/MonteCarloPanel';
 import SensitivityPanel    from '@/components/simulator/SensitivityPanel';
 import ImpactTable         from '@/components/simulator/ImpactTable';
@@ -106,7 +104,7 @@ export default function SimulatorPage() {
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* 左: 入力パネル — DOM first so mobile toggle reveals at top, not below results */}
-        <div className="lg:w-80 lg:shrink-0">
+        <div className="lg:w-80 lg:shrink-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto">
           {/* Toggle button visible only on mobile (< 640px) */}
           <button
             className="sm:hidden w-full mb-3 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50"
@@ -116,13 +114,14 @@ export default function SimulatorPage() {
           </button>
           <div className={`flex-col gap-4 ${!formOpen ? 'hidden sm:flex' : 'flex'}`}>
             <SimulatorForm />
-            <PortfolioPanel />
-            <LifeEventTimeline />
           </div>
         </div>
 
         {/* 右: 結果パネル */}
-        <div className="flex flex-1 flex-col gap-4 min-w-0">
+        {/* lg:-mr-4 でページ全体のpx-4を打ち消し、右パネルの内側スクロールバーをページ全体のスクロールバーに隣接させる。
+            lg:pr-4 で打ち消した分と同じ幅を内側パディングとして再確保するため、コンテンツの横幅・位置は変わらない
+            （左側にはpl-4を付けない: 左パネルとの間のgap-6が既に十分な余白のため、コンテンツ幅を削ってまで追加しない）。 */}
+        <div className="flex flex-1 flex-col gap-4 min-w-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto lg:pr-4 lg:-mr-4">
 
           {unconfiguredAccounts.length > 0 && (
             <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">

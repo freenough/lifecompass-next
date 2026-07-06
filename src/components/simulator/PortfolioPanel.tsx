@@ -245,9 +245,7 @@ export default function PortfolioPanel() {
   const sigmaR = calcAggregateSigma(profile, [retNisaRows, retIdecoRows, retTaxRows], 'retirement');
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col gap-1">
-      <h2 className="text-sm font-bold text-slate-800 mb-2">ポートフォリオ</h2>
-
+    <div className="flex flex-col gap-1">
       <Section label="現在のPF" badge="① 現在" badgeColor="bg-slate-100 text-slate-600">
         <AssetCard phase="current" acct="nisa"  rows={pf.current.nisa}  spRows={pf.current.spNisa  ?? []} />
         <AssetCard phase="current" acct="ideco" rows={pf.current.ideco} spRows={pf.current.spIdeco ?? []} />

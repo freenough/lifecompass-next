@@ -6,6 +6,8 @@ import { SAMPLE_PROFILE, getEffectiveRW, getEffectiveRR, getEffectiveMcStd, getE
 import type { ProfileV3 } from '@/lib/profile';
 import type { LifeEvent } from '@/lib/types';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
+import PortfolioPanel from '@/components/simulator/PortfolioPanel';
+import LifeEventTimeline from '@/components/simulator/LifeEventTimeline';
 
 type RateFieldKey = 'rWNisa' | 'rWIdeco' | 'rWTax' | 'rRNisa' | 'rRIdeco' | 'rRTax' | 'mcStd' | 'mcStdR';
 
@@ -42,13 +44,18 @@ interface FieldProps {
   step?: number;
   suffix?: string;
   disabled?: boolean;
+  tooltip?: string;
 }
 
-function Field({ label, id, value, onChange, min, max, step = 1, suffix, disabled }: FieldProps) {
+function Field({ label, id, value, onChange, min, max, step = 1, suffix, disabled, tooltip }: FieldProps) {
   const isIntegerStep = Number.isInteger(step);
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor={id} className="w-36 shrink-0 text-xs text-slate-600">{label}</label>
+      <label htmlFor={id} className="w-32 shrink-0 text-xs text-slate-600 flex items-center gap-1">
+        {label}
+        {tooltip && <InfoTooltip text={tooltip} />}
+      </label>
+      {/* 入力欄(shrink-0固定幅)・単位(shrink-0)ともに縮めない。数値の桁数に応じて幅が変動しないよう固定する。 */}
       <div className="flex items-center gap-1">
         <input
           id={id}
@@ -79,9 +86,36 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
           max={max}
           step={step}
           disabled={disabled}
-          className="w-24 rounded border border-slate-300 px-2 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-24 shrink-0 rounded border border-slate-300 px-2 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
         />
-        {suffix && <span className="text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
+        {suffix && <span className="shrink-0 text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
+      </div>
+    </div>
+  );
+}
+
+interface DisplayFieldProps {
+  label: string;
+  value: string;
+  suffix?: string;
+  tooltip?: string;
+  valueClassName?: string;
+  bold?: boolean;
+}
+
+/** 読み取り専用の「ラベル+値+単位」行。Fieldと同じ幅配分ロジックを共有し、単位が欠けないようにする。 */
+function DisplayField({ label, value, suffix, tooltip, valueClassName, bold }: DisplayFieldProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <label className={`w-32 shrink-0 text-xs flex items-center gap-1 ${bold ? 'font-medium text-slate-600' : 'text-slate-600'}`}>
+        {label}
+        {tooltip && <InfoTooltip text={tooltip} />}
+      </label>
+      <div className="flex items-center gap-1">
+        <span className={`w-24 shrink-0 truncate rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 ${bold ? 'font-medium' : ''} ${valueClassName ?? 'text-slate-700'}`}>
+          {value}
+        </span>
+        {suffix && <span className="shrink-0 text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
       </div>
     </div>
   );
@@ -137,34 +171,38 @@ function RateField({
 }: RateFieldProps) {
   const inputDisabled = rowDisabled || linked;
   return (
-    <div className="flex items-center gap-1.5">
-      <label htmlFor={id} className="w-16 shrink-0 text-xs text-slate-600 truncate">{label}</label>
-      <input
-        id={id}
-        type="number"
-        value={value}
-        onFocus={e => clearZeroOrSelect(e.currentTarget)}
-        onClick={e => clearZeroOrSelect(e.currentTarget)}
-        onChange={e => {
-          // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
-          const cleaned = stripLeadingZero(e.target.value);
-          if (cleaned !== e.target.value) e.target.value = cleaned;
-          const raw = e.target.valueAsNumber;
-          onChange(isNaN(raw) ? 0 : raw);
-        }}
-        onBlur={e => {
-          const raw = e.target.valueAsNumber;
-          const safe = isNaN(raw) ? (value || 0) : raw;
-          if (safe !== value) onChange(safe);
-          e.target.value = String(safe);
-        }}
-        min={min}
-        max={max}
-        step={0.1}
-        disabled={inputDisabled}
-        className="w-14 min-w-0 rounded border border-slate-300 px-1 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed"
-      />
-      <span className="text-xs text-slate-500 shrink-0">%</span>
+    <div className="flex items-center gap-2">
+      <label htmlFor={id} className="w-32 shrink-0 text-xs text-slate-600 truncate">{label}</label>
+      {/* %入力は最大でも「16.0」程度の桁数のため、Fieldの数値欄より狭い固定幅(60px前後)で足りる。
+          disabledは opacity ではなく明示的な文字色(text-slate-500)にして、数値が視認できなくなるのを防ぐ。 */}
+      <div className="flex items-center gap-1">
+        <input
+          id={id}
+          type="number"
+          value={value}
+          onFocus={e => clearZeroOrSelect(e.currentTarget)}
+          onClick={e => clearZeroOrSelect(e.currentTarget)}
+          onChange={e => {
+            // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
+            const cleaned = stripLeadingZero(e.target.value);
+            if (cleaned !== e.target.value) e.target.value = cleaned;
+            const raw = e.target.valueAsNumber;
+            onChange(isNaN(raw) ? 0 : raw);
+          }}
+          onBlur={e => {
+            const raw = e.target.valueAsNumber;
+            const safe = isNaN(raw) ? (value || 0) : raw;
+            if (safe !== value) onChange(safe);
+            e.target.value = String(safe);
+          }}
+          min={min}
+          max={max}
+          step={0.1}
+          disabled={inputDisabled}
+          className="w-16 shrink-0 rounded border border-slate-300 px-1 py-1 text-right text-sm text-slate-900 focus:border-slate-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+        />
+        <span className="shrink-0 text-xs text-slate-500">%</span>
+      </div>
       <MiniToggle
         checked={linked}
         onChange={onToggleLinked}
@@ -191,8 +229,8 @@ function InfoTooltip({ text }: { text: string }) {
       {show && (
         <>
           <div className="fixed inset-0 z-10" onClick={e => { e.stopPropagation(); setShow(false); }} />
-          <div className="absolute right-0 top-6 z-20 w-52 rounded-lg bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed normal-case font-normal tracking-normal">
-            <div className="absolute -top-1.5 right-1 w-3 h-3 bg-slate-800 rotate-45" />
+          <div className="absolute left-0 top-6 z-20 w-52 rounded-lg bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed normal-case font-normal tracking-normal">
+            <div className="absolute -top-1.5 left-1 w-3 h-3 bg-slate-800 rotate-45" />
             {text}
           </div>
         </>
@@ -248,6 +286,14 @@ function SubSection({ title, children }: { title: string; children: React.ReactN
   );
 }
 
+function SubHeading({ children }: { children: React.ReactNode }) {
+  return <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mt-1">{children}</p>;
+}
+
+function Divider() {
+  return <div className="my-1 border-t border-slate-100" />;
+}
+
 export default function SimulatorForm() {
   const { profile, updateProfile, loadProfile, setRateSameAsWorking, setSigmaSameAsWorking } = useSimulatorStore();
   const p = profile.params;
@@ -295,82 +341,83 @@ export default function SimulatorForm() {
         </button>
       </div>
 
-      <Section title="基本情報">
+      {/* ① ライフプラン */}
+      <Section title="ライフプラン">
         <Field label="現在年齢"     id="curAge"   value={p.curAge}   onChange={v => up({ curAge: v })}   min={20} max={80} suffix="歳" />
-        <Field label="手取り収入"   id="baseInc"  value={p.baseInc}  onChange={v => up({ baseInc: v })}  min={0} step={0.1} suffix="万円/年" />
-        <Field label="年間生活費"   id="baseExp"  value={p.baseExp}  onChange={v => up({ baseExp: v })}  min={0} step={0.1} suffix="万円/年" />
-        <Field label="インフレ率"   id="inflR"    value={p.inflR}    onChange={v => up({ inflR: v })}    min={0}  max={10} step={0.1} suffix="%" />
+        <Field label="退職年齢"     id="retAge"   value={p.retAge}   onChange={v => up({ retAge: v })}   min={p.curAge + 1} max={80} suffix="歳" />
+        <Field label="年金受給開始" id="penAge"   value={p.penAge}   onChange={v => up({ penAge: v })}   min={60} max={75} suffix="歳" />
         <Field label="余命(終端年齢)" id="lifeEx" value={p.lifeEx}  onChange={v => up({ lifeEx: v })}   min={60} max={120} suffix="歳" />
-        <div className="flex items-center gap-2">
-          <span className="w-36 shrink-0 text-xs text-slate-600">年間余剰CF</span>
-          <div className="flex items-center gap-1">
-            <span className={`w-24 rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 ${annualCF >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-              {annualCF >= 0 ? '+' : ''}{annualCF.toLocaleString()}
-            </span>
-            <span className="text-xs text-slate-500 whitespace-nowrap">万円/年</span>
-          </div>
-        </div>
-        <p className="text-[10px] text-slate-400 -mt-1 pl-[9.5rem]">収入 − 生活費 − イベント支出</p>
-        <div className="flex items-center gap-2">
-          <span className="w-36 shrink-0 text-xs text-slate-600">実質年間支出</span>
-          <div className="flex items-center gap-1">
-            <span className="w-24 rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 text-slate-700">
-              {(p.baseExp + annualEvExp).toLocaleString()}
-            </span>
-            <span className="text-xs text-slate-500 whitespace-nowrap">万円/年</span>
-          </div>
-        </div>
-        {annualEvExp > 0 && (
-          <p className="text-[10px] text-slate-400 -mt-1 pl-[9.5rem]">生活費{p.baseExp}万 + イベント{annualEvExp}万</p>
-        )}
-        <SubSection title="配偶者の基本情報">
-          <Field label="現在年齢" id="spCurAge" value={p.spCurAge} onChange={v => up({ spCurAge: v })} min={20} suffix="歳" />
-          <Field label="年間収入" id="spInc"    value={p.spInc}    onChange={v => up({ spInc: v })}    min={0} step={0.1} suffix="万円/年" />
+        <SubSection title="配偶者を入力する">
+          <Field label="現在年齢"     id="spCurAge" value={p.spCurAge} onChange={v => up({ spCurAge: v })} min={20} suffix="歳" />
+          <Field label="退職年齢"     id="spRetAge" value={p.spRetAge} onChange={v => up({ spRetAge: v })} min={20} suffix="歳" />
+          <Field label="年金受給開始" id="spPenAge" value={p.spPenAge} onChange={v => up({ spPenAge: v })} min={60} suffix="歳" />
         </SubSection>
       </Section>
 
-      <Section title="口座残高・積立">
+      {/* ② 家計 */}
+      <Section title="家計">
+        <SubHeading>収入</SubHeading>
+        <Field
+          label="年間手取り収入" id="baseInc" value={p.baseInc} onChange={v => up({ baseInc: v })}
+          min={0} step={0.1} suffix="万円/年"
+          tooltip="社会保険料・税金控除後の金額です。シミュレーション上、収入は現在価格のまま固定されます。"
+        />
+        <Field label="年金受給額" id="penAmtVal" value={p.penAmtVal} onChange={v => up({ penAmtVal: v, penAmt: v })} min={0} step={0.1} suffix="万円/年" />
+
+        <Divider />
+        <SubHeading>支出</SubHeading>
+        <Field
+          label="年間生活費" id="baseExp" value={p.baseExp} onChange={v => up({ baseExp: v })}
+          min={0} step={0.1} suffix="万円/年"
+          tooltip="食費・光熱費など恒久的な生活費です。シミュレーション上、毎年インフレ率に応じて増加します。住宅ローン・教育費はライフイベントで登録してください。"
+        />
+        <Field label="インフレ率" id="inflR" value={p.inflR} onChange={v => up({ inflR: v })} min={0} max={10} step={0.1} suffix="%" />
+        <DisplayField
+          label="年間支出合計"
+          value={(p.baseExp + annualEvExp).toLocaleString()}
+          suffix="万円/年"
+          tooltip="年間生活費と、現在進行中の継続支出（住宅ローンなど）を合算した、今年時点での年間支出額です。シミュレーションでは、ここから毎年インフレ率に応じて増加します。"
+        />
+
+        <Divider />
+        <DisplayField
+          label="年間余剰CF"
+          value={`${annualCF >= 0 ? '+' : ''}${annualCF.toLocaleString()}`}
+          suffix="万円/年"
+          tooltip="収入 − 生活費 − イベント支出"
+          valueClassName={annualCF >= 0 ? 'text-green-700' : 'text-red-600'}
+        />
+
+        <Divider />
+        <SubHeading>ライフイベント</SubHeading>
+        <LifeEventTimeline />
+
+        <SubSection title="配偶者を入力する">
+          <Field label="年間収入" id="spInc"    value={p.spInc}    onChange={v => up({ spInc: v })}    min={0} step={0.1} suffix="万円/年" />
+          <Field label="年金額"   id="spPenAmt" value={p.spPenAmt} onChange={v => up({ spPenAmt: v })} min={0} step={0.1} suffix="万円/年" />
+        </SubSection>
+      </Section>
+
+      {/* ③ 資産 */}
+      <Section title="資産">
+        <SubHeading>保有資産</SubHeading>
         <Field label="NISA残高"       id="bNisa"   value={p.bNisa}   onChange={v => up({ bNisa: v })}   min={0} step={0.1} suffix="万円" />
         <Field label="NISA積立"       id="cNisa"   value={p.cNisa}   onChange={v => up({ cNisa: v })}   min={0} step={0.1} suffix="万円/年" />
         <Field label="NISA積立終了"   id="cNisaTo" value={p.cNisaTo} onChange={v => up({ cNisaTo: v })} min={p.curAge} max={100} suffix="歳" />
         <Field label="iDeCo残高"      id="bIdeco"  value={p.bIdeco}  onChange={v => up({ bIdeco: v })}  min={0} step={0.1} suffix="万円" />
         <Field label="iDeCo積立"      id="cIdeco"  value={p.cIdeco}  onChange={v => up({ cIdeco: v })}  min={0} step={0.1} suffix="万円/年" />
         <Field label="iDeCo積立終了"  id="cIdecoTo" value={p.cIdecoTo} onChange={v => up({ cIdecoTo: v })} min={p.curAge} max={60} suffix="歳" />
+        <Field label="iDeCo加入年数"  id="idecoYrs"  value={p.idecoYrs}  onChange={v => up({ idecoYrs: v })}  min={1} max={40} suffix="年" />
         <Field label="特定口座残高"   id="bTax"    value={p.bTax}    onChange={v => up({ bTax: v })}    min={0} step={0.1} suffix="万円" />
         <Field label="特定口座積立"   id="cTax"    value={p.cTax}    onChange={v => up({ cTax: v })}    min={0} step={0.1} suffix="万円/年" />
         <Field label="特定口座積立終了" id="cTaxTo" value={p.cTaxTo} onChange={v => up({ cTaxTo: v })} min={p.curAge} max={100} suffix="歳" />
         <Field label="現金残高"       id="bCash"   value={p.bCash}   onChange={v => up({ bCash: v })}   min={0} step={0.1} suffix="万円" />
-        <SubSection title="配偶者の口座情報">
-          <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} step={0.1} suffix="万円" />
-          <Field label="NISA積立"          id="spNisaCon"   value={p.spNisaCon  ?? 0} onChange={v => up({ spNisaCon: v })}  min={0} step={0.1} suffix="万円/年" />
-          <Field label="NISA積立終了"      id="spNisaTo"    value={p.spNisaTo   ?? (p.spRetAge || 60)} onChange={v => up({ spNisaTo: v })}  min={20} max={100} suffix="歳" />
-          <Field label="iDeCo残高"         id="spIdecoBal"  value={p.spIdecoBal ?? 0} onChange={v => up({ spIdecoBal: v })} min={0} step={0.1} suffix="万円" />
-          <Field label="iDeCo積立"         id="spIdecoCon"  value={p.spIdecoCon ?? 0} onChange={v => up({ spIdecoCon: v })} min={0} step={0.1} suffix="万円/年" />
-          <Field label="iDeCo積立終了"     id="spIdecoTo"   value={p.spIdecoTo  ?? (p.spRetAge || 60)} onChange={v => up({ spIdecoTo: v })}  min={20} max={60}  suffix="歳" />
-          <Field label="特定口座残高"      id="spTaxBal"    value={p.spTaxBal   ?? 0} onChange={v => up({ spTaxBal: v })}  min={0} step={0.1} suffix="万円" />
-          <Field label="特定口座積立"      id="spTaxCon"    value={p.spTaxCon   ?? 0} onChange={v => up({ spTaxCon: v })}  min={0} step={0.1} suffix="万円/年" />
-          <Field label="特定口座積立終了"  id="spTaxTo"     value={p.spTaxTo    ?? (p.spRetAge || 60)} onChange={v => up({ spTaxTo: v })}   min={20} max={100} suffix="歳" />
-          <Field label="現金残高"          id="spCashBal"   value={p.spCashBal  ?? 0} onChange={v => up({ spCashBal: v })} min={0} step={0.1} suffix="万円" />
-        </SubSection>
-        <div className="flex items-center gap-2 pt-1 mt-1 border-t border-slate-100">
-          <span className="w-36 shrink-0 text-xs font-medium text-slate-600">総資産合計</span>
-          <div className="flex items-center gap-1">
-            <span className="w-24 rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 text-slate-700 font-medium">
-              {totalBal.toLocaleString()}
-            </span>
-            <span className="text-xs text-slate-500">万円</span>
-          </div>
-        </div>
-      </Section>
 
-      <Section title="退職・年金">
-        <Field label="退職年齢"     id="retAge"     value={p.retAge}     onChange={v => up({ retAge: v })}     min={p.curAge + 1} max={80} suffix="歳" />
-        <Field label="年金受給開始" id="penAge"     value={p.penAge}     onChange={v => up({ penAge: v })}     min={60} max={75} suffix="歳" />
-        <Field label="年金受給額"   id="penAmtVal"  value={p.penAmtVal}  onChange={v => up({ penAmtVal: v, penAmt: v })} min={0} step={0.1} suffix="万円/年" />
+        <Divider />
+        <SubHeading>受け取り設定</SubHeading>
         <Field label="勤続年数(退職金控除)" id="sevYrs" value={p.sevYrs} onChange={v => up({ sevYrs: v })} min={1} max={45} suffix="年" />
-        <Field label="iDeCo加入年数"  id="idecoYrs"  value={p.idecoYrs}  onChange={v => up({ idecoYrs: v })}  min={1} max={40} suffix="年" />
         <div className="flex items-center gap-2 mt-1">
-          <label htmlFor="idecoReceiveType" className="w-36 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
+          <label htmlFor="idecoReceiveType" className="w-32 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
           <select
             id="idecoReceiveType"
             value={p.idecoReceiveType}
@@ -385,7 +432,7 @@ export default function SimulatorForm() {
         {p.idecoReceiveType === 'split' && (
           <div className="mt-1 space-y-1">
             <div className="flex items-center gap-2">
-              <label htmlFor="idecoSplitRatio" className="w-36 shrink-0 text-xs text-slate-600">一時金割合</label>
+              <label htmlFor="idecoSplitRatio" className="w-32 shrink-0 text-xs text-slate-600">一時金割合</label>
               <input
                 type="number"
                 id="idecoSplitRatio"
@@ -411,14 +458,22 @@ export default function SimulatorForm() {
           <Field label="年金受取年数" id="idecoReceiveYears" value={p.idecoReceiveYears} onChange={v => up({ idecoReceiveYears: v })} min={1} max={20} suffix="年" />
         )}
         <Field label="iDeCo受取開始" id="idecoStartAge" value={p.idecoStartAge} onChange={v => up({ idecoStartAge: v })} min={60} max={75} suffix="歳" />
-        <SubSection title="配偶者の退職・年金">
-          <Field label="退職年齢"   id="spRetAge" value={p.spRetAge} onChange={v => up({ spRetAge: v })} min={20} suffix="歳" />
-          <Field label="年金受給開始" id="spPenAge" value={p.spPenAge} onChange={v => up({ spPenAge: v })} min={60} suffix="歳" />
-          <Field label="年金額"     id="spPenAmt" value={p.spPenAmt} onChange={v => up({ spPenAmt: v })} min={0} step={0.1} suffix="万円/年" />
+
+        <SubSection title="配偶者を入力する">
+          <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} step={0.1} suffix="万円" />
+          <Field label="NISA積立"          id="spNisaCon"   value={p.spNisaCon  ?? 0} onChange={v => up({ spNisaCon: v })}  min={0} step={0.1} suffix="万円/年" />
+          <Field label="NISA積立終了"      id="spNisaTo"    value={p.spNisaTo   ?? (p.spRetAge || 60)} onChange={v => up({ spNisaTo: v })}  min={20} max={100} suffix="歳" />
+          <Field label="iDeCo残高"         id="spIdecoBal"  value={p.spIdecoBal ?? 0} onChange={v => up({ spIdecoBal: v })} min={0} step={0.1} suffix="万円" />
+          <Field label="iDeCo積立"         id="spIdecoCon"  value={p.spIdecoCon ?? 0} onChange={v => up({ spIdecoCon: v })} min={0} step={0.1} suffix="万円/年" />
+          <Field label="iDeCo積立終了"     id="spIdecoTo"   value={p.spIdecoTo  ?? (p.spRetAge || 60)} onChange={v => up({ spIdecoTo: v })}  min={20} max={60}  suffix="歳" />
+          <Field label="iDeCo加入年数"     id="spIdecoYrs"  value={p.spIdecoYrs ?? 0} onChange={v => up({ spIdecoYrs: v })} min={1} max={40} suffix="年" />
+          <Field label="特定口座残高"      id="spTaxBal"    value={p.spTaxBal   ?? 0} onChange={v => up({ spTaxBal: v })}  min={0} step={0.1} suffix="万円" />
+          <Field label="特定口座積立"      id="spTaxCon"    value={p.spTaxCon   ?? 0} onChange={v => up({ spTaxCon: v })}  min={0} step={0.1} suffix="万円/年" />
+          <Field label="特定口座積立終了"  id="spTaxTo"     value={p.spTaxTo    ?? (p.spRetAge || 60)} onChange={v => up({ spTaxTo: v })}   min={20} max={100} suffix="歳" />
+          <Field label="現金残高"          id="spCashBal"   value={p.spCashBal  ?? 0} onChange={v => up({ spCashBal: v })} min={0} step={0.1} suffix="万円" />
           <Field label="勤続年数(退職金控除)" id="spSevYrs" value={p.spSevYrs ?? 0} onChange={v => up({ spSevYrs: v })} min={1} max={45} suffix="年" />
-          <Field label="iDeCo加入年数" id="spIdecoYrs" value={p.spIdecoYrs ?? 0} onChange={v => up({ spIdecoYrs: v })} min={1} max={40} suffix="年" />
           <div className="flex items-center gap-2 mt-1">
-            <label htmlFor="spIdecoReceiveType" className="w-36 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
+            <label htmlFor="spIdecoReceiveType" className="w-32 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
             <select
               id="spIdecoReceiveType"
               value={p.spIdecoReceiveType ?? 'lump'}
@@ -431,86 +486,95 @@ export default function SimulatorForm() {
           </div>
           <Field label="iDeCo受取開始" id="spIdecoStartAge" value={p.spIdecoStartAge ?? 60} onChange={v => up({ spIdecoStartAge: v })} min={60} max={75} suffix="歳" />
         </SubSection>
-      </Section>
 
-      <Section
-        title="利回り設定"
-        defaultOpen={false}
-        tooltip="積立期（rW）/ 取崩期（rR）・スイッチONでPF計算値を使用"
-      >
-        <RateField
-          label="NISA rW" id="rWNisa"
-          value={getEffectiveRW(profile, 'Nisa')} onChange={v => up({ rWNisa: v })}
-          linked={!p.pfManualFlags['rWNisa']} onToggleLinked={linked => setLinked('rWNisa', linked)}
-        />
-        <RateField
-          label="NISA rR" id="rRNisa"
-          value={getEffectiveRR(profile, 'Nisa')} onChange={v => up({ rRNisa: v })}
-          linked={rateSameAsWorking || !p.pfManualFlags['rRNisa']} onToggleLinked={linked => setLinked('rRNisa', linked)}
-          rowDisabled={rateSameAsWorking}
-        />
-        <RateField
-          label="iDeCo rW" id="rWIdeco"
-          value={getEffectiveRW(profile, 'Ideco')} onChange={v => up({ rWIdeco: v })}
-          linked={!p.pfManualFlags['rWIdeco']} onToggleLinked={linked => setLinked('rWIdeco', linked)}
-        />
-        <RateField
-          label="iDeCo rR" id="rRIdeco"
-          value={getEffectiveRR(profile, 'Ideco')} onChange={v => up({ rRIdeco: v })}
-          linked={rateSameAsWorking || !p.pfManualFlags['rRIdeco']} onToggleLinked={linked => setLinked('rRIdeco', linked)}
-          rowDisabled={rateSameAsWorking}
-        />
-        <RateField
-          label="特定 rW" id="rWTax"
-          value={getEffectiveRW(profile, 'Tax')} onChange={v => up({ rWTax: v })}
-          linked={!p.pfManualFlags['rWTax']} onToggleLinked={linked => setLinked('rWTax', linked)}
-        />
-        <RateField
-          label="特定 rR" id="rRTax"
-          value={getEffectiveRR(profile, 'Tax')} onChange={v => up({ rRTax: v })}
-          linked={rateSameAsWorking || !p.pfManualFlags['rRTax']} onToggleLinked={linked => setLinked('rRTax', linked)}
-          rowDisabled={rateSameAsWorking}
-        />
-        <div className="flex items-center gap-2 mt-1">
-          <input
-            id="rateSameAsWorking"
-            type="checkbox"
-            checked={rateSameAsWorking}
-            onChange={e => setRateSameAsWorking(e.target.checked)}
-            className="rounded"
-          />
-          <label htmlFor="rateSameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ利回りを使う</label>
+        <div className="pt-2 mt-1 border-t border-slate-200">
+          <DisplayField label="総資産合計" value={totalBal.toLocaleString()} suffix="万円" bold />
         </div>
       </Section>
 
-      <Section
-        title="MC設定"
-        defaultOpen={false}
-        tooltip="積立期（σ）/ 取崩期（σ）・スイッチONでPF計算値を使用"
-      >
-        <RateField
-          label="積立期σ" id="mcStd"
-          value={getEffectiveMcStd(profile)} onChange={v => up({ mcStd: v })}
-          linked={!p.pfManualFlags['mcStd']} onToggleLinked={linked => setLinked('mcStd', linked)}
-          min={0} max={50}
-        />
-        <RateField
-          label="取崩期σ" id="mcStdR"
-          value={getEffectiveMcStdR(profile)} onChange={v => up({ mcStdR: v })}
-          linked={sigmaSameAsWorking || !p.pfManualFlags['mcStdR']} onToggleLinked={linked => setLinked('mcStdR', linked)}
-          rowDisabled={sigmaSameAsWorking}
-          min={0} max={50}
-        />
-        <div className="flex items-center gap-2 mt-1">
-          <input
-            id="sigmaSameAsWorking"
-            type="checkbox"
-            checked={sigmaSameAsWorking}
-            onChange={e => setSigmaSameAsWorking(e.target.checked)}
-            className="rounded"
+      {/* ④ 運用方針・リスク */}
+      <Section title="運用方針・リスク">
+        <PortfolioPanel />
+
+        <Section
+          title="利回り設定"
+          defaultOpen={false}
+          tooltip="積立期（rW）/ 取崩期（rR）・スイッチONでPF計算値を使用"
+        >
+          <RateField
+            label="NISA rW" id="rWNisa"
+            value={getEffectiveRW(profile, 'Nisa')} onChange={v => up({ rWNisa: v })}
+            linked={!p.pfManualFlags['rWNisa']} onToggleLinked={linked => setLinked('rWNisa', linked)}
           />
-          <label htmlFor="sigmaSameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ標準偏差を使う</label>
-        </div>
+          <RateField
+            label="NISA rR" id="rRNisa"
+            value={getEffectiveRR(profile, 'Nisa')} onChange={v => up({ rRNisa: v })}
+            linked={rateSameAsWorking || !p.pfManualFlags['rRNisa']} onToggleLinked={linked => setLinked('rRNisa', linked)}
+            rowDisabled={rateSameAsWorking}
+          />
+          <RateField
+            label="iDeCo rW" id="rWIdeco"
+            value={getEffectiveRW(profile, 'Ideco')} onChange={v => up({ rWIdeco: v })}
+            linked={!p.pfManualFlags['rWIdeco']} onToggleLinked={linked => setLinked('rWIdeco', linked)}
+          />
+          <RateField
+            label="iDeCo rR" id="rRIdeco"
+            value={getEffectiveRR(profile, 'Ideco')} onChange={v => up({ rRIdeco: v })}
+            linked={rateSameAsWorking || !p.pfManualFlags['rRIdeco']} onToggleLinked={linked => setLinked('rRIdeco', linked)}
+            rowDisabled={rateSameAsWorking}
+          />
+          <RateField
+            label="特定 rW" id="rWTax"
+            value={getEffectiveRW(profile, 'Tax')} onChange={v => up({ rWTax: v })}
+            linked={!p.pfManualFlags['rWTax']} onToggleLinked={linked => setLinked('rWTax', linked)}
+          />
+          <RateField
+            label="特定 rR" id="rRTax"
+            value={getEffectiveRR(profile, 'Tax')} onChange={v => up({ rRTax: v })}
+            linked={rateSameAsWorking || !p.pfManualFlags['rRTax']} onToggleLinked={linked => setLinked('rRTax', linked)}
+            rowDisabled={rateSameAsWorking}
+          />
+          <div className="flex items-center gap-2 mt-1">
+            <input
+              id="rateSameAsWorking"
+              type="checkbox"
+              checked={rateSameAsWorking}
+              onChange={e => setRateSameAsWorking(e.target.checked)}
+              className="rounded"
+            />
+            <label htmlFor="rateSameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ利回りを使う</label>
+          </div>
+        </Section>
+
+        <Section
+          title="MC設定"
+          defaultOpen={false}
+          tooltip="積立期（σ）/ 取崩期（σ）・スイッチONでPF計算値を使用"
+        >
+          <RateField
+            label="積立期σ" id="mcStd"
+            value={getEffectiveMcStd(profile)} onChange={v => up({ mcStd: v })}
+            linked={!p.pfManualFlags['mcStd']} onToggleLinked={linked => setLinked('mcStd', linked)}
+            min={0} max={50}
+          />
+          <RateField
+            label="取崩期σ" id="mcStdR"
+            value={getEffectiveMcStdR(profile)} onChange={v => up({ mcStdR: v })}
+            linked={sigmaSameAsWorking || !p.pfManualFlags['mcStdR']} onToggleLinked={linked => setLinked('mcStdR', linked)}
+            rowDisabled={sigmaSameAsWorking}
+            min={0} max={50}
+          />
+          <div className="flex items-center gap-2 mt-1">
+            <input
+              id="sigmaSameAsWorking"
+              type="checkbox"
+              checked={sigmaSameAsWorking}
+              onChange={e => setSigmaSameAsWorking(e.target.checked)}
+              className="rounded"
+            />
+            <label htmlFor="sigmaSameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ標準偏差を使う</label>
+          </div>
+        </Section>
       </Section>
 
     </div>

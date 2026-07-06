@@ -166,17 +166,17 @@ export default function LifeEventTimeline() {
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
+    <div className="rounded-lg border border-slate-200 bg-white">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
       >
-        <span>ライフイベント ({events.length}件)</span>
+        <span>タイムライン ({events.length}件)</span>
         <span className="text-slate-400">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
-        <div className="px-4 pb-4">
+        <div className="px-3 pb-3">
           {events.length === 0 && editIdx === null && (
             <p className="text-xs text-slate-400 mb-3">イベントなし</p>
           )}
