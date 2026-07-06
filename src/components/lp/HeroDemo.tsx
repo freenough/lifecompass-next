@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import {
-  ComposedChart, Area, Line, XAxis, YAxis, ResponsiveContainer,
+  ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer,
 } from 'recharts';
 import { simulate, analyze, runMC } from '@/lib';
 import type { SimParams, LifeEvent } from '@/lib/types';
+import KpiCard from '@/components/simulator/KpiCard';
+import { formatYen, addFireLines, FireLines, EventLines } from '@/components/simulator/AssetChart';
 
 const DEMO_PROFILE: SimParams = {
   curAge: 35, lifeEx: 90,
@@ -48,9 +50,55 @@ function useCountUp(target: number | null, duration = 1200, decimals = 0): numbe
 
 interface ChartRow {
   age: number;
+  中央値: number;
   p10: number;
-  band: number;
-  p50: number;
+  p90: number;
+  [key: string]: number;
+}
+
+/**
+ * X軸の目盛りをcurAge起点の10歳刻みで生成し、余命年齢(lifeEx)を跨がないよう
+ * 最後だけ端数の刻みでlifeEx自体を必ず含める（例: curAge=35, lifeEx=90 →
+ * [35,45,55,65,75,90]）。
+ * 「次の10歳刻みを置くとlifeExまでの残り区間が10年未満になる」場合はその
+ * 10歳刻みを置かず、直接lifeExへ繋げる。これにより最後の区間が10年区間の
+ * 半分（5年）ぎりぎりになって隣の目盛りラベルと詰まって見えるのを避ける
+ * （例: 85は置かず75の次を90にする→最後の区間は15年になる）。
+ * Rechartsの自動間引き（39・44・49…のような中途半端な目盛り）を避けるため、
+ * カテゴリ軸の設定自体は変えずticksだけ明示的に渡す。
+ */
+function buildXTicks(curAge: number, lifeEx: number): number[] {
+  const ticks: number[] = [curAge];
+  let age = curAge + 10;
+  while (age + 10 <= lifeEx) {
+    ticks.push(age);
+    age += 10;
+  }
+  if (ticks[ticks.length - 1] !== lifeEx) {
+    ticks.push(lifeEx);
+  }
+  return ticks;
+}
+
+interface XAxisTickProps {
+  x?: number;
+  y?: number;
+  payload?: { value: number };
+}
+
+/**
+ * 目盛り位置（データ点・グリッド線の座標）は一切動かさず、ラベルの描画だけを調整する。
+ * 最後の目盛り(lifeEx＝90歳)はtext-anchorをmiddleからendに変え、文字を左方向へ伸ばして
+ * 描画することで、右端でのはみ出し・欠けを防ぐ。他の目盛りは従来通りmiddleのまま。
+ */
+function XAxisTick({ x, y, payload }: XAxisTickProps) {
+  if (x == null || y == null || !payload) return null;
+  const isLast = payload.value === DEMO_PROFILE.lifeEx;
+  return (
+    <text x={x} y={y + 12} textAnchor={isLast ? 'end' : 'middle'} fontSize={11} fill="#666">
+      {payload.value}歳
+    </text>
+  );
 }
 
 const KPI_LABELS = ['FIRE達成年齢', '資産寿命', 'MC破綻確率'];
@@ -80,14 +128,14 @@ export default function HeroDemo() {
 
     const pct = mc.strategies.cash_first.percentiles;
     const rows: ChartRow[] = pct.p50.map((p50val, i) => {
-      const p10 = Math.max(0, Math.round(pct.p10[i]));
-      const p90 = Math.max(0, Math.round(pct.p90[i]));
-      return {
+      const row: ChartRow = {
         age: DEMO_PROFILE.curAge + i,
-        p10,
-        band: Math.max(0, p90 - p10),
-        p50: Math.max(0, Math.round(p50val)),
+        p10: Math.max(0, Math.round(pct.p10[i])),
+        p90: Math.max(0, Math.round(pct.p90[i])),
+        中央値: Math.max(0, Math.round(p50val)),
       };
+      if (snaps[i]) addFireLines(row, snaps[i]);
+      return row;
     });
     setChartData(rows);
   }, []);
@@ -95,31 +143,43 @@ export default function HeroDemo() {
   const fireAgeVal = useCountUp(fireAge, 1200, 0);
   const rateVal    = useCountUp(bankruptcyRate, 1500, 1);
 
+  // 計算完了（chartDataが埋まった時点）まではneutral（灰）にし、シミュレーター実機と同じ
+  // 状態色ロジック（FIRE達成＝緑/未達成＝黄、資産寿命＝枯渇なし緑/枯渇あり赤、
+  // MC破綻確率＝5%未満緑・5〜15%黄・15%以上赤）を適用する。
+  const loaded = chartData.length > 0;
+  type Variant = 'good' | 'warn' | 'danger' | 'neutral';
+  const kpiVariants: Variant[] = [
+    !loaded ? 'neutral' : (fireAge != null ? 'good' : 'warn'),
+    !loaded ? 'neutral' : (assetLifeNull ? 'good' : 'danger'),
+    !loaded || bankruptcyRate == null ? 'neutral' : (bankruptcyRate < 5 ? 'good' : bankruptcyRate < 15 ? 'warn' : 'danger'),
+  ];
+
   const kpiValues = [
     fireAge === null      ? '—' : `${Math.round(fireAgeVal)}歳`,
     bankruptcyRate === null ? '—' : assetLifeNull ? '枯渇なし' : `${DEMO_PROFILE.lifeEx}歳`,
     bankruptcyRate === null ? '—' : `${rateVal.toFixed(1)}%`,
   ];
 
-  return (
-    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full">
+  // Y軸目盛り：0/中間/最大の3段階のみ（LPとしての簡潔さを優先し、実機のような細かい目盛りは付けない）
+  const maxVal = chartData.length > 0 ? Math.max(...chartData.map(r => r.p90)) : 0;
+  const yMax = Math.max(5000, Math.ceil(maxVal / 5000) * 5000);
+  const yTicks = [0, Math.round(yMax / 2), yMax];
 
-      {/* KPI ブロック — ダークネイビー・フェードイン */}
+  return (
+    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 px-6 pt-6 pb-3 w-full">
+
+      {/* KPI ブロック — シミュレーター実機と同じ白背景+状態色カード・フェードイン */}
       <div className="grid grid-cols-3 gap-2">
         {KPI_LABELS.map((label, i) => (
           <div
             key={label}
-            className="bg-slate-800 rounded-lg p-2 sm:p-4 text-center"
             style={{
               opacity:   visible ? 1 : 0,
               transform: visible ? 'translateY(0)' : 'translateY(8px)',
               transition: `opacity 0.4s ease ${i * 0.15}s, transform 0.4s ease ${i * 0.15}s`,
             }}
           >
-            <div className="text-[9px] sm:text-xs text-white/70 mb-1 whitespace-nowrap">{label}</div>
-            <div className={`font-bold text-white whitespace-nowrap ${kpiValues[i] === '枯渇なし' ? 'text-base sm:text-2xl' : 'text-xl sm:text-3xl'}`}>
-              {kpiValues[i]}
-            </div>
+            <KpiCard label={label} value={kpiValues[i]} variant={kpiVariants[i]} />
           </div>
         ))}
       </div>
@@ -127,47 +187,54 @@ export default function HeroDemo() {
       {/* MC ファンチャート — 左から描画アニメーション */}
       <div className="mt-2">
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={190}>
-            <ComposedChart data={chartData} margin={{ top: 4, right: 12, left: 12, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={230}>
+            <ComposedChart data={chartData} margin={{ top: 4, right: 2, bottom: 0, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
                 dataKey="age"
-                type="number"
-                domain={[35, 90]}
-                ticks={[35, 45, 55, 65, 75, 85, 90]}
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                padding={{ left: 0, right: 0 }}
+                ticks={buildXTicks(DEMO_PROFILE.curAge, DEMO_PROFILE.lifeEx)}
+                interval={0}
+                tick={<XAxisTick />}
               />
-              <YAxis hide />
-              {/* p10 までを白塗り（バンドのベース） */}
+              <YAxis
+                domain={[0, yMax]}
+                ticks={yTicks}
+                width={36}
+                tick={{ fontSize: 11 }}
+                tickFormatter={formatYen}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
+              {/* 退職の1本のみ表示（年金開始・配偶者マーカーはLPでは情報過多のため非表示） */}
+              <EventLines retAge={DEMO_PROFILE.retAge} penAge={-999} spRetAgeMain={null} spPenAgeMain={null} />
+              <FireLines />
+              {/* p90（薄青、実機の総資産推移MC表示と同一の色・不透明度） */}
+              <Area
+                type="monotone"
+                dataKey="p90"
+                fill="#bfdbfe"
+                stroke="#93c5fd"
+                fillOpacity={0.4}
+                name="p90"
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+              />
+              {/* p10（白塗りで下側を覆い、p10〜p90の帯だけを見せる） */}
               <Area
                 type="monotone"
                 dataKey="p10"
-                stroke="none"
-                fill="white"
+                fill="#ffffff"
+                stroke="#93c5fd"
                 fillOpacity={1}
-                stackId="fan"
+                name="p10"
                 isAnimationActive={true}
                 animationDuration={800}
                 animationEasing="ease-out"
               />
-              {/* p10〜p90 バンド（薄青） */}
-              <Area
-                type="monotone"
-                dataKey="band"
-                stroke="none"
-                fill="#bfdbfe"
-                fillOpacity={0.7}
-                stackId="fan"
-                isAnimationActive={true}
-                animationDuration={800}
-                animationEasing="ease-out"
-              />
-              {/* p50 中央値ライン（青） */}
+              {/* 中央値ライン（青） */}
               <Line
                 type="monotone"
-                dataKey="p50"
+                dataKey="中央値"
                 stroke="#3b82f6"
                 strokeWidth={2}
                 dot={false}
@@ -178,13 +245,13 @@ export default function HeroDemo() {
             </ComposedChart>
           </ResponsiveContainer>
         ) : (
-          <div style={{ height: 190 }} className="flex items-center justify-center text-slate-300 text-sm">
+          <div style={{ height: 230 }} className="flex items-center justify-center text-slate-300 text-sm">
             計算中…
           </div>
         )}
       </div>
 
-      <p className="text-xs text-slate-400 text-left mt-2">
+      <p className="text-[10px] text-slate-400 text-left mt-1">
         ※ サンプルデータによるシミュレーション結果
       </p>
     </div>

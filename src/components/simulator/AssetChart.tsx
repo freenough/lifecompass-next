@@ -41,7 +41,7 @@ const SCENARIO_CONFIG = [
 
 type TabKey = 'total' | 'breakdown';
 
-function formatYen(v: number): string {
+export function formatYen(v: number): string {
   if (v >= 10000) return `${(v / 10000).toFixed(1)}億`;
   return `${v}万`;
 }
@@ -53,21 +53,21 @@ function spouseAgeToMain(mainCurAge: number, spCurAge: number, spTargetAge: numb
   return mainCurAge + (spTargetAge - spCurAge);
 }
 
-function addFireLines(
+export function addFireLines(
   row: Record<string, number>,
   s: YearSnap,
 ) {
   row['FIREライン'] = s.baseExp * 25;
 }
 
-function FireLines() {
+export function FireLines() {
   return (
     <Line dataKey="FIREライン" stroke="#16a34a" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
   );
 }
 
 /** 退職・年金の垂直ライン（同一 age はラベル結合、近接 age は縦オフセット） */
-function EventLines({ retAge, penAge, spRetAgeMain, spPenAgeMain }: {
+export function EventLines({ retAge, penAge, spRetAgeMain, spPenAgeMain }: {
   retAge: number; penAge: number;
   spRetAgeMain: number | null; spPenAgeMain: number | null;
 }) {

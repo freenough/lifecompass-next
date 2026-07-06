@@ -13,6 +13,24 @@ type RateFieldKey = 'rWNisa' | 'rWIdeco' | 'rWTax' | 'rRNisa' | 'rRIdeco' | 'rRT
 
 const CASHFLOW_EXPENSE_TYPES = new Set(['education', 'care', 'renovation', 'mortgage', 'other_exp']);
 
+// NISA・iDeCoの年間拠出上限（制度上の目安。入力時の警告表示のみに使用し、計算はブロックしない）
+const NISA_ANNUAL_MAX = 360;   // 万円/年（成長投資枠240万+つみたて120万）
+const IDECO_ANNUAL_MAX = 27.6; // 万円/年（会社員の一般的な上限。自営業等は上限が異なる）
+const NISA_LIFETIME_NOTE =
+  'NISAには生涯非課税投資枠1,800万円の上限があります。本シミュレーターは投資元本（簿価）を追跡していないため、この上限に近づいているかどうかの自動チェックは行いません。ご自身の利用状況は証券会社のマイページ等でご確認ください。';
+
+function nisaWarning(annualCon: number): string | undefined {
+  return annualCon > NISA_ANNUAL_MAX
+    ? `NISA年間積立 ${annualCon}万円は年間上限360万円を超えています`
+    : undefined;
+}
+
+function idecoWarning(annualCon: number): string | undefined {
+  return annualCon > IDECO_ANNUAL_MAX
+    ? `iDeCo年間積立 ${annualCon}万円は会社員の場合の上限27.6万円を超えています（自営業の場合は上限が異なります）`
+    : undefined;
+}
+
 function calcAnnualEventExpense(events: LifeEvent[], curAge: number): number {
   return events
     .filter(ev =>
@@ -45,51 +63,62 @@ interface FieldProps {
   suffix?: string;
   disabled?: boolean;
   tooltip?: string;
+  /** 制度上限超過時の警告文。指定すると入力欄を黄色ハイライトし、直下に警告文を表示する（計算のブロックはしない）。 */
+  warning?: string;
 }
 
-function Field({ label, id, value, onChange, min, max, step = 1, suffix, disabled, tooltip }: FieldProps) {
+function Field({ label, id, value, onChange, min, max, step = 1, suffix, disabled, tooltip, warning }: FieldProps) {
   const isIntegerStep = Number.isInteger(step);
   return (
-    <div className="flex items-center gap-2">
-      <label htmlFor={id} className="w-32 shrink-0 text-xs text-slate-600 flex items-center gap-1">
-        {label}
-        {tooltip && <InfoTooltip text={tooltip} />}
-      </label>
-      {/* 入力欄(shrink-0固定幅)・単位(shrink-0)ともに縮めない。数値の桁数に応じて幅が変動しないよう固定する。 */}
-      <div className="flex items-center gap-1">
-        <input
-          id={id}
-          type="number"
-          value={value}
-          onChange={e => {
-            // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
-            const cleaned = stripLeadingZero(e.target.value);
-            if (cleaned !== e.target.value) e.target.value = cleaned;
-            const raw = e.target.valueAsNumber;
-            if (isNaN(raw)) { onChange(0); return; }
-            const next = isIntegerStep ? Math.round(raw) : raw;
-            onChange(next);
-            // ブラウザ側のDOM表示が丸め後の値と食い違う場合に備えて強制同期
-            if (isIntegerStep && raw !== next) {
-              e.target.value = String(next);
-            }
-          }}
-          onBlur={e => {
-            const raw = e.target.valueAsNumber;
-            const safe = isNaN(raw) ? (value || 0) : (isIntegerStep ? Math.round(raw) : raw);
-            if (safe !== value) onChange(safe);
-            e.target.value = String(safe);
-          }}
-          onFocus={e => clearZeroOrSelect(e.currentTarget)}
-          onClick={e => clearZeroOrSelect(e.currentTarget)}
-          min={min}
-          max={max}
-          step={step}
-          disabled={disabled}
-          className="w-24 shrink-0 rounded border border-slate-300 px-2 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-        />
-        {suffix && <span className="shrink-0 text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <label htmlFor={id} className="w-32 shrink-0 text-xs text-slate-600 flex items-center gap-1">
+          {label}
+          {tooltip && <InfoTooltip text={tooltip} />}
+        </label>
+        {/* 入力欄(shrink-0固定幅)・単位(shrink-0)ともに縮めない。数値の桁数に応じて幅が変動しないよう固定する。 */}
+        <div className="flex items-center gap-1">
+          <input
+            id={id}
+            type="number"
+            value={value}
+            onChange={e => {
+              // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
+              const cleaned = stripLeadingZero(e.target.value);
+              if (cleaned !== e.target.value) e.target.value = cleaned;
+              const raw = e.target.valueAsNumber;
+              if (isNaN(raw)) { onChange(0); return; }
+              const next = isIntegerStep ? Math.round(raw) : raw;
+              onChange(next);
+              // ブラウザ側のDOM表示が丸め後の値と食い違う場合に備えて強制同期
+              if (isIntegerStep && raw !== next) {
+                e.target.value = String(next);
+              }
+            }}
+            onBlur={e => {
+              const raw = e.target.valueAsNumber;
+              const safe = isNaN(raw) ? (value || 0) : (isIntegerStep ? Math.round(raw) : raw);
+              if (safe !== value) onChange(safe);
+              e.target.value = String(safe);
+            }}
+            onFocus={e => clearZeroOrSelect(e.currentTarget)}
+            onClick={e => clearZeroOrSelect(e.currentTarget)}
+            min={min}
+            max={max}
+            step={step}
+            disabled={disabled}
+            className={`w-24 shrink-0 rounded border px-2 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+              warning ? 'border-yellow-400 bg-yellow-50' : 'border-slate-300'
+            }`}
+          />
+          {suffix && <span className="shrink-0 text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
+        </div>
       </div>
+      {warning && (
+        <p className="text-[11px] text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-1 leading-relaxed">
+          ⚠ {warning}
+        </p>
+      )}
     </div>
   );
 }
@@ -402,10 +431,19 @@ export default function SimulatorForm() {
       <Section title="資産">
         <SubHeading>保有資産</SubHeading>
         <Field label="NISA残高"       id="bNisa"   value={p.bNisa}   onChange={v => up({ bNisa: v })}   min={0} step={0.1} suffix="万円" />
-        <Field label="NISA積立"       id="cNisa"   value={p.cNisa}   onChange={v => up({ cNisa: v })}   min={0} step={0.1} suffix="万円/年" />
+        <Field
+          label="NISA積立" id="cNisa" value={p.cNisa} onChange={v => up({ cNisa: v })}
+          min={0} step={0.1} suffix="万円/年"
+          tooltip={NISA_LIFETIME_NOTE}
+          warning={nisaWarning(p.cNisa)}
+        />
         <Field label="NISA積立終了"   id="cNisaTo" value={p.cNisaTo} onChange={v => up({ cNisaTo: v })} min={p.curAge} max={100} suffix="歳" />
         <Field label="iDeCo残高"      id="bIdeco"  value={p.bIdeco}  onChange={v => up({ bIdeco: v })}  min={0} step={0.1} suffix="万円" />
-        <Field label="iDeCo積立"      id="cIdeco"  value={p.cIdeco}  onChange={v => up({ cIdeco: v })}  min={0} step={0.1} suffix="万円/年" />
+        <Field
+          label="iDeCo積立" id="cIdeco" value={p.cIdeco} onChange={v => up({ cIdeco: v })}
+          min={0} step={0.1} suffix="万円/年"
+          warning={idecoWarning(p.cIdeco)}
+        />
         <Field label="iDeCo積立終了"  id="cIdecoTo" value={p.cIdecoTo} onChange={v => up({ cIdecoTo: v })} min={p.curAge} max={60} suffix="歳" />
         <Field label="iDeCo加入年数"  id="idecoYrs"  value={p.idecoYrs}  onChange={v => up({ idecoYrs: v })}  min={1} max={40} suffix="年" />
         <Field label="特定口座残高"   id="bTax"    value={p.bTax}    onChange={v => up({ bTax: v })}    min={0} step={0.1} suffix="万円" />
@@ -461,10 +499,19 @@ export default function SimulatorForm() {
 
         <SubSection title="配偶者を入力する">
           <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} step={0.1} suffix="万円" />
-          <Field label="NISA積立"          id="spNisaCon"   value={p.spNisaCon  ?? 0} onChange={v => up({ spNisaCon: v })}  min={0} step={0.1} suffix="万円/年" />
+          <Field
+            label="NISA積立" id="spNisaCon" value={p.spNisaCon ?? 0} onChange={v => up({ spNisaCon: v })}
+            min={0} step={0.1} suffix="万円/年"
+            tooltip={NISA_LIFETIME_NOTE}
+            warning={nisaWarning(p.spNisaCon ?? 0)}
+          />
           <Field label="NISA積立終了"      id="spNisaTo"    value={p.spNisaTo   ?? (p.spRetAge || 60)} onChange={v => up({ spNisaTo: v })}  min={20} max={100} suffix="歳" />
           <Field label="iDeCo残高"         id="spIdecoBal"  value={p.spIdecoBal ?? 0} onChange={v => up({ spIdecoBal: v })} min={0} step={0.1} suffix="万円" />
-          <Field label="iDeCo積立"         id="spIdecoCon"  value={p.spIdecoCon ?? 0} onChange={v => up({ spIdecoCon: v })} min={0} step={0.1} suffix="万円/年" />
+          <Field
+            label="iDeCo積立" id="spIdecoCon" value={p.spIdecoCon ?? 0} onChange={v => up({ spIdecoCon: v })}
+            min={0} step={0.1} suffix="万円/年"
+            warning={idecoWarning(p.spIdecoCon ?? 0)}
+          />
           <Field label="iDeCo積立終了"     id="spIdecoTo"   value={p.spIdecoTo  ?? (p.spRetAge || 60)} onChange={v => up({ spIdecoTo: v })}  min={20} max={60}  suffix="歳" />
           <Field label="iDeCo加入年数"     id="spIdecoYrs"  value={p.spIdecoYrs ?? 0} onChange={v => up({ spIdecoYrs: v })} min={1} max={40} suffix="年" />
           <Field label="特定口座残高"      id="spTaxBal"    value={p.spTaxBal   ?? 0} onChange={v => up({ spTaxBal: v })}  min={0} step={0.1} suffix="万円" />
