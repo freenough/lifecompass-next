@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import type { LifeEvent, IncomeSubtype, ExpenseSubtype } from '@/lib/types';
+import { UNIT_WIDTH_CLASS } from '@/components/simulator/formLayout';
+import InfoTooltip from '@/components/simulator/InfoTooltip';
 
 const INCOME_SUBTYPES: { value: IncomeSubtype; label: string }[] = [
   { value: 'reemploy',    label: '再雇用' },
@@ -260,7 +262,6 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
   const isPointChange = POINT_CHANGE_SUBTYPES.has(form.subtype);
   const hasOwner      = OWNER_SUBTYPES.has(form.subtype);
   const isSpouseEvent = hasOwner && form.owner === 'spouse';
-  const [showAgeTip, setShowAgeTip] = useState(false);
 
   const updateMortgage = (patch: { principal?: number; rate?: number; termYears?: number }) => {
     setForm(f => {
@@ -336,72 +337,63 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
         </div>
       )}
 
-      {/* 開始年齢（共通） */}
-      <div className="flex gap-2 items-center">
+      {/* 開始年齢（共通）。他行とのクラスタ総幅一致のため内側gapはgap-1に統一（配偶者の場合の
+          ツールチップ?ボタンは例外として幅計算に含めない）。 */}
+      <div className="flex gap-2 items-center justify-between">
         <label className="text-xs text-slate-500 w-16 shrink-0">開始年齢</label>
-        <input
-          type="number"
-          value={form.age}
-          onChange={e => setForm(f => ({ ...f, age: +e.target.value }))}
-          className={`w-16 ${inputCls}`}
-        />
-        <span className="text-xs text-slate-400">歳</span>
-        {isSpouseEvent && (
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowAgeTip(v => !v)}
-              className="w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:bg-slate-300"
-              aria-label="入力説明を表示"
-            >?</button>
-            {showAgeTip && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowAgeTip(false)} />
-                <div className="absolute left-0 top-6 z-20 w-44 rounded-lg bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed">
-                  <div className="absolute -top-1.5 left-1 w-3 h-3 bg-slate-800 rotate-45" />
-                  配偶者の年齢で入力してください
-                </div>
-              </>
-            )}
-          </div>
-        )}
+        <div className="flex gap-1 items-center">
+          <input
+            type="number"
+            value={form.age}
+            onChange={e => setForm(f => ({ ...f, age: +e.target.value }))}
+            className={`w-24 ${inputCls}`}
+          />
+          <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>歳</span>
+          {isSpouseEvent && <InfoTooltip text="配偶者の年齢で入力してください" />}
+        </div>
       </div>
 
       {isMortgage ? (
         <>
           {/* 住宅ローン専用フィールド */}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center justify-between">
             <label className="text-xs text-slate-500 w-16 shrink-0">借入額</label>
-            <input
-              type="number"
-              value={form.principal}
-              onChange={e => updateMortgage({ principal: +e.target.value })}
-              min={0}
-              className={`w-24 ${inputCls}`}
-            />
-            <span className="text-xs text-slate-400">万円</span>
+            <div className="flex gap-1 items-center">
+              <input
+                type="number"
+                value={form.principal}
+                onChange={e => updateMortgage({ principal: +e.target.value })}
+                min={0}
+                className={`w-24 ${inputCls}`}
+              />
+              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>万円</span>
+            </div>
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center justify-between">
             <label className="text-xs text-slate-500 w-16 shrink-0">金利</label>
-            <input
-              type="number"
-              value={form.rate}
-              onChange={e => updateMortgage({ rate: +e.target.value })}
-              min={0} max={10} step={0.1}
-              className={`w-20 ${inputCls}`}
-            />
-            <span className="text-xs text-slate-400">% / 年</span>
+            <div className="flex gap-1 items-center">
+              <input
+                type="number"
+                value={form.rate}
+                onChange={e => updateMortgage({ rate: +e.target.value })}
+                min={0} max={10} step={0.1}
+                className={`w-24 ${inputCls}`}
+              />
+              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400 whitespace-nowrap`}>% / 年</span>
+            </div>
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center justify-between">
             <label className="text-xs text-slate-500 w-16 shrink-0">返済年数</label>
-            <input
-              type="number"
-              value={form.termYears}
-              onChange={e => updateMortgage({ termYears: +e.target.value })}
-              min={1} max={50}
-              className={`w-16 ${inputCls}`}
-            />
-            <span className="text-xs text-slate-400">年</span>
+            <div className="flex gap-1 items-center">
+              <input
+                type="number"
+                value={form.termYears}
+                onChange={e => updateMortgage({ termYears: +e.target.value })}
+                min={1} max={50}
+                className={`w-24 ${inputCls}`}
+              />
+              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>年</span>
+            </div>
           </div>
 
           {/* リアルタイム試算 */}
@@ -424,29 +416,33 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
         <>
           {/* 通常イベントの期間（変更系は非表示） */}
           {!isPointChange && (
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center justify-between">
               <label className="text-xs text-slate-500 w-16 shrink-0">期間</label>
-              <input
-                type="number"
-                value={form.years}
-                onChange={e => setForm(f => ({ ...f, years: +e.target.value }))}
-                min={1}
-                className={`w-16 ${inputCls}`}
-              />
-              <span className="text-xs text-slate-400">年</span>
+              <div className="flex gap-1 items-center">
+                <input
+                  type="number"
+                  value={form.years}
+                  onChange={e => setForm(f => ({ ...f, years: +e.target.value }))}
+                  min={1}
+                  className={`w-24 ${inputCls}`}
+                />
+                <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>年</span>
+              </div>
             </div>
           )}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center justify-between">
             <label className="text-xs text-slate-500 w-16 shrink-0 leading-tight">
               {isPointChange ? '変更後' : '金額'}
             </label>
-            <input
-              type="number"
-              value={form.amount}
-              onChange={e => setForm(f => ({ ...f, amount: +e.target.value }))}
-              className={`w-24 ${inputCls}`}
-            />
-            <span className="text-xs text-slate-400">万円{isPointChange ? '' : '/年'}</span>
+            <div className="flex gap-1 items-center">
+              <input
+                type="number"
+                value={form.amount}
+                onChange={e => setForm(f => ({ ...f, amount: +e.target.value }))}
+                className={`w-24 ${inputCls}`}
+              />
+              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400 whitespace-nowrap`}>万円{isPointChange ? '' : '/年'}</span>
+            </div>
           </div>
           {isPointChange && CHANGE_AMT_LABEL[form.subtype] && (
             <p className="text-[10px] text-slate-400 -mt-1 leading-relaxed">

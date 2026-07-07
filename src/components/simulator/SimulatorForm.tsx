@@ -6,6 +6,8 @@ import { SAMPLE_PROFILE, getEffectiveRW, getEffectiveRR, getEffectiveMcStd, getE
 import type { ProfileV3 } from '@/lib/profile';
 import type { LifeEvent } from '@/lib/types';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
+import { UNIT_WIDTH_CLASS, INPUT_WIDTH_CLASS } from '@/components/simulator/formLayout';
+import InfoTooltip from '@/components/simulator/InfoTooltip';
 import PortfolioPanel from '@/components/simulator/PortfolioPanel';
 import LifeEventTimeline from '@/components/simulator/LifeEventTimeline';
 
@@ -71,7 +73,7 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
   const isIntegerStep = Number.isInteger(step);
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-1">
         <label htmlFor={id} className="w-32 shrink-0 text-xs text-slate-600 flex items-center gap-1">
           {label}
           {tooltip && <InfoTooltip text={tooltip} />}
@@ -107,11 +109,11 @@ function Field({ label, id, value, onChange, min, max, step = 1, suffix, disable
             max={max}
             step={step}
             disabled={disabled}
-            className={`w-24 shrink-0 rounded border px-2 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`${INPUT_WIDTH_CLASS} shrink-0 rounded border px-2 py-1 text-right text-sm focus:border-slate-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
               warning ? 'border-yellow-400 bg-yellow-50' : 'border-slate-300'
             }`}
           />
-          {suffix && <span className="shrink-0 text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
+          {suffix && <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-500 whitespace-nowrap`}>{suffix}</span>}
         </div>
       </div>
       {warning && (
@@ -135,16 +137,16 @@ interface DisplayFieldProps {
 /** 読み取り専用の「ラベル+値+単位」行。Fieldと同じ幅配分ロジックを共有し、単位が欠けないようにする。 */
 function DisplayField({ label, value, suffix, tooltip, valueClassName, bold }: DisplayFieldProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-1">
       <label className={`w-32 shrink-0 text-xs flex items-center gap-1 ${bold ? 'font-medium text-slate-600' : 'text-slate-600'}`}>
         {label}
         {tooltip && <InfoTooltip text={tooltip} />}
       </label>
       <div className="flex items-center gap-1">
-        <span className={`w-24 shrink-0 truncate rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 ${bold ? 'font-medium' : ''} ${valueClassName ?? 'text-slate-700'}`}>
+        <span className={`${INPUT_WIDTH_CLASS} shrink-0 truncate rounded border px-2 py-1 text-right text-sm bg-slate-50 border-slate-200 ${bold ? 'font-medium' : ''} ${valueClassName ?? 'text-slate-700'}`}>
           {value}
         </span>
-        {suffix && <span className="shrink-0 text-xs text-slate-500 whitespace-nowrap">{suffix}</span>}
+        {suffix && <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-500 whitespace-nowrap`}>{suffix}</span>}
       </div>
     </div>
   );
@@ -200,71 +202,54 @@ function RateField({
 }: RateFieldProps) {
   const inputDisabled = rowDisabled || linked;
   return (
-    <div className="flex items-center gap-2">
-      <label htmlFor={id} className="w-32 shrink-0 text-xs text-slate-600 truncate">{label}</label>
-      {/* %入力は最大でも「16.0」程度の桁数のため、Fieldの数値欄より狭い固定幅(60px前後)で足りる。
-          disabledは opacity ではなく明示的な文字色(text-slate-500)にして、数値が視認できなくなるのを防ぐ。 */}
-      <div className="flex items-center gap-1">
-        <input
-          id={id}
-          type="number"
-          value={value}
-          onFocus={e => clearZeroOrSelect(e.currentTarget)}
-          onClick={e => clearZeroOrSelect(e.currentTarget)}
-          onChange={e => {
-            // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
-            const cleaned = stripLeadingZero(e.target.value);
-            if (cleaned !== e.target.value) e.target.value = cleaned;
-            const raw = e.target.valueAsNumber;
-            onChange(isNaN(raw) ? 0 : raw);
-          }}
-          onBlur={e => {
-            const raw = e.target.valueAsNumber;
-            const safe = isNaN(raw) ? (value || 0) : raw;
-            if (safe !== value) onChange(safe);
-            e.target.value = String(safe);
-          }}
-          min={min}
-          max={max}
-          step={0.1}
-          disabled={inputDisabled}
-          className="w-16 shrink-0 rounded border border-slate-300 px-1 py-1 text-right text-sm text-slate-900 focus:border-slate-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+    <div className="flex items-center justify-between gap-1">
+      {/* RateFieldのラベルはw-32(128px)ではなくw-20(80px)。トグル+入力+%クラスタ(196px固定)を
+          右端に置くと、w-32のままではモバイル375px/デスクトップ320pxサイドバーいずれも
+          カード境界を超えてはみ出すため（実測: モバイル6px、デスクトップ29px）、ラベル幅を
+          縮小して吸収する。RateFieldのラベルテキストは全て短い（NISA rW等）ため省略は発生しない。 */}
+      <label htmlFor={id} className="w-20 shrink-0 text-xs text-slate-600 truncate">{label}</label>
+      {/* disabledは opacity ではなく明示的な文字色(text-slate-500)にして、数値が視認できなくなるのを防ぐ。
+          トグルをラベル側（クラスタの先頭）に置き、入力欄+%の2要素だけを末尾のクラスタとする。
+          これにより全行共通の不変条件「右端は常にUNIT_WIDTH_CLASSの単位列で終わる」を満たし、
+          トグルがカードの右端パディングからはみ出さないようにする。入力欄幅はFieldと同じ
+          INPUT_WIDTH_CLASSを共有し、他行と入力欄幅も統一する。 */}
+      <div className="flex items-center gap-2">
+        <MiniToggle
+          checked={linked}
+          onChange={onToggleLinked}
+          disabled={rowDisabled}
+          title={toggleTitle}
         />
-        <span className="shrink-0 text-xs text-slate-500">%</span>
+        <div className="flex items-center gap-1">
+          <input
+            id={id}
+            type="number"
+            value={value}
+            onFocus={e => clearZeroOrSelect(e.currentTarget)}
+            onClick={e => clearZeroOrSelect(e.currentTarget)}
+            onChange={e => {
+              // 先頭の余分な0除去（type="number"はselectionが不安定なためonChange側でも正規化する）
+              const cleaned = stripLeadingZero(e.target.value);
+              if (cleaned !== e.target.value) e.target.value = cleaned;
+              const raw = e.target.valueAsNumber;
+              onChange(isNaN(raw) ? 0 : raw);
+            }}
+            onBlur={e => {
+              const raw = e.target.valueAsNumber;
+              const safe = isNaN(raw) ? (value || 0) : raw;
+              if (safe !== value) onChange(safe);
+              e.target.value = String(safe);
+            }}
+            min={min}
+            max={max}
+            step={0.1}
+            disabled={inputDisabled}
+            className={`${INPUT_WIDTH_CLASS} shrink-0 rounded border border-slate-300 px-1 py-1 text-right text-sm text-slate-900 focus:border-slate-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed`}
+          />
+          <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-500`}>%</span>
+        </div>
       </div>
-      <MiniToggle
-        checked={linked}
-        onChange={onToggleLinked}
-        disabled={rowDisabled}
-        title={toggleTitle}
-      />
     </div>
-  );
-}
-
-/** KpiGridのKpiCardと同じ「?」アイコン+クリックで吹き出し表示するツールチップ。 */
-function InfoTooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false);
-  return (
-    <span className="relative inline-flex">
-      <button
-        type="button"
-        onClick={e => { e.stopPropagation(); setShow(v => !v); }}
-        className="w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:bg-slate-300"
-        aria-label="説明を表示"
-      >
-        ?
-      </button>
-      {show && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={e => { e.stopPropagation(); setShow(false); }} />
-          <div className="absolute left-0 top-6 z-20 w-52 rounded-lg bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed normal-case font-normal tracking-normal">
-            <div className="absolute -top-1.5 left-1 w-3 h-3 bg-slate-800 rotate-45" />
-            {text}
-          </div>
-        </>
-      )}
-    </span>
   );
 }
 
@@ -280,16 +265,20 @@ function Section({ title, tooltip, children, defaultOpen = true }: SectionProps)
   return (
     <div className="border-b border-slate-100 last:border-0">
       <div className="flex items-center gap-1.5">
+        {/* タイトルボタンはコンテンツ幅のみ（flex-1にしない）。?アイコンはタイトル直後に
+            配置し、Field系ラベルの?と同じ並び方に揃える（ボタンの入れ子は無効なHTMLのため
+            ?は別要素として並べる）。矢印ボタン側にflex-1を持たせ、残りのクリック領域も
+            開閉トグルとして機能させる。 */}
         <button
           onClick={() => setOpen(o => !o)}
-          className="flex flex-1 items-center py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700 text-left"
+          className="flex items-center py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700 text-left"
         >
           {title}
         </button>
         {tooltip && <InfoTooltip text={tooltip} />}
         <button
           onClick={() => setOpen(o => !o)}
-          className="py-2 pl-1 text-xs text-slate-500 hover:text-slate-700 shrink-0"
+          className="flex flex-1 justify-end py-2 pl-1 text-xs text-slate-500 hover:text-slate-700 shrink-0"
         >
           {open ? '▲' : '▼'}
         </button>
@@ -454,42 +443,56 @@ export default function SimulatorForm() {
         <Divider />
         <SubHeading>受け取り設定</SubHeading>
         <Field label="勤続年数(退職金控除)" id="sevYrs" value={p.sevYrs} onChange={v => up({ sevYrs: v })} min={1} max={45} suffix="年" />
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center justify-between gap-1 mt-1">
           <label htmlFor="idecoReceiveType" className="w-32 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
-          <select
-            id="idecoReceiveType"
-            value={p.idecoReceiveType}
-            onChange={e => up({ idecoReceiveType: e.target.value as 'lump' | 'pension' | 'split' })}
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
-          >
-            <option value="lump">一時金</option>
-            <option value="pension">年金</option>
-            <option value="split">併用</option>
-          </select>
+          {/* 単位のない行のため、他行のクラスタ総幅(入力INPUT_WIDTH_CLASS+単位UNIT_WIDTH_CLASS)と揃うよう
+              同じ幅の空スペーサーを置く（左右端を他行と一致させるため）。 */}
+          <div className="flex items-center gap-1">
+            <select
+              id="idecoReceiveType"
+              value={p.idecoReceiveType}
+              onChange={e => up({ idecoReceiveType: e.target.value as 'lump' | 'pension' | 'split' })}
+              className={`${INPUT_WIDTH_CLASS} shrink-0 rounded border border-slate-300 px-2 py-1 text-sm`}
+            >
+              <option value="lump">一時金</option>
+              <option value="pension">年金</option>
+              <option value="split">併用</option>
+            </select>
+            <span className={`${UNIT_WIDTH_CLASS} shrink-0`} aria-hidden="true" />
+          </div>
         </div>
         {p.idecoReceiveType === 'split' && (
           <div className="mt-1 space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-1">
               <label htmlFor="idecoSplitRatio" className="w-32 shrink-0 text-xs text-slate-600">一時金割合</label>
-              <input
-                type="number"
-                id="idecoSplitRatio"
-                min={10} max={90} step={10}
-                value={p.idecoSplitRatio ?? 50}
-                onFocus={e => clearZeroOrSelect(e.currentTarget)}
-                onClick={e => clearZeroOrSelect(e.currentTarget)}
-                onChange={e => {
-                  const cleaned = stripLeadingZero(e.target.value);
-                  if (cleaned !== e.target.value) e.target.value = cleaned;
-                  up({ idecoSplitRatio: Math.min(90, Math.max(10, Number(cleaned))) });
-                }}
-                className="w-20 rounded border border-slate-300 px-2 py-1 text-sm text-right"
-              />
-              <span className="text-xs text-slate-500">%</span>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  id="idecoSplitRatio"
+                  min={10} max={90} step={10}
+                  value={p.idecoSplitRatio ?? 50}
+                  onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                  onClick={e => clearZeroOrSelect(e.currentTarget)}
+                  onChange={e => {
+                    const cleaned = stripLeadingZero(e.target.value);
+                    if (cleaned !== e.target.value) e.target.value = cleaned;
+                    up({ idecoSplitRatio: Math.min(90, Math.max(10, Number(cleaned))) });
+                  }}
+                  className={`${INPUT_WIDTH_CLASS} shrink-0 rounded border border-slate-300 px-2 py-1 text-sm text-right`}
+                />
+                <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-500`}>%</span>
+              </div>
             </div>
-            <p className="text-[11px] text-slate-400 pl-[9.5rem]">
-              一時金 {p.idecoSplitRatio ?? 50}% ／ 年金 {100 - (p.idecoSplitRatio ?? 50)}%
-            </p>
+            {/* ラベル分の見えないスペーサー(w-32)+入力欄クラスタと同じ総幅(INPUT_WIDTH_CLASS 96px +
+                gap-1 4px + UNIT_WIDTH_CLASS 56px = 156px)のブロックをtext-leftにすることで、
+                上の行がjustify-betweenで右端に押し出されるのと同じ位置にこのブロックの左端も
+                揃い、結果として入力ボックスの左端とテキストの起点が一致する。 */}
+            <div className="flex items-center justify-between gap-1">
+              <span className="w-32 shrink-0" aria-hidden="true" />
+              <p className="w-[156px] shrink-0 text-left text-[11px] text-slate-400">
+                年金受取分 {100 - (p.idecoSplitRatio ?? 50)}%
+              </p>
+            </div>
           </div>
         )}
         {(p.idecoReceiveType === 'pension' || p.idecoReceiveType === 'split') && (
@@ -519,17 +522,20 @@ export default function SimulatorForm() {
           <Field label="特定口座積立終了"  id="spTaxTo"     value={p.spTaxTo    ?? (p.spRetAge || 60)} onChange={v => up({ spTaxTo: v })}   min={20} max={100} suffix="歳" />
           <Field label="現金残高"          id="spCashBal"   value={p.spCashBal  ?? 0} onChange={v => up({ spCashBal: v })} min={0} step={0.1} suffix="万円" />
           <Field label="勤続年数(退職金控除)" id="spSevYrs" value={p.spSevYrs ?? 0} onChange={v => up({ spSevYrs: v })} min={1} max={45} suffix="年" />
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center justify-between gap-1 mt-1">
             <label htmlFor="spIdecoReceiveType" className="w-32 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
-            <select
-              id="spIdecoReceiveType"
-              value={p.spIdecoReceiveType ?? 'lump'}
-              onChange={e => up({ spIdecoReceiveType: e.target.value as 'lump' | 'pension' })}
-              className="rounded border border-slate-300 px-2 py-1 text-sm"
-            >
-              <option value="lump">一括受取</option>
-              <option value="pension">年金受取</option>
-            </select>
+            <div className="flex items-center gap-1">
+              <select
+                id="spIdecoReceiveType"
+                value={p.spIdecoReceiveType ?? 'lump'}
+                onChange={e => up({ spIdecoReceiveType: e.target.value as 'lump' | 'pension' })}
+                className={`${INPUT_WIDTH_CLASS} shrink-0 rounded border border-slate-300 px-2 py-1 text-sm`}
+              >
+                <option value="lump">一括受取</option>
+                <option value="pension">年金受取</option>
+              </select>
+              <span className={`${UNIT_WIDTH_CLASS} shrink-0`} aria-hidden="true" />
+            </div>
           </div>
           <Field label="iDeCo受取開始" id="spIdecoStartAge" value={p.spIdecoStartAge ?? 60} onChange={v => up({ spIdecoStartAge: v })} min={60} max={75} suffix="歳" />
         </SubSection>

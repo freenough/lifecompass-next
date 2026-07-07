@@ -5,7 +5,12 @@ import { useSimulatorStore } from '@/store/simulatorStore';
 import { loadProfiles, saveProfile, deleteProfile, encodeProfileUrl, decodeProfileUrl } from '@/lib/storage';
 import type { ProfileV3 } from '@/lib/profile';
 
-export default function ProfileDrawer() {
+interface ProfileDrawerProps {
+  /** トリガーボタンの見た目を呼び出し元で差し替えるためのクラス。省略時は従来の見た目。 */
+  triggerClassName?: string;
+}
+
+export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) {
   const { profile, loadProfile } = useSimulatorStore();
   const [open, setOpen]         = useState(false);
   const [profiles, setProfiles] = useState<ProfileV3[]>([]);
@@ -78,7 +83,7 @@ export default function ProfileDrawer() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+        className={triggerClassName ?? 'rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors'}
       >
         保存 / 読み込み
       </button>

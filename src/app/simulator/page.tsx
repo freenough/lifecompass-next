@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import type { ScenarioKey } from '@/store/simulatorStore';
 import { decodeProfileUrl } from '@/lib/storage';
 import { profileToSimParams, getUnconfiguredAccounts } from '@/lib/profile';
 import type { WithdrawalStrategy } from '@/lib/types';
+import { useInView } from '@/hooks/useInView';
 import KpiGrid             from '@/components/simulator/KpiGrid';
+import StickyKpiBar        from '@/components/simulator/StickyKpiBar';
 import AssetChart          from '@/components/simulator/AssetChart';
 import YearlyTable         from '@/components/simulator/YearlyTable';
 import CashFlowChart       from '@/components/simulator/CashFlowChart';
@@ -59,11 +61,28 @@ export default function SimulatorPage() {
   } = useSimulatorStore();
 
   const [formOpen, setFormOpen] = useState(true);
+  const [kpiRef, kpiInView] = useInView<HTMLDivElement>();
+  const [formRef, formInView] = useInView<HTMLDivElement>();
+  const tabAnchorRef = useRef<HTMLDivElement>(null);
+  const formTopAnchorRef = useRef<HTMLDivElement>(null);
+  const wasFormOpenRef = useRef(formOpen);
 
   // Default collapse on mobile
   useEffect(() => {
     if (window.innerWidth <= 640) setFormOpen(false);
   }, []);
+
+  // 「閉じる」で閉じた直後は固定モード/MCモードタブの直上へ、「開く」で開いた直後は入力
+  // パラメータセクションの先頭へ、それぞれ明示的にscrollIntoViewする。幅・breakpointの
+  // 条件分岐はここには一切持たせない（画面幅・KpiGridの列数によらず常に同じ動作にするため）。
+  useEffect(() => {
+    if (wasFormOpenRef.current && !formOpen) {
+      tabAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (!wasFormOpenRef.current && formOpen) {
+      formTopAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    wasFormOpenRef.current = formOpen;
+  }, [formOpen]);
 
   const strategy     = activeStrategies[0] ?? 'proportional';
   const baseSnaps    = snaps[strategy] ?? [];
@@ -110,21 +129,36 @@ export default function SimulatorPage() {
       <Suspense fallback={null}>
         <SearchParamsLoader />
       </Suspense>
-      <div className="flex justify-end mb-2">
+      {/* PC幅（lg:以上、横並びレイアウト）のみ、通常配置のまま表示 */}
+      <div className="hidden lg:flex justify-end mb-2">
         <ProfileDrawer />
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* 左: 入力パネル — DOM first so mobile toggle reveals at top, not below results */}
         <div className="lg:w-80 lg:shrink-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto">
-          {/* Toggle button visible only on mobile (< 640px) */}
-          <button
-            className="sm:hidden w-full mb-3 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50"
-            onClick={() => setFormOpen(o => !o)}
-          >
-            {formOpen ? '入力を閉じる ▲' : '入力を編集 ▼'}
-          </button>
-          <div className={`flex-col gap-4 ${!formOpen ? 'hidden sm:flex' : 'flex'}`}>
+          {/* 「入力を編集」クリック時の自動スクロール先（入力パラメータセクションの先頭）。
+              tabAnchorRefと同じ理由でscroll-mt-*が必要（ヘッダー+固定行の重なり分）。
+              このdiv自体は高さ・余白を一切持たない（scroll-mt-*はスクロール位置計算にのみ影響し、
+              レイアウト上の高さ・余白には影響しない）。 */}
+          <div ref={formTopAnchorRef} className="scroll-mt-32" />
+          {/* 「保存/読み込み」と「入力を編集/閉じる」を横並び1行で常時固定表示（lg:未満のみ）。
+              position: sticky だと祖先（この左パネルdiv）の高さを超えてスクロールした時点で
+              一緒に画面外へ消えてしまう（sticky は最も近い有意な祖先の範囲内でしか効かないため）
+              position: fixed で画面自体に固定する。直下にスペーサーを置き、
+              fixed化で抜けた分のレイアウト高さを補って本文が隠れないようにする
+              （スペーサーの高さは実測値に合わせて調整）。 */}
+          <div className="lg:hidden h-[33px]" aria-hidden="true" />
+          <div className="lg:hidden fixed top-14 left-4 right-4 z-30 flex items-center gap-2">
+            <button
+              className="flex-1 rounded-lg border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
+              onClick={() => setFormOpen(o => !o)}
+            >
+              {formOpen ? '入力を閉じる ▲' : '入力を編集 ▼'}
+            </button>
+            <ProfileDrawer triggerClassName="shrink-0 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50" />
+          </div>
+          <div ref={formRef} className={`flex-col gap-4 ${!formOpen ? 'hidden sm:flex' : 'flex'}`}>
             <SimulatorForm />
           </div>
         </div>
@@ -140,6 +174,15 @@ export default function SimulatorPage() {
               {unconfiguredAccounts.join('、')}の資産配分が未設定です（利回り0%として計算されています）。ポートフォリオに1行追加するか、利回り設定で直接利回りを入力してください。
             </p>
           )}
+
+          {/* 「入力を閉じる」クリック時の自動スクロール先（固定モード/MCモードタブの直上）。
+              scroll-margin-topを付けないと、scrollIntoViewはこのdivの上端をビューポートのy=0に
+              合わせようとするが、そこはグローバルヘッダー(sticky top-0, 高さ約56px)と、
+              このページ自身のfixed行（「保存/読み込み」+「入力を編集/閉じる」、top-14〜）が
+              重なって覆っている領域のため、実際にはタブより下まで進んだように見えてしまう。
+              scroll-margin-topでその分の余白を確保する（formTopAnchorRefと同じ値。実測値は
+              完了報告に記載）。 */}
+          <div ref={tabAnchorRef} className="scroll-mt-32" />
 
           {/* MC ↔ 固定 toggle */}
           <div className="flex items-center gap-2 flex-wrap">
@@ -227,21 +270,23 @@ export default function SimulatorPage() {
             )}
           </div>
 
-          <KpiGrid
-            analysis={baseAnalysis}
-            mcResult={mcResult}
-            mode={mode}
-            strategy={strategy}
-            retAge={p.retAge}
-            lifeEx={p.lifeEx}
-            idecoStartAge={p.idecoStartAge}
-            lastExpense={lastExpense}
-            fireAchievementRate={fireAchievementRate}
-            fireAchievementRateAtFA={fireAchievementRateAtFA}
-            idecoReceiveType={profile.params.idecoReceiveType ?? 'lump'}
-            hasIdeco={profile.params.bIdeco > 0 || profile.params.cIdeco > 0}
-            hasSeverance={baseAnalysis.severanceNetKPI > 0}
-          />
+          <div ref={kpiRef}>
+            <KpiGrid
+              analysis={baseAnalysis}
+              mcResult={mcResult}
+              mode={mode}
+              strategy={strategy}
+              retAge={p.retAge}
+              lifeEx={p.lifeEx}
+              idecoStartAge={p.idecoStartAge}
+              lastExpense={lastExpense}
+              fireAchievementRate={fireAchievementRate}
+              fireAchievementRateAtFA={fireAchievementRateAtFA}
+              idecoReceiveType={profile.params.idecoReceiveType ?? 'lump'}
+              hasIdeco={profile.params.bIdeco > 0 || profile.params.cIdeco > 0}
+              hasSeverance={baseAnalysis.severanceNetKPI > 0}
+            />
+          </div>
 
           <AssetChart
             profile={profile}
@@ -273,6 +318,13 @@ export default function SimulatorPage() {
           <AiPanel />
         </div>
       </div>
+
+      <StickyKpiBar
+        visible={formInView && !kpiInView}
+        fA={baseAnalysis.fA}
+        dA={baseAnalysis.dA}
+        bankruptcyRate={mcResult?.strategies[strategy as keyof typeof mcResult.strategies]?.bankruptcyRate}
+      />
     </div>
   );
 }
