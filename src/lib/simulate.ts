@@ -314,6 +314,7 @@ export function simulate(
     }
 
     let fillCash = 0, fillNisa = 0;
+    let idecoLockedBankrupt = false;
 
     if (!isRet) {
       // ── Main contributions ──
@@ -405,24 +406,42 @@ export function simulate(
         const ci = idecoLocked ? 0 : (ideco + spIdeco);
         const ct = tax + spTax, cc = cash + spCash;
         const ccb = taxCostBasis + spTaxCostBasis;
-        const res = withdraw(cn, ci, ct, cc, ccb, need, strategy);
-        if (cn > 0) { const r = res.nisa  / cn; nisa  = r * (cn - spNisa);  spNisa  = r * spNisa;  }
-        else        { nisa = 0; spNisa = 0; }
-        if (!idecoLocked) {
-          if (ci > 0) { const r = res.ideco / ci; ideco = r * (ci - spIdeco); spIdeco = r * spIdeco; }
-          else        { ideco = 0; spIdeco = 0; }
+
+        // iDeCoロック中（受給開始前）は、iDeCo以外の資産（NISA・特定口座・現金）
+        // だけで生活費不足を賄いきれない場合、iDeCo残高自体は正でも実質的な資金
+        // ショート（破綻）とみなす。iDeCoは原則中途引き出し不可のため、残高の
+        // 有無は判定に含めない。withdraw()を呼ぶ前のこの時点でチェックすることで、
+        // withdraw()本体・WithdrawResult型には一切手を入れずに済む。
+        if (idecoLocked && need > cn + ct + cc) {
+          idecoLockedBankrupt = true;
+        } else {
+          const res = withdraw(cn, ci, ct, cc, ccb, need, strategy);
+          if (cn > 0) { const r = res.nisa  / cn; nisa  = r * (cn - spNisa);  spNisa  = r * spNisa;  }
+          else        { nisa = 0; spNisa = 0; }
+          if (!idecoLocked) {
+            if (ci > 0) { const r = res.ideco / ci; ideco = r * (ci - spIdeco); spIdeco = r * spIdeco; }
+            else        { ideco = 0; spIdeco = 0; }
+          }
+          if (ct > 0) { const r = res.tax   / ct; tax   = r * (ct - spTax);   spTax   = r * spTax;   }
+          else        { tax = 0; spTax = 0; }
+          if (cc > 0) { const r = res.cash  / cc; cash  = r * (cc - spCash);  spCash  = r * spCash;  }
+          else        { cash = 0; spCash = 0; }
+          if (ccb > 0) {
+            const r = res.costBasis / ccb;
+            taxCostBasis   = r * (ccb - spTaxCostBasis);
+            spTaxCostBasis = r * spTaxCostBasis;
+          } else { taxCostBasis = 0; spTaxCostBasis = 0; }
+          fillCash = res.fillCash; fillNisa = res.fillNisa;
         }
-        if (ct > 0) { const r = res.tax   / ct; tax   = r * (ct - spTax);   spTax   = r * spTax;   }
-        else        { tax = 0; spTax = 0; }
-        if (cc > 0) { const r = res.cash  / cc; cash  = r * (cc - spCash);  spCash  = r * spCash;  }
-        else        { cash = 0; spCash = 0; }
-        if (ccb > 0) {
-          const r = res.costBasis / ccb;
-          taxCostBasis   = r * (ccb - spTaxCostBasis);
-          spTaxCostBasis = r * spTaxCostBasis;
-        } else { taxCostBasis = 0; spTaxCostBasis = 0; }
-        fillCash = res.fillCash; fillNisa = res.fillNisa;
       }
+    }
+
+    // iDeCoロック中の資金ショート（破綻）確定時は、iDeCoを含む全口座残高を0円に
+    // する。新しい表示ルールは作らず、既存の「全口座0円→break→末尾ゼロ埋め」
+    // （475行目・末尾のtargetLenループ）にそのまま合流させる。
+    if (idecoLockedBankrupt) {
+      nisa = 0; ideco = 0; tax = 0; cash = 0;
+      spNisa = 0; spIdeco = 0; spTax = 0; spCash = 0;
     }
 
     nisa   = Math.max(0, nisa);
