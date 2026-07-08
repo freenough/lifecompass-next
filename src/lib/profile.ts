@@ -298,7 +298,10 @@ export function getUnconfiguredAccounts(profile: ProfileV3): string[] {
   check('iDeCo（積立期）',  isAcctActive(p.bIdeco, p.cIdeco, p.cIdecoTo || 60,        p.curAge), pf.working.ideco, 'rWIdeco');
   check('特定口座（積立期）', isAcctActive(p.bTax,   p.cTax,   p.cTaxTo   || p.retAge, p.curAge), pf.working.tax,   'rWTax');
 
-  if (!pf.retirement.sameAsWorking) {
+  // rateSameAsWorkingがONの場合、取崩期の実効利回りは積立期の値をそのままコピーする
+  // （getEffectiveRR参照）。この場合、取崩期のPF行数・pfManualFlagsは実際の計算に
+  // 一切使われないため、未設定でも警告を出すべきではない。
+  if (!p.rateSameAsWorking && !pf.retirement.sameAsWorking) {
     check('NISA（取崩期）',   isAcctActive(p.bNisa,  p.cNisa,  p.cNisaTo  || p.retAge, p.curAge), pf.retirement.nisa,  'rRNisa');
     check('iDeCo（取崩期）',  isAcctActive(p.bIdeco, p.cIdeco, p.cIdecoTo || 60,        p.curAge), pf.retirement.ideco, 'rRIdeco');
     check('特定口座（取崩期）', isAcctActive(p.bTax,   p.cTax,   p.cTaxTo   || p.retAge, p.curAge), pf.retirement.tax,   'rRTax');

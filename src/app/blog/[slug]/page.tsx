@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/blog';
+import { SITE_URL } from '@/lib/siteConfig';
 import type { Metadata } from 'next';
 
 export async function generateStaticParams() {
@@ -21,17 +22,17 @@ export async function generateMetadata({
     openGraph: {
       title: post.title,
       description: post.description,
-      url: `https://freenough-lifecompass.vercel.app/blog/${post.slug}`,
-      images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+      url: `${SITE_URL}/blog/${post.slug}`,
+      images: [{ url: '/images/ogp.png', width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.description,
-      images: ['/og-image.png'],
+      images: ['/images/ogp.png'],
     },
     alternates: {
-      canonical: `https://freenough-lifecompass.vercel.app/blog/${post.slug}`,
+      canonical: `${SITE_URL}/blog/${post.slug}`,
     },
   };
 }

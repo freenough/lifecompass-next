@@ -1,9 +1,9 @@
 import { getAllPosts, buildRssFeed } from '@/lib/blog';
+import { SITE_URL } from '@/lib/siteConfig';
 
 export async function GET() {
   const posts = getAllPosts();
-  const siteUrl = 'https://freenough-lifecompass.vercel.app';
-  const feed = buildRssFeed(posts, siteUrl);
+  const feed = buildRssFeed(posts, SITE_URL);
   return new Response(feed, {
     headers: { 'Content-Type': 'application/xml; charset=utf-8' },
   });
