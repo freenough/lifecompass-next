@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const TOOLTIP_WIDTH = 208; // w-52相当
@@ -50,6 +50,19 @@ export default function InfoTooltip({ text }: { text: string }) {
       setPos(p => (p ? { ...p, top: b.top - t.height - GAP, openUp: true } : p));
     }
   }, [show, pos]);
+
+  // 位置はクリック時点の座標で一度だけ計算しており、開いている間スクロールに追従させる
+  // 仕組みは持たない。ページ内のどのスクロールコンテナ（window自身・lg:overflow-y-autoの
+  // 各パネル等）でスクロールが発生しても検知できるよう、windowにcapture:trueで
+  // scrollイベントを登録する（scrollイベントはbubbleしないため、descendant要素での
+  // スクロールを拾うにはキャプチャフェーズで listen する必要がある）。検知したら
+  // 吹き出しを閉じる（追従・再計算は行わない）。
+  useEffect(() => {
+    if (!show) return;
+    const closeOnScroll = () => setShow(false);
+    window.addEventListener('scroll', closeOnScroll, true);
+    return () => window.removeEventListener('scroll', closeOnScroll, true);
+  }, [show]);
 
   return (
     <span className="relative inline-flex">

@@ -10,6 +10,7 @@ import { UNIT_WIDTH_CLASS, INPUT_WIDTH_CLASS } from '@/components/simulator/form
 import InfoTooltip from '@/components/simulator/InfoTooltip';
 import PortfolioPanel from '@/components/simulator/PortfolioPanel';
 import LifeEventTimeline from '@/components/simulator/LifeEventTimeline';
+import SampleDataBanner from '@/components/simulator/SampleDataBanner';
 
 type RateFieldKey = 'rWNisa' | 'rWIdeco' | 'rWTax' | 'rRNisa' | 'rRIdeco' | 'rRTax' | 'mcStd' | 'mcStdR';
 
@@ -349,6 +350,7 @@ export default function SimulatorForm() {
 
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+      <SampleDataBanner />
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-sm font-bold text-slate-800">入力パラメータ</h2>
         <button
