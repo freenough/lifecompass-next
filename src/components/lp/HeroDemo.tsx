@@ -181,7 +181,7 @@ export default function HeroDemo() {
               transition: `opacity 0.4s ease ${i * 0.15}s, transform 0.4s ease ${i * 0.15}s`,
             }}
           >
-            <KpiCard label={label} value={kpiValues[i]} variant={kpiVariants[i]} />
+            <KpiCard label={label} value={kpiValues[i]} variant={kpiVariants[i]} size="sm" />
           </div>
         ))}
       </div>
