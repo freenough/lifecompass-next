@@ -29,7 +29,7 @@ export default function KpiCard({ label, value, sub, variant = 'neutral', footer
     neutral: 'text-slate-700',
   };
   return (
-    <div className={`rounded-xl border p-3 sm:p-4 relative ${bg[variant]} ${wrapperClassName ?? ''}`}>
+    <div className={`h-full rounded-xl border p-3 sm:p-4 relative ${bg[variant]} ${wrapperClassName ?? ''}`}>
       {tooltip && (
         <div className="absolute top-2 right-2">
           <button

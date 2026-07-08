@@ -101,7 +101,9 @@ function XAxisTick({ x, y, payload }: XAxisTickProps) {
   );
 }
 
-const KPI_LABELS = ['FIRE達成年齢', '資産寿命', 'MC破綻確率'];
+// 狭幅（320〜400px程度、3列表示）でtruncateにより文字が欠けないよう、
+// シミュレーター本体のKpiGridより短い表記にする（LP独自のラベルのため他画面には影響しない）。
+const KPI_LABELS = ['FIRE達成', '資産寿命', 'MC破綻率'];
 
 export default function HeroDemo() {
   const [fireAge, setFireAge] = useState<number | null>(null);

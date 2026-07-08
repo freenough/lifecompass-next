@@ -80,9 +80,15 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
 
-      {/* ① Hero — 2カラム */}
+      {/* ① Hero — 2カラム。
+          左右並びに切り替わるbreakpointを sm:(640px) から lg:(1024px) に変更した。
+          640〜1023pxでは、右カラムのライブデモが固定460px+shrink-0のため、テキスト列の
+          最小幅と足し合わせるとページ全体が横に827px分はみ出し、グラフが右で見切れる問題
+          （実測: scrollWidth=807px固定 vs viewport 640〜806pxで確認）があった。この幅では
+          モバイル同様の縦積み・w-full表示にすることで解消する。1024px以上は十分な横幅が
+          あるため従来通り固定460pxの2カラム表示のまま。 */}
       <section className="mx-auto max-w-5xl w-full px-6 py-16">
-        <div className="flex flex-col sm:flex-row sm:items-start gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-8">
 
           {/* 左カラム：テキスト */}
           <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
@@ -90,8 +96,8 @@ export default function HomePage() {
               あなたのFIREは、<br />
               何歳？
             </h1>
-            {/* ライブデモ（モバイルのみ・見出しの直下） */}
-            <div className="sm:hidden mt-6 w-full">
+            {/* ライブデモ（1024px未満・見出しの直下） */}
+            <div className="lg:hidden mt-6 w-full">
               <HeroDemo />
             </div>
             <p className="mt-10 text-base text-slate-500 leading-relaxed text-balance sm:text-lg">
@@ -110,8 +116,12 @@ export default function HomePage() {
             <p className="mt-4 text-sm text-slate-400">無料・登録不要・データは端末内に保存</p>
           </div>
 
-          {/* 右カラム：ライブデモ（デスクトップのみ） */}
-          <div className="hidden sm:flex sm:w-[460px] sm:shrink-0 sm:self-stretch">
+          {/* 右カラム：ライブデモ（1024px以上のみ）。
+              self-stretchを外したことで、親の`lg:items-start`によりカードは自身のコンテンツに
+              応じた高さ（可変・auto）になる。以前はself-stretchでテキスト列と同じ高さまで
+              引き伸ばされ、カード内部に余分な空白ができていた（実測: 900px幅でカード下部に
+              88px分の空白を確認）。 */}
+          <div className="hidden lg:flex lg:w-[460px] lg:shrink-0">
             <HeroDemo />
           </div>
 
@@ -266,7 +276,7 @@ export default function HomePage() {
                 <span className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
                   {s.step}
                 </span>
-                <span className="mt-1 text-base font-semibold text-slate-900 whitespace-nowrap">{s.label}</span>
+                <span className="mt-1 text-base font-semibold text-slate-900">{s.label}</span>
               </li>
             ))}
           </ol>

@@ -73,9 +73,12 @@ export default function SimulatorPage() {
   }, []);
 
   // 「閉じる」で閉じた直後は固定モード/MCモードタブの直上へ、「開く」で開いた直後は入力
-  // パラメータセクションの先頭へ、それぞれ明示的にscrollIntoViewする。幅・breakpointの
-  // 条件分岐はここには一切持たせない（画面幅・KpiGridの列数によらず常に同じ動作にするため）。
+  // パラメータセクションの先頭へ、それぞれ明示的にscrollIntoViewする。
+  // フォームの開閉が実際に機能するのはlg:未満（1024px未満、formRefのlg:flex参照）のみ
+  // （lg:以上は左右並びレイアウトのため常時表示）。この境界を1024pxに揃えることで、
+  // 「トグンは見えるのに押しても表示もスクロールも何も起きない」帯域を作らない。
   useEffect(() => {
+    if (window.innerWidth >= 1024) { wasFormOpenRef.current = formOpen; return; }
     if (wasFormOpenRef.current && !formOpen) {
       tabAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (!wasFormOpenRef.current && formOpen) {
@@ -134,7 +137,10 @@ export default function SimulatorPage() {
         <ProfileDrawer />
       </div>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+      {/* gap-2 lg:gap-6: 1024px未満は縦積みレイアウトの縦方向の隙間として使われるためgap-2(8px)
+          に詰める。1024px以上は左右パネル（入力パラメータ⇄KPI側）の横方向の間隔としても
+          共有されている値のため、そちらはgap-6(24px)のまま変更しない。 */}
+      <div className="flex flex-col gap-2 lg:flex-row lg:gap-6 lg:items-start">
         {/* 左: 入力パネル — DOM first so mobile toggle reveals at top, not below results */}
         <div className="lg:w-80 lg:shrink-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto">
           {/* 「入力を編集」クリック時の自動スクロール先（入力パラメータセクションの先頭）。
@@ -158,7 +164,13 @@ export default function SimulatorPage() {
             </button>
             <ProfileDrawer triggerClassName="shrink-0 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50" />
           </div>
-          <div ref={formRef} className={`flex-col gap-4 ${!formOpen ? 'hidden sm:flex' : 'flex'}`}>
+          {/* トグンボタンの表示範囲（lg:hidden＝1024px未満）と、フォームの開閉が実際に
+              機能する範囲を一致させる。以前は`hidden sm:flex`（640px以上で強制表示）
+              だったため、640〜1024pxでボタンは見えるのに押しても何も起きない不整合が
+              あった。lg:flexで1024px以上のみ常時表示にし、それ未満はformOpenに厳密に従う
+              （新しいブレークポイントの導入ではなく、既存のlg:flex-row切り替えと同じ
+              閾値に統一している）。 */}
+          <div ref={formRef} className={`flex-col gap-4 lg:flex ${formOpen ? 'flex' : 'hidden'}`}>
             <SimulatorForm />
           </div>
         </div>
