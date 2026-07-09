@@ -79,6 +79,8 @@ export default function SensitivityPanel() {
   const baseP = profileToSimParams(profile);
   const baseEvs = profile.events;
 
+  const inflClamped = baseP.inflR + deltas.dI < 0;
+
   const newCurAge = Math.max(20, Math.min(baseP.lifeEx - 1, baseP.curAge + deltas.dAge));
   const altP = {
     ...baseP,
@@ -211,6 +213,11 @@ export default function SensitivityPanel() {
             <SliderRow id="dW"   label="利回りΔ（積立期・全口座）" val={deltas.dW}   min={-5}  max={5}  step={0.5} unit="%" />
             <SliderRow id="dR"   label="利回りΔ（取崩期・全口座）" val={deltas.dR}   min={-5}  max={5}  step={0.5} unit="%" />
             <SliderRow id="dI"   label="インフレ率Δ"               val={deltas.dI}   min={-2}  max={3}  step={0.5} unit="%" />
+            {inflClamped && (
+              <p className="text-[10px] text-slate-400 -mt-2 leading-relaxed">
+                適用インフレ率：0%（0%未満にはなりません）
+              </p>
+            )}
             <SliderRow id="dA"   label="退職年齢Δ"                 val={deltas.dA}   min={-10} max={5}  step={1}   unit="年" />
             <SliderRow id="dAge" label="開始を遅らせた場合"         val={deltas.dAge} min={0}   max={10} step={1}   unit="年" />
           </div>
