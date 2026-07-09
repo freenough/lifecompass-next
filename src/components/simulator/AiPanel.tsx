@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import { simulate, analyze } from '@/lib';
 import { profileToSimParams } from '@/lib/profile';
+import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
 import type { MCResult, WithdrawalStrategy } from '@/lib/types';
 
 const GEMINI_MODEL = 'gemini-2.5-flash-lite';
@@ -293,12 +294,16 @@ ${
 
 export default function AiPanel() {
   const store = useSimulatorStore();
-  const { mcResult, mcError, isMcRunning, runMonteCarlo, analysis, activeStrategies } = store;
-  const strategy = (activeStrategies[0] ?? 'proportional') as WithdrawalStrategy;
+  const { mcResult, mcError, isMcRunning, runMonteCarlo, analysis, displayStrategy } = store;
+  const strategy = (displayStrategy ?? 'proportional') as WithdrawalStrategy;
   const a = analysis[strategy];
 
   const [apiKey, setApiKey] = useState('');
   const [result, setResult] = useState<string | null>(null);
+  // 生成済みresultがどの表示戦略を基準にしたものかを記録する。表示戦略が
+  // その後切り替わった場合、resultは古い基準のまま残るため、strategyとの
+  // 不一致を検知して「古い可能性がある」旨の案内を出す。
+  const [resultStrategy, setResultStrategy] = useState<WithdrawalStrategy | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -372,6 +377,7 @@ export default function AiPanel() {
       const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) throw new Error('生成に失敗しました。再試行してください');
       setResult(text);
+      setResultStrategy(strategy);
     } catch (e) {
       const msg =
         e instanceof Error
@@ -454,6 +460,12 @@ export default function AiPanel() {
           )}
 
           {(error || mcError) && <p className="text-xs text-red-600">{error || mcError}</p>}
+
+          {result && resultStrategy != null && resultStrategy !== strategy && (
+            <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-1.5">
+              表示戦略が「{STRATEGY_LABELS[resultStrategy] ?? resultStrategy}」から「{STRATEGY_LABELS[strategy] ?? strategy}」に変更されました。この分析結果は古い可能性があります。最新の内容にするには再実行してください。
+            </p>
+          )}
 
           {result && (
             <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">

@@ -94,8 +94,8 @@ function buildImpactRows(
 }
 
 export default function ImpactTable() {
-  const { profile, snaps, analysis, mcResult, mode, activeStrategies, setMode, runMonteCarlo, isMcRunning } = useSimulatorStore();
-  const strategy = (activeStrategies[0] ?? 'proportional') as 'proportional' | 'cash_first' | 'taxable_first';
+  const { profile, snaps, analysis, mcResult, mode, displayStrategy, setMode, runMonteCarlo, isMcRunning } = useSimulatorStore();
+  const strategy = (displayStrategy ?? 'proportional') as 'proportional' | 'cash_first' | 'taxable_first';
   const baseP = profileToSimParams(profile);
   const baseSnaps = snaps[strategy] ?? [];
   const baseA = analysis[strategy];

@@ -63,8 +63,8 @@ function LegendSwatch({ stroke, dasharray, width = 2 }: { stroke: string; dashar
 }
 
 export default function SensitivityPanel() {
-  const { profile, activeStrategies } = useSimulatorStore();
-  const strategy = activeStrategies[0] ?? 'proportional';
+  const { profile, displayStrategy } = useSimulatorStore();
+  const strategy = displayStrategy ?? 'proportional';
   const [deltas, setDeltas] = useState<Deltas>(ZERO);
   const [open, setOpen] = useState(false);
   const debRef = useRef<ReturnType<typeof setTimeout> | null>(null);

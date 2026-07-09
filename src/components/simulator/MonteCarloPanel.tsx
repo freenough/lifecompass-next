@@ -1,24 +1,40 @@
 'use client';
 
 import { useSimulatorStore } from '@/store/simulatorStore';
+import { STRATEGY_LABELS, STRATEGY_COLORS_SUB, STRATEGY_PRIMARY_COLOR } from '@/components/simulator/AssetChart';
+
+function fmt(v: number) {
+  return v >= 10000 ? `${(v / 10000).toFixed(1)}億円` : `${Math.round(v).toLocaleString()}万円`;
+}
+
+// 「枯渇した{n}試行」のnは、bankruptcyRate(%)とtrials(総試行数)から逆算する
+// （montecarlo.ts側にbankruptCountそのものを返す口はないため）。
+function depletionStr(mean: number | null, min: number | null, rate: number, trials: number): string {
+  if (rate <= 0) return '全試行で資産維持';
+  const n = Math.round((rate / 100) * trials);
+  const meanStr = mean != null ? `${Math.round(mean)}歳` : '—';
+  const minStr = min != null ? `${Math.round(min)}歳` : '—';
+  return `枯渇した${n}試行：平均${meanStr}・最短${minStr}`;
+}
 
 export default function MonteCarloPanel() {
-  const { mcResult, mode, activeStrategies } = useSimulatorStore();
-  const strategy = activeStrategies[0] ?? 'proportional';
-  const stResult = mcResult?.strategies[strategy as keyof typeof mcResult.strategies];
+  const { mcResult, mode, activeStrategies, displayStrategy } = useSimulatorStore();
+  const isMulti = activeStrategies.length > 1;
+  // 単一戦略選択時はdisplayStrategy===activeStrategies[0]のため、従来と同じ値になる
+  const stResult = mcResult?.strategies[displayStrategy as keyof typeof mcResult.strategies];
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <h3 className="text-sm font-semibold text-slate-700 mb-3">モンテカルロ分析</h3>
 
-      {!stResult && mode !== 'mc' && (
+      {!mcResult && mode !== 'mc' && (
         <p className="text-xs text-slate-400">MCモードで「1,000試行を実行」を押してください</p>
       )}
-      {!stResult && mode === 'mc' && (
+      {!mcResult && mode === 'mc' && (
         <p className="text-xs text-slate-400">MCモードが選択されています。上の実行ボタンを押してください</p>
       )}
 
-      {stResult && (
+      {mcResult && !isMulti && stResult && (
         <div className="mt-4 flex flex-col gap-2">
           <div className="flex justify-between text-xs border-b border-slate-100 pb-2">
             <span className="text-slate-500">破綻確率（90歳時点）</span>
@@ -43,12 +59,43 @@ export default function MonteCarloPanel() {
           )}
         </div>
       )}
+
+      {/* 複数戦略選択時：1戦略=1ブロックの積み上げ表示（テーブルにしない。狭幅で列がガタつくのを避けるため） */}
+      {mcResult && isMulti && (
+        <div className="mt-4 flex flex-col gap-3">
+          {activeStrategies.map((st, idx) => {
+            const strat = mcResult.strategies[st as keyof typeof mcResult.strategies];
+            if (!strat) return null;
+            const color = idx === 0 ? STRATEGY_PRIMARY_COLOR : (STRATEGY_COLORS_SUB[st] ?? '#94a3b8');
+            const rate = strat.bankruptcyRate;
+            const p10 = strat.percentiles.p10[strat.percentiles.p10.length - 1];
+            const p50 = strat.percentiles.p50[strat.percentiles.p50.length - 1];
+            const p90 = strat.percentiles.p90[strat.percentiles.p90.length - 1];
+            return (
+              <div key={st} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
+                  <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                  <span className="text-[13px] text-slate-600">{STRATEGY_LABELS[st] ?? st}</span>
+                  <span
+                    className={`text-base font-bold ml-auto ${rate < 10 ? 'text-green-700' : rate < 25 ? 'text-yellow-700' : 'text-red-700'}`}
+                  >
+                    {rate.toFixed(1)}%
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  {depletionStr(strat.depletionMean, strat.depletionMin, rate, mcResult.trials)}・
+                  p10 {fmt(p10)}・中央値 {fmt(p50)}・p90 {fmt(p90)}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 function Row({ label, value }: { label: string; value: number }) {
-  const fmt = (v: number) => v >= 10000 ? `${(v / 10000).toFixed(1)}億円` : `${Math.round(v).toLocaleString()}万円`;
   return (
     <div className="flex justify-between text-xs">
       <span className="text-slate-500">{label}</span>

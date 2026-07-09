@@ -10,7 +10,7 @@ import type { WithdrawalStrategy } from '@/lib/types';
 import { useInView } from '@/hooks/useInView';
 import KpiGrid             from '@/components/simulator/KpiGrid';
 import StickyKpiBar        from '@/components/simulator/StickyKpiBar';
-import AssetChart          from '@/components/simulator/AssetChart';
+import AssetChart, { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
 import YearlyTable         from '@/components/simulator/YearlyTable';
 import CashFlowChart       from '@/components/simulator/CashFlowChart';
 import SimulatorForm       from '@/components/simulator/SimulatorForm';
@@ -55,8 +55,8 @@ export default function SimulatorPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const {
-    profile, snaps, analysis, mcResult, mcError, mode, cmpMode, activeStrategies, activeScenarios,
-    isMcRunning, setMode, setCmpMode, setActiveStrategies, setActiveScenarios,
+    profile, snaps, analysis, mcResult, mcError, mode, cmpMode, activeStrategies, displayStrategy, activeScenarios,
+    isMcRunning, setMode, setCmpMode, setActiveStrategies, setDisplayStrategy, setActiveScenarios,
     runMonteCarlo,
   } = useSimulatorStore();
 
@@ -87,7 +87,7 @@ export default function SimulatorPage() {
     wasFormOpenRef.current = formOpen;
   }, [formOpen]);
 
-  const strategy     = activeStrategies[0] ?? 'proportional';
+  const strategy     = displayStrategy;
   const baseSnaps    = snaps[strategy] ?? [];
   const baseAnalysis = analysis[strategy];
   const p            = profileToSimParams(profile);
@@ -248,18 +248,36 @@ export default function SimulatorPage() {
             </div>
 
             {cmpMode === 'strategy' && (
-              <div className="flex gap-3 flex-wrap">
-                {STRATEGY_OPTIONS.map(opt => (
-                  <label key={opt.key} className="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={activeStrategies.includes(opt.key)}
-                      onChange={() => toggleStrategy(opt.key)}
-                      className="rounded"
-                    />
-                    {opt.label}
-                  </label>
-                ))}
+              <div className="flex flex-col gap-1.5">
+                {STRATEGY_OPTIONS.map(opt => {
+                  const checked = activeStrategies.includes(opt.key);
+                  // チェックが1件のみの場合は選択の余地がないため表示戦略ラジオは出さない
+                  const showRadio = checked && activeStrategies.length > 1;
+                  return (
+                    <div key={opt.key} className="flex items-center justify-between gap-3">
+                      <label className="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleStrategy(opt.key)}
+                          className="rounded"
+                        />
+                        {opt.label}
+                      </label>
+                      {showRadio && (
+                        <label className="flex items-center gap-1 text-xs text-slate-500 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="displayStrategy"
+                            checked={displayStrategy === opt.key}
+                            onChange={() => setDisplayStrategy(opt.key)}
+                          />
+                          表示
+                        </label>
+                      )}
+                    </div>
+                  );
+                })}
                 <span className="text-xs text-slate-400">複数選択でグラフに重ねて表示</span>
               </div>
             )}
@@ -282,12 +300,22 @@ export default function SimulatorPage() {
             )}
           </div>
 
+          {cmpMode === 'strategy' && activeStrategies.length > 1 && (
+            <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+              <span aria-hidden="true">ℹ️</span>
+              <span>
+                戦略比較モード　単一値のKPI・グラフの帯は「{STRATEGY_LABELS[displayStrategy] ?? displayStrategy}」基準。破綻確率の詳細はモンテカルロ分析欄で全戦略を確認できます。
+              </span>
+            </div>
+          )}
+
           <div ref={kpiRef}>
             <KpiGrid
               analysis={baseAnalysis}
               mcResult={mcResult}
               mode={mode}
               strategy={strategy}
+              activeStrategies={activeStrategies}
               retAge={p.retAge}
               lifeEx={p.lifeEx}
               idecoStartAge={p.idecoStartAge}
@@ -307,6 +335,7 @@ export default function SimulatorPage() {
             mode={mode}
             cmpMode={cmpMode}
             activeStrategies={activeStrategies}
+            displayStrategy={displayStrategy}
             activeScenarios={activeScenarios}
           />
 

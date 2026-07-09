@@ -18,20 +18,24 @@ interface AssetChartProps {
   mode: 'fixed' | 'mc';
   cmpMode: 'strategy' | 'scenario';
   activeStrategies: string[];
+  // 単一値KPIカード・MCモードのp10〜p90帯が代表として参照する1戦略。
+  // 中央値の折れ線はactiveStrategies全戦略ぶん描画するが、帯はこの1つのみ。
+  displayStrategy: string;
   activeScenarios: ScenarioKey[];
 }
 
-const STRATEGY_LABELS: Record<string, string> = {
+export const STRATEGY_LABELS: Record<string, string> = {
   proportional:  '比例取崩',
   cash_first:    '現金優先',
   taxable_first: '課税口座優先',
 };
 
-// 2番目以降の戦略ライン色（比較時）
-const STRATEGY_COLORS_SUB: Record<string, string> = {
+// 2番目以降の戦略ライン色（比較時）。先頭（idx===0）は常にプライマリ色(#3b82f6)。
+export const STRATEGY_COLORS_SUB: Record<string, string> = {
   cash_first:    '#7dd3fc',
   taxable_first: '#94a3b8',
 };
+export const STRATEGY_PRIMARY_COLOR = '#3b82f6';
 
 const SCENARIO_CONFIG = [
   { key: 'optimistic' as ScenarioKey, label: '楽観(+2%)', color: '#3b82f6', delta: +2 },
@@ -136,7 +140,7 @@ export function EventLines({ retAge, penAge, spRetAgeMain, spPenAgeMain }: {
 }
 
 export default function AssetChart({
-  profile, snaps, mcResult, mode, cmpMode, activeStrategies, activeScenarios,
+  profile, snaps, mcResult, mode, cmpMode, activeStrategies, displayStrategy, activeScenarios,
 }: AssetChartProps) {
   const [tab, setTab] = useState<TabKey>('total');
   const [showRealValue, setShowRealValue] = useState(false);
@@ -150,22 +154,28 @@ export default function AssetChart({
   const spPenAgeMain = sp ? spouseAgeToMain(curAge, spEffCurAge, sp.penAge) : null;
   const eventProps = { retAge, penAge, spRetAgeMain, spPenAgeMain };
 
-  const baseStrategy = activeStrategies[0] ?? 'proportional';
+  const baseStrategy = displayStrategy || activeStrategies[0] || 'proportional';
   const baseSnaps = snaps[baseStrategy] ?? [];
 
   // ── MC モード ──────────────────────────────────────────
   if (mode === 'mc' && mcResult) {
-    const mcStrat = mcResult.strategies[baseStrategy as keyof typeof mcResult.strategies];
-    if (mcStrat) {
+    const bandStrat = mcResult.strategies[baseStrategy as keyof typeof mcResult.strategies];
+    if (bandStrat) {
+      const isMulti = activeStrategies.length > 1;
       const data = baseSnaps
         .filter(s => s.age >= curAge)
         .map((s, i) => {
           const row: Record<string, number> = {
             age: s.age,
-            中央値: mcStrat.percentiles.p50[i] ?? 0,
-            p10:   mcStrat.percentiles.p10[i] ?? 0,
-            p90:   mcStrat.percentiles.p90[i] ?? 0,
+            p10: bandStrat.percentiles.p10[i] ?? 0,
+            p90: bandStrat.percentiles.p90[i] ?? 0,
           };
+          for (const st of activeStrategies) {
+            const strat = mcResult.strategies[st as keyof typeof mcResult.strategies];
+            // 複数戦略時の凡例ラベルは戦略名のみ（「中央値」は上部の注記で説明済みのため重複させない）
+            const label = isMulti ? (STRATEGY_LABELS[st] ?? st) : '中央値';
+            row[label] = strat?.percentiles.p50[i] ?? 0;
+          }
           addFireLines(row, s);
           return row;
         });
@@ -178,14 +188,28 @@ export default function AssetChart({
               <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
               <YAxis width={52} tick={{ fontSize: 11 }} tickFormatter={formatYen} />
               <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-              <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
+              <Legend wrapperStyle={{ fontSize: '12px', display: 'flex', flexWrap: 'wrap', gap: '4px 12px', paddingTop: '4px' }} />
               <EventLines {...eventProps} />
               <FireLines />
               <Area dataKey="p90" fill="#bfdbfe" stroke="#93c5fd" name="p90" fillOpacity={0.4} />
               <Area dataKey="p10" fill="#ffffff" stroke="#93c5fd" name="p10" fillOpacity={1} />
-              <Line dataKey="中央値" stroke="#3b82f6" strokeWidth={2} dot={false} />
+              {activeStrategies.map((st, idx) => {
+                const label = isMulti ? (STRATEGY_LABELS[st] ?? st) : '中央値';
+                return (
+                  <Line key={st} dataKey={label}
+                    stroke={idx === 0 ? STRATEGY_PRIMARY_COLOR : (STRATEGY_COLORS_SUB[st] ?? '#94a3b8')}
+                    strokeWidth={idx === 0 ? 2 : 1.5}
+                    strokeDasharray={idx === 0 ? undefined : '3 3'}
+                    dot={false} />
+                );
+              })}
             </ComposedChart>
           </ResponsiveContainer>
+          <p className="text-[11px] text-slate-400 mt-2">
+            {isMulti
+              ? `確率的モード・中央値${activeStrategies.length}本＋${STRATEGY_LABELS[baseStrategy] ?? baseStrategy}のバンド（${mcResult.trials}試行）`
+              : `確率的モード・${mcResult.trials}試行`}
+          </p>
         </div>
       );
     }
@@ -325,7 +349,7 @@ export default function AssetChart({
           <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={v => `${v}歳`} />
           <YAxis width={52} tick={{ fontSize: 11 }} tickFormatter={formatYen} />
           <Tooltip formatter={tooltipFmt} labelFormatter={l => `${l}歳`} />
-          <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
+          <Legend wrapperStyle={{ fontSize: '12px', display: 'flex', flexWrap: 'wrap', gap: '4px 12px', paddingTop: '4px' }} />
           <EventLines {...eventProps} />
           <FireLines />
           {showRealValue && inflR > 0 && (

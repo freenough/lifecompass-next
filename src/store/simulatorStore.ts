@@ -59,6 +59,13 @@ interface SimulatorState {
   mode: 'fixed' | 'mc';
   cmpMode: 'strategy' | 'scenario';
   activeStrategies: WithdrawalStrategy[];
+  // 単一値KPIカード（資産寿命・最終資産・収支転換点・初年度取崩率・MC破綻確率カードの
+  // 単一値表示など）が参照する「1つの戦略を代表して見せる」状態。常にactiveStrategies
+  // に含まれる戦略を指す（setActiveStrategies内でこの不変条件を維持する）。
+  // グラフの帯（p10〜p90）もこのdisplayStrategyを参照する（bandStrategyという
+  // 別状態は廃止した。単一値KPIカードと帯を別の戦略に切り替えたい状況は実際には
+  // 求められておらず、表示戦略ラジオ1つで一貫させたほうが自然なため）。
+  displayStrategy: WithdrawalStrategy;
   activeScenarios: ScenarioKey[];
   isMcRunning: boolean;
   updateProfile: (patch: Partial<ProfileV3['params']>) => void;
@@ -75,6 +82,7 @@ interface SimulatorState {
   setMode: (mode: 'fixed' | 'mc') => void;
   setCmpMode: (cmpMode: 'strategy' | 'scenario') => void;
   setActiveStrategies: (strategies: WithdrawalStrategy[]) => void;
+  setDisplayStrategy: (strategy: WithdrawalStrategy) => void;
   setActiveScenarios: (scenarios: ScenarioKey[]) => void;
 }
 
@@ -93,6 +101,8 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
     mode: 'fixed',
     cmpMode: 'strategy',
     activeStrategies: INITIAL_STRATEGIES,
+    // 常にactiveStrategiesの要素であるという不変条件を、初期値でも維持する
+    displayStrategy: INITIAL_STRATEGIES[0],
     activeScenarios: ['neutral'],
     isMcRunning: false,
 
@@ -286,10 +296,14 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
       set(updates);
     },
     setActiveStrategies: (activeStrategies) => {
-      const { profile } = get();
+      const { profile, displayStrategy } = get();
       const { snaps, analysis } = runAll(profile, activeStrategies);
-      set({ activeStrategies, snaps, analysis });
+      // 表示戦略として選択中の戦略のチェックを外した場合、残っている先頭の戦略に
+      // 自動的にフォールバックする（常にactiveStrategiesのメンバーである不変条件を維持）
+      const nextDisplay = activeStrategies.includes(displayStrategy) ? displayStrategy : activeStrategies[0];
+      set({ activeStrategies, snaps, analysis, displayStrategy: nextDisplay });
     },
+    setDisplayStrategy: (displayStrategy) => set({ displayStrategy }),
     setActiveScenarios: (activeScenarios) => set({ activeScenarios }),
   };
 });

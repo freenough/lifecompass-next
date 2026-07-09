@@ -3,12 +3,16 @@
 import { useState } from 'react';
 import type { AnalysisResult, MCResult } from '@/lib/types';
 import KpiCard from '@/components/simulator/KpiCard';
+import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
 
 interface KpiGridProps {
   analysis: AnalysisResult;
   mcResult?: MCResult | null;
   mode: 'fixed' | 'mc';
+  // 単一値として表示する代表戦略（=表示戦略）。複数戦略選択時、戦略ごとの詳細は
+  // モンテカルロ分析欄（MonteCarloPanel）に表示するため、このカードはstrategy1つ分のみ表示する。
   strategy: string;
+  activeStrategies: string[];
   retAge: number;
   lifeEx: number;
   idecoStartAge: number;
@@ -49,7 +53,7 @@ function DetailBreakdown({ selfValue, spValue, showSpouse }: { selfValue: string
 }
 
 export default function KpiGrid({
-  analysis: a, mcResult, mode, strategy, retAge, lifeEx, idecoStartAge, lastExpense, fireAchievementRate, fireAchievementRateAtFA, idecoReceiveType,
+  analysis: a, mcResult, mode, strategy, activeStrategies, retAge, lifeEx, idecoStartAge, lastExpense, fireAchievementRate, fireAchievementRateAtFA, idecoReceiveType,
   hasIdeco, hasSeverance,
 }: KpiGridProps) {
   const [tier4Open, setTier4Open] = useState(false);
@@ -57,6 +61,7 @@ export default function KpiGrid({
   // FIRE達成: 達成時はFIRE達成年齢時点、未達成時は退職予定年齢時点のスナップショットで「達成率（資産 ÷ 支出×25）」を表示する
   const fireAchieved = a.fA != null;
 
+  const isMultiStrategy = activeStrategies.length > 1;
   const mcStrat = mcResult?.strategies[strategy as keyof typeof mcResult.strategies];
   const mcStr   = mcStrat != null ? `${mcStrat.bankruptcyRate.toFixed(1)}%` : null;
   const mcRate  = mcStrat?.bankruptcyRate ?? 100;
@@ -198,9 +203,13 @@ export default function KpiGrid({
         <KpiCard
           label="MC 破綻確率"
           value={mcStr ?? '—'}
-          sub={mcStr ? '1,000試行・90歳時点' : 'MCモードで実行'}
+          sub={
+            mcStr
+              ? (isMultiStrategy ? `${STRATEGY_LABELS[strategy] ?? strategy}基準・詳細は下記` : '1,000試行・90歳時点')
+              : 'MCモードで実行'
+          }
           variant={mcStr ? mcVariant : 'neutral'}
-          tooltip="モンテカルロ法（1,000試行）で終端年齢時点に資産が枯渇する試行の割合。運用利回りのランダムなブレを考慮しています。5%未満が良好、15%以上は要注意の目安です。"
+          tooltip="モンテカルロ法（1,000試行）で終端年齢時点に資産が枯渇する試行の割合。運用利回りのランダムなブレを考慮しています。5%未満が良好、15%以上は要注意の目安です。複数戦略選択時は表示戦略基準の値を表示し、戦略ごとの内訳はモンテカルロ分析欄をご覧ください。"
         />
         <KpiCard
           label="最終資産"
