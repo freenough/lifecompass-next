@@ -309,8 +309,9 @@ console.log('  ※特定口座課税（約20%）の影響で実機破綻率は�
 
 // 田中誠シリーズ 基本パラメータ（完全FIRE / セミリタイヤ共通・inflR=1%）
 // severanceNet: retirementTaxCalc(0, 800, idecoYrs=13, sevYrs=5)
-//   dcDed=520万, sevDed=200万 → max=520万, taxable=(800-520)/2=140万, tax≈28万, net=772万
-//   income at 55 = spouseInc(200) + severanceNet(772) = 972万
+//   2026-07-10修正後: 退職金(55歳)とiDeCo一時金(65歳)は別年受取のためdcYearsは混入しない
+//   sevDed=200万（idecoBalance=0のためsevYearsのみ使用） → taxable=(800-200)/2=300万, tax≈61万, net≈739万
+//   income at 55 = spouseInc(200) + severanceNet(739) = 939万
 //   CF at 55 = 200 - 546(expense) = -346万 ✓
 const TANAKA_P = {
   curAge: 42, lifeEx: 90,
@@ -356,39 +357,39 @@ const TANAKA_INFLE2_EVENTS = [
   { category: 'expense', subtype: 'education',   name: '教育費2',   age: 48, years: 4, amount: 250 },
 ];
 
-// 確定値：修正後 proportional（iDeCo取崩前ロック適用済み・2026-07-01更新）
+// 確定値：修正後 proportional（retirementTaxCalc受取年判定修正後・2026-07-10更新）
 const TANAKA_FIRE_EXPECTED = [
   { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
   { age: 45, totalAssets: 4272, income_disp:  850, expense:  495 },
   { age: 54, totalAssets: 8710, income_disp:  850, expense:  541 },
-  { age: 55, totalAssets: 9369, income_disp:  972, expense:  546 }, // 退職金net772+妻収入200=972万
-  { age: 56, totalAssets: 9251, income_disp:  200, expense:  552 }, // 妻のみ収入（年齢54<55）
-  { age: 57, totalAssets: 8925, income_disp:    0, expense:  557 }, // 妻も退職（年齢55=spRetAge）
-  { age: 65, totalAssets: 5914, income_disp:  150, expense:  603 }, // 主年金150・妻63歳未達
-  { age: 67, totalAssets: 5289, income_disp:  230, expense:  616 }, // 妻65歳→年金80追加
+  { age: 55, totalAssets: 9336, income_disp:  939, expense:  546 }, // 退職金net739+妻収入200=939万
+  { age: 56, totalAssets: 9219, income_disp:  200, expense:  552 }, // 妻のみ収入（年齢54<55）
+  { age: 57, totalAssets: 8892, income_disp:    0, expense:  557 }, // 妻も退職（年齢55=spRetAge）
+  { age: 65, totalAssets: 5878, income_disp:  150, expense:  603 }, // 主年金150・妻63歳未達
+  { age: 67, totalAssets: 5252, income_disp:  230, expense:  616 }, // 妻65歳→年金80追加
   { age: 82, totalAssets:    0, income_disp:  230, expense:  715 }, // 枯渇（82歳）
   { age: 90, totalAssets:    0, income_disp:  230, expense:  715 },
 ];
 
-// 確定値：修正後 proportional（iDeCo取崩前ロック適用済み・2026-07-01更新）
+// 確定値：修正後 proportional（retirementTaxCalc受取年判定修正後・2026-07-10更新）
 const TANAKA_SEMIRETIRE_EXPECTED = [
   { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
-  { age: 55, totalAssets: 9369, income_disp:  972, expense:  546 },
-  { age: 56, totalAssets: 9462, income_disp:  200, expense:  345 }, // 300*(1.01)^14≈345万
-  { age: 57, totalAssets: 9353, income_disp:    0, expense:  348 },
-  { age: 65, totalAssets: 8402, income_disp:  150, expense:  377 }, // 300*(1.01)^23≈377万
-  { age: 67, totalAssets: 8387, income_disp:  230, expense:  385 },
-  { age: 90, totalAssets: 8902, income_disp:  230, expense:  484 }, // 生涯枯渇なし
+  { age: 55, totalAssets: 9336, income_disp:  939, expense:  546 },
+  { age: 56, totalAssets: 9429, income_disp:  200, expense:  345 }, // 300*(1.01)^14≈345万
+  { age: 57, totalAssets: 9321, income_disp:    0, expense:  348 },
+  { age: 65, totalAssets: 8368, income_disp:  150, expense:  377 }, // 300*(1.01)^23≈377万
+  { age: 67, totalAssets: 8351, income_disp:  230, expense:  385 },
+  { age: 90, totalAssets: 8848, income_disp:  230, expense:  484 }, // 生涯枯渇なし
 ];
 
-// 確定値：修正後 proportional（iDeCo取崩前ロック適用済み・2026-07-01更新）
+// 確定値：修正後 proportional（retirementTaxCalc受取年判定修正後・2026-07-10更新）
 const TANAKA_INFLE2_EXPECTED = [
   { age: 42, totalAssets: 2934, income_disp:  850, expense:  480 },
   { age: 45, totalAssets: 3993, income_disp:  850, expense:  759 }, // 480*(1.02)^3+250≈759万
   { age: 48, totalAssets: 4316, income_disp:  850, expense: 1041 }, // 480*(1.02)^6+250+250≈1041万
   { age: 52, totalAssets: 5368, income_disp:  850, expense:  585 }, // 480*(1.02)^10≈585万（教育終了）
-  { age: 55, totalAssets: 6872, income_disp:  972, expense:  621 }, // 480*(1.02)^13≈621万
-  { age: 56, totalAssets: 6906, income_disp:  200, expense:  396 }, // 300*(1.02)^14≈396万
+  { age: 55, totalAssets: 6840, income_disp:  939, expense:  621 }, // 480*(1.02)^13≈621万
+  { age: 56, totalAssets: 6874, income_disp:  200, expense:  396 }, // 300*(1.02)^14≈396万
   { age: 84, totalAssets:    0, income_disp:  230, expense:  676 }, // 枯渇（84歳）
   { age: 90, totalAssets:    0, income_disp:  230, expense:  676 },
 ];

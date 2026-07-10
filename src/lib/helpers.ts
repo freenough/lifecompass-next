@@ -51,8 +51,15 @@ export function calcPensionTaxDiff(penAmt: number, idecoAnnual: number, age: num
 export function retirementTaxCalc(
   idecoBalance: number, severanceAmount: number, dcYears: number, sevYears: number
 ): RetirementTaxResult {
+  const hasIdeco = idecoBalance > 0;
   const hasSev = severanceAmount > 0;
-  const yrs = Math.max(1, Math.floor(hasSev ? Math.max(dcYears, sevYears) : dcYears));
+  // 同一年に両方受け取る場合のみ控除を一本化（max）。別年受取はそれぞれ自分の年数のみを使う。
+  // 近似実装: 税制上の重複期間按分調整（19年/9年ルール）は対象外（methodology参照）。
+  const yrs = Math.max(1, Math.floor(
+    hasIdeco && hasSev ? Math.max(dcYears, sevYears) :
+    hasSev ? sevYears :
+    dcYears
+  ));
   const deduction = yrs <= 20 ? 40 * yrs : 800 + 70 * (yrs - 20);
   const total = idecoBalance + severanceAmount;
   if (total <= 0) return { idecoNet: 0, severanceNet: 0, totalTax: 0 };

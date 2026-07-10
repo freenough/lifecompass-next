@@ -41,8 +41,7 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
   const idecoLumpNet   = idecoStartSnap ? (idecoStartSnap.idecoWithdrawalAmount || 0) : 0;
   // Sum retirementTaxPaid across all snaps (covers severance at retAge ≠ idecoStartAge)
   const idecoLumpTax   = snaps.reduce((sum, s) => sum + (s.retirementTaxPaid || 0), 0);
-  const severanceSnap   = snaps.find(s => s.hasSeverance);
-  const severanceNetKPI = severanceSnap ? (severanceSnap.severanceNet || 0) : 0;
+  const severanceNetKPI = snaps.reduce((sum, s) => sum + (s.severanceNet || 0), 0);
   const idecoTotalTax   = snaps
     .filter(s => s.age >= p.idecoStartAge)
     .reduce((sum, s) => sum + (s.idecoTaxPaid || 0), 0);

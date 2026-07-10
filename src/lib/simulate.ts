@@ -158,11 +158,9 @@ export function simulate(
         if (ev.subtype === 'severance' && age === evAge) {
           const owner = ev.owner ?? 'self';
           if (owner === 'spouse') {
-            if (isSpRet) spSeveranceGross += ev.amount;
-            else extraInc += ev.amount;
+            spSeveranceGross += ev.amount;
           } else {
-            if (isRet) severanceGross += ev.amount;
-            else extraInc += ev.amount;
+            severanceGross += ev.amount;
           }
         } else if (kind === 'lump' && age === evAge) {
           extraInc += ev.amount;
@@ -215,10 +213,8 @@ export function simulate(
     let idecoTaxPaid = 0, retirementTaxPaid = 0, severanceNet = 0;
     let idecoBalanceBeforeWithdrawalThisYear: number | null = null;
     const retirementIncomes: Array<{ type: string; amount: number }> = [];
-    if (isRet && severanceGross > 0) {
+    if (severanceGross > 0) {
       retirementIncomes.push({ type: 'severance', amount: severanceGross });
-    } else if (!isRet && severanceGross > 0) {
-      cash += severanceGross;
     }
     if (isIdecoStart && !idecoExitDone && !isPension) {
       // split: push only the lump portion; the pension portion stays in ideco
@@ -252,10 +248,8 @@ export function simulate(
 
     // ── Spouse retirement income processing (iDeCo lump + severance) ──
     const spRetirementIncomes: Array<{ type: string; amount: number }> = [];
-    if (isSpRet && spSeveranceGross > 0) {
+    if (spSeveranceGross > 0) {
       spRetirementIncomes.push({ type: 'severance', amount: spSeveranceGross });
-    } else if (!isSpRet && spSeveranceGross > 0) {
-      cash += spSeveranceGross;
     }
     if (isSpIdecoStart && !spIdecoExitDone && !spIsPension) {
       spRetirementIncomes.push({ type: 'ideco', amount: spIdeco });
@@ -477,7 +471,7 @@ export function simulate(
       idecoAnnualGross,
       fillCash: Math.round(fillCash),
       fillNisa: Math.round(fillNisa),
-      hasSeverance: severanceGross > 0 && isRet,
+      hasSeverance: severanceGross > 0,
       baseExp: Math.round(currentBaseExp * inflM),
       idecoStatus,
       idecoBalanceBeforeWithdrawal: idecoBalanceBeforeWithdrawalThisYear,
