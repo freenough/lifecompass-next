@@ -251,11 +251,12 @@ export default function SimulatorPage() {
               <div className="flex flex-col gap-1.5">
                 {STRATEGY_OPTIONS.map(opt => {
                   const checked = activeStrategies.includes(opt.key);
-                  // チェックが1件のみの場合は選択の余地がないため表示戦略ラジオは出さない
-                  const showRadio = checked && activeStrategies.length > 1;
+                  // チェックが1件のみの場合は選択の余地がないためラジオを無効化（比較対象が
+                  // 他にないので、その1件を選ぶ以外の意味を持たない）
+                  const radioDisabled = !checked || activeStrategies.length <= 1;
                   return (
-                    <div key={opt.key} className="flex items-center justify-between gap-3">
-                      <label className="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+                    <div key={opt.key} className="flex items-center gap-3">
+                      <label className="flex w-20 shrink-0 items-center gap-1 text-xs text-slate-600 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={checked}
@@ -264,17 +265,16 @@ export default function SimulatorPage() {
                         />
                         {opt.label}
                       </label>
-                      {showRadio && (
-                        <label className="flex items-center gap-1 text-xs text-slate-500 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="displayStrategy"
-                            checked={displayStrategy === opt.key}
-                            onChange={() => setDisplayStrategy(opt.key)}
-                          />
-                          表示
-                        </label>
-                      )}
+                      <label className={`flex items-center gap-1 text-xs ${radioDisabled ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 cursor-pointer'}`}>
+                        <input
+                          type="radio"
+                          name="displayStrategy"
+                          checked={displayStrategy === opt.key}
+                          disabled={radioDisabled}
+                          onChange={() => setDisplayStrategy(opt.key)}
+                        />
+                        表示
+                      </label>
                     </div>
                   );
                 })}
@@ -316,15 +316,16 @@ export default function SimulatorPage() {
               mode={mode}
               strategy={strategy}
               activeStrategies={activeStrategies}
-              retAge={p.retAge}
               lifeEx={p.lifeEx}
-              idecoStartAge={p.idecoStartAge}
               lastExpense={lastExpense}
               fireAchievementRate={fireAchievementRate}
               fireAchievementRateAtFA={fireAchievementRateAtFA}
+              penAge={p.penAge}
               idecoReceiveType={profile.params.idecoReceiveType ?? 'lump'}
+              spIdecoReceiveType={profile.params.spIdecoReceiveType ?? 'lump'}
               hasIdeco={profile.params.bIdeco > 0 || profile.params.cIdeco > 0}
-              hasSeverance={baseAnalysis.severanceNetKPI > 0}
+              spHasIdeco={(profile.params.spIdecoBal ?? 0) > 0 || (profile.params.spIdecoCon ?? 0) > 0}
+              hasSeverance={profile.events.some(ev => ev.subtype === 'severance')}
             />
           </div>
 

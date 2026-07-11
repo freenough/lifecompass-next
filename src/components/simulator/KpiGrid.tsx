@@ -13,14 +13,16 @@ interface KpiGridProps {
   // モンテカルロ分析欄（MonteCarloPanel）に表示するため、このカードはstrategy1つ分のみ表示する。
   strategy: string;
   activeStrategies: string[];
-  retAge: number;
   lifeEx: number;
-  idecoStartAge: number;
+  penAge: number;
   lastExpense: number;
   fireAchievementRate: number | null;
   fireAchievementRateAtFA: number | null;
   idecoReceiveType?: 'lump' | 'pension' | 'split';
+  spIdecoReceiveType?: 'lump' | 'pension' | 'split';
   hasIdeco: boolean;
+  spHasIdeco: boolean;
+  // 退職金イベントの「存在」を表すフラグ（税引後net>0とは独立。控除内で税額0円のケースも含む）
   hasSeverance: boolean;
 }
 
@@ -43,20 +45,19 @@ function SpouseRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DetailBreakdown({ selfValue, spValue, showSpouse }: { selfValue: string; spValue: string; showSpouse: boolean }) {
+function TaxSubline({ value }: { value: string }) {
   return (
-    <div className="mt-2 border-t border-slate-200 pt-2 space-y-1">
-      <SpouseRow label="本人" value={selfValue} />
-      {showSpouse && <SpouseRow label="配偶者" value={spValue} />}
-    </div>
+    <p className="pl-2 text-[11px] text-slate-400">
+      累計課税額：{value}（公的年金等控除適用）
+    </p>
   );
 }
 
 export default function KpiGrid({
-  analysis: a, mcResult, mode, strategy, activeStrategies, retAge, lifeEx, idecoStartAge, lastExpense, fireAchievementRate, fireAchievementRateAtFA, idecoReceiveType,
-  hasIdeco, hasSeverance,
+  analysis: a, mcResult, mode, strategy, activeStrategies, lifeEx, penAge, lastExpense, fireAchievementRate, fireAchievementRateAtFA, idecoReceiveType, spIdecoReceiveType,
+  hasIdeco, spHasIdeco, hasSeverance,
 }: KpiGridProps) {
-  const [tier4Open, setTier4Open] = useState(false);
+  const [eventsOpen, setEventsOpen] = useState(false);
 
   // FIRE達成: 達成時はFIRE達成年齢時点、未達成時は退職予定年齢時点のスナップショットで「達成率（資産 ÷ 支出×25）」を表示する
   const fireAchieved = a.fA != null;
@@ -114,73 +115,45 @@ export default function KpiGrid({
     dASub = `${lifeEx}歳時点でも資産残存`;
   }
 
-  // 収支転換点：3分岐（転換点あり／算出不可(資産枯渇)／転換なし）を復元。
-  let breakEvenVariant: 'good' | 'warn' | 'danger';
-  let breakEvenValue: string;
-  let breakEvenSub: string;
-  if (a.breakEven != null) {
-    breakEvenVariant = 'warn';
-    breakEvenValue = `${a.breakEven}歳`;
-    const yearsAfterRet = a.breakEven - retAge;
-    breakEvenSub = `退職${yearsAfterRet > 0 ? yearsAfterRet + '年後から' : '直後から'}支出超過`;
-  } else if (a.dA != null) {
-    breakEvenVariant = 'danger';
-    breakEvenValue = '—';
-    breakEvenSub = '算出不可（資産枯渇）';
-  } else {
-    breakEvenVariant = 'good';
-    breakEvenValue = '転換なし';
-    breakEvenSub = `${lifeEx}歳まで収支均衡`;
-  }
+  // 年金開始時資産：本人の年金開始年齢（penAge）時点の総資産。退職〜年金開始までの
+  // 「年金空白期間」でどれだけ取り崩したかの目安。該当年齢のスナップショットがない場合は
+  // 他のKPI（資産寿命・収支転換点等）と同様に「—」で欠損を示す。
+  const penAgeValue = fmt(a.penAgeAssets);
+  const penAgeSub = a.penAgeAssets != null ? `${penAge}歳時点` : '算出不可';
 
-  // iDeCo受取（手取り）：iDeCo未設定でもカードは常時表示し、受取方式(年金/一時金)×
-  // 受取前後の4パターンの補足テキストを復元する。splitは旧版に存在しない現行独自機能のため
-  // 従来通りの合算表示を維持する。
-  let idecoValue: string;
-  let idecoSub: string | undefined;
-  if (!hasIdeco) {
-    idecoValue = '—';
-    idecoSub = 'iDeCo口座が未設定';
-  } else if (idecoReceiveType === 'split') {
-    idecoValue = fmt(a.idecoLumpNet + a.idecoTotalNetWithdrawal);
-    idecoSub = `一時金 ${fmt(a.idecoLumpNet)} ／ 年金 ${fmt(a.idecoTotalNetWithdrawal)}`;
-  } else if (idecoReceiveType === 'pension') {
-    if (a.idecoTotalNetWithdrawal > 0) {
-      idecoValue = fmt(a.idecoTotalNetWithdrawal);
-      idecoSub = `累計課税額：${fmt(a.idecoTotalTax)}（公的年金等控除適用）`;
-    } else {
-      idecoValue = '—';
-      idecoSub = `${idecoStartAge}歳から年金受取開始`;
-    }
-  } else {
-    if (a.idecoLumpNet > 0) {
-      idecoValue = fmt(a.idecoLumpNet);
-      idecoSub = a.severanceNetKPI > 0
-        ? '詳細は下記'
-        : (a.idecoLumpTax > 0 ? `退職所得税：${fmt(a.idecoLumpTax)}` : '退職所得税：なし（控除内）');
-    } else {
-      idecoValue = '—';
-      idecoSub = `${idecoStartAge}歳時点で受取`;
-    }
-  }
-
-  // Spouse retirement display condition
-  const showSpouseRetirement = (a.spIdecoLumpNet ?? 0) > 0 || (a.spRetirementTaxKPI ?? 0) > 0 || (a.spSeveranceNetKPI ?? 0) > 0;
-
-  const tier4Expandable = hasIdeco || hasSeverance;
-
-  // Tier3 iDeCo value: household total (main + spouse)
+  // iDeCo受取（手取り）：世帯合計値。受取方式（本人/配偶者それぞれlump/pension/split）に応じて合成する。
   const idecoSelfNet =
-    idecoReceiveType === 'lump'    ? a.idecoLumpNet :
     idecoReceiveType === 'pension' ? a.idecoTotalNetWithdrawal :
-    /* split */                      a.idecoLumpNet + a.idecoTotalNetWithdrawal;
-  const idecoTier3Value = idecoSelfNet + (a.spIdecoLumpNet ?? 0);
+    idecoReceiveType === 'split'   ? a.idecoLumpNet + a.idecoTotalNetWithdrawal :
+    /* lump */                       a.idecoLumpNet;
+  const spIdecoSelfNet =
+    spIdecoReceiveType === 'pension' ? (a.spIdecoTotalNetWithdrawal ?? 0) :
+    spIdecoReceiveType === 'split'   ? (a.spIdecoLumpNet ?? 0) + (a.spIdecoTotalNetWithdrawal ?? 0) :
+    /* lump */                         (a.spIdecoLumpNet ?? 0);
+  const idecoTier3Value = idecoSelfNet + spIdecoSelfNet;
+
+  const showSpouseRetirement = spIdecoSelfNet > 0 || (a.spRetirementTaxKPI ?? 0) > 0 || (a.spSeveranceNetKPI ?? 0) > 0;
+
+  // 「退職イベント」アコーディオンの表示条件：退職金イベント または iDeCo受給イベント（受取開始）が存在する
+  const hasIdecoReceiveEvent = hasIdeco || spHasIdeco;
+  const eventsExpandable = hasSeverance || hasIdecoReceiveEvent;
+
+  // 退職所得税（合計）カードの表示条件：退職金イベント または iDeCo一時金受取（lump/split）が存在する場合。
+  // 「年金のみ」（公的年金等控除の話であり退職所得控除とは無関係）の場合は非表示。
+  const hasIdecoLumpEvent =
+    (hasIdeco   && (idecoReceiveType   === 'lump' || idecoReceiveType   === 'split')) ||
+    (spHasIdeco && (spIdecoReceiveType === 'lump' || spIdecoReceiveType === 'split'));
+  const showRetirementTaxCard = hasSeverance || hasIdecoLumpEvent;
+
+  // 累計課税額サブテキストの表示条件：受取方式が「年金」または「併用」を含む場合のみ（本人・配偶者それぞれ独立に判定）
+  const showSelfIdecoTax = idecoReceiveType === 'pension' || idecoReceiveType === 'split';
+  const showSpIdecoTax   = spIdecoReceiveType === 'pension' || spIdecoReceiveType === 'split';
 
   void mode;
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Tier1+Tier2: 6枚を1グリッドに統合（モバイル2列→3行、SM以上3列→2行） */}
+      {/* メインKPI：常時表示6枠（モバイル2列→3行、SM以上3列→2行） */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard
           label="資産寿命"
@@ -226,96 +199,70 @@ export default function KpiGrid({
           tooltip="退職初年度の実質引出額 ÷ 退職時総資産。3%未満が良好、5%以上は要注意の目安です。"
         />
         <KpiCard
-          label="収支転換点"
-          value={breakEvenValue}
-          sub={breakEvenSub}
-          variant={breakEvenVariant}
-          tooltip="年金等の収入が生活費を下回り始める年齢。この年齢以降、資産の取崩ペースが加速します。年金受給開始により後ろにずれることがあります。"
+          label="年金開始時資産"
+          value={penAgeValue}
+          sub={penAgeSub}
+          tooltip="本人の年金受給開始年齢時点での総資産額。退職からこの年齢までの、いわゆる「年金空白期間」をどれだけ取り崩したかの目安になります。"
         />
       </div>
 
-      {/* Tier3: 資産ピーク（常時）/ iDeCo受取（hasIdecoのとき） */}
-      <div className="grid grid-cols-2 gap-3">
-        <KpiCard
-          label="資産ピーク"
-          value={fmt(a.pV)}
-          sub={ageStr(a.pA)}
-          tooltip="シミュレーション期間中の総資産の最高値とその年齢。積立期の最後付近か、退職金受取年になることが多いです。"
-        />
-        <KpiCard
-          label="iDeCo受取（手取り）"
-          value={idecoValue}
-          sub={idecoSub}
-          tooltip={
-            !hasIdeco
-              ? 'iDeCo口座の残高・積立が設定されていません。'
-              : idecoReceiveType === 'lump'
-                ? `iDeCo一時金から退職所得控除（退職金と合算）を適用した税引後の手取り額。${showSpouseRetirement ? '配偶者のiDeCo受取を含む世帯合計。' : ''}`
-                : idecoReceiveType === 'split'
-                  ? '一時金部分は退職所得控除を適用した手取り額、年金部分は公的年金等控除を適用した累計手取り額の合計。'
-                  : 'iDeCo年金受取期間の合計受取額から、公的年金等控除を適用した税引後の手取り総額。'
-          }
-          footer={
-            tier4Expandable ? (
-              <button
-                onClick={() => setTier4Open(o => !o)}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-800"
-              >
-                {tier4Open ? '▲ 閉じる' : '▼ 詳細'}
-              </button>
-            ) : undefined
-          }
-        />
-      </div>
-
-      {/* Tier4: iDeCo詳細（一時金受取・展開時のみ） */}
-      {tier4Expandable && tier4Open && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <KpiCard
-            label="iDeCo（手取り）"
-            value={fmt(idecoTier3Value)}
-            footer={
-              <DetailBreakdown
-                selfValue={fmt(idecoSelfNet)}
-                spValue={fmt(a.spIdecoLumpNet)}
-                showSpouse={showSpouseRetirement}
-              />
-            }
-          />
-          <KpiCard
-            label="退職金（手取り）"
-            value={fmt(a.severanceNetKPI + (a.spSeveranceNetKPI ?? 0))}
-            footer={
-              <DetailBreakdown
-                selfValue={fmt(a.severanceNetKPI)}
-                spValue={fmt(a.spSeveranceNetKPI)}
-                showSpouse={showSpouseRetirement}
-              />
-            }
-          />
-          <KpiCard
-            label="退職所得税（合計）"
-            value={fmt(a.idecoLumpTax + (a.spRetirementTaxKPI ?? 0))}
-            tooltip="iDeCo一時金・退職金の合算課税。退職所得控除を適用した後の実効税額（本人・配偶者の合計）。"
-            footer={
-              <DetailBreakdown
-                selfValue={fmt(a.idecoLumpTax)}
-                spValue={fmt(a.spRetirementTaxKPI)}
-                showSpouse={showSpouseRetirement}
-              />
-            }
-          />
-          {idecoReceiveType === 'split' && (
-            <KpiCard
-              label="iDeCo内訳（本人）"
-              value={fmt(idecoSelfNet)}
-              footer={
-                <div className="mt-2 border-t border-slate-200 pt-2 space-y-1">
-                  <SpouseRow label={`一時金(${fmt(a.idecoLumpNet)})`} value={`税 ${fmt(a.idecoLumpTax)}`} />
-                  <SpouseRow label={`年金累計(${fmt(a.idecoTotalNetWithdrawal)})`} value={`税 ${fmt(a.idecoTotalTax - a.idecoLumpTax)}`} />
-                </div>
-              }
-            />
+      {/* 退職イベント：退職金・iDeCo受給イベントがある場合のみアコーディオンで詳細表示 */}
+      {eventsExpandable && (
+        <div className="rounded-xl border border-slate-200 bg-white">
+          <button
+            onClick={() => setEventsOpen(o => !o)}
+            className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <span>退職イベント</span>
+            <span className="text-slate-400">{eventsOpen ? '▲' : '▼'}</span>
+          </button>
+          {eventsOpen && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4 pb-4">
+              {hasIdecoReceiveEvent && (
+                <KpiCard
+                  label="iDeCo（手取り）"
+                  value={fmt(idecoTier3Value)}
+                  tooltip="iDeCo年金受取期間の合計受取額から、公的年金等控除を適用した税引後の手取り総額(世帯合計)。iDeCo受給開始後は生活費不足を補う取り崩し時に本人・配偶者の残高が合算運用されるため、内訳(本人/配偶者)は互いの設定によって多少変動することがあります。世帯合計自体は変わりません。"
+                  footer={
+                    <div className="mt-2 border-t border-slate-200 pt-2 space-y-1">
+                      <SpouseRow label="本人" value={fmt(idecoSelfNet)} />
+                      {showSelfIdecoTax && <TaxSubline value={fmt(a.idecoTotalTax)} />}
+                      {showSpouseRetirement && (
+                        <>
+                          <SpouseRow label="配偶者" value={fmt(spIdecoSelfNet)} />
+                          {showSpIdecoTax && <TaxSubline value={fmt(a.spIdecoTotalTax)} />}
+                        </>
+                      )}
+                    </div>
+                  }
+                />
+              )}
+              {hasSeverance && (
+                <KpiCard
+                  label="退職金（手取り）"
+                  value={fmt(a.severanceNetKPI + (a.spSeveranceNetKPI ?? 0))}
+                  footer={
+                    <div className="mt-2 border-t border-slate-200 pt-2 space-y-1">
+                      <SpouseRow label="本人" value={fmt(a.severanceNetKPI)} />
+                      {showSpouseRetirement && <SpouseRow label="配偶者" value={fmt(a.spSeveranceNetKPI)} />}
+                    </div>
+                  }
+                />
+              )}
+              {showRetirementTaxCard && (
+                <KpiCard
+                  label="退職所得税（合計）"
+                  value={fmt(a.idecoLumpTax + (a.spRetirementTaxKPI ?? 0))}
+                  tooltip="iDeCo一時金・退職金の合算課税。退職所得控除を適用した後の実効税額（本人・配偶者の合計）。"
+                  footer={
+                    <div className="mt-2 border-t border-slate-200 pt-2 space-y-1">
+                      <SpouseRow label="本人" value={fmt(a.idecoLumpTax)} />
+                      {showSpouseRetirement && <SpouseRow label="配偶者" value={fmt(a.spRetirementTaxKPI)} />}
+                    </div>
+                  }
+                />
+              )}
+            </div>
           )}
         </div>
       )}

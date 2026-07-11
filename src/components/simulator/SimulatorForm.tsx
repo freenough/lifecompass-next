@@ -413,8 +413,8 @@ export default function SimulatorForm() {
         <LifeEventTimeline />
 
         <SubSection title="配偶者を入力する">
-          <Field label="年間収入" id="spInc"    value={p.spInc}    onChange={v => up({ spInc: v })}    min={0} step={0.1} suffix="万円/年" />
-          <Field label="年金額"   id="spPenAmt" value={p.spPenAmt} onChange={v => up({ spPenAmt: v })} min={0} step={0.1} suffix="万円/年" />
+          <Field label="年間手取り収入" id="spInc"    value={p.spInc}    onChange={v => up({ spInc: v })}    min={0} step={0.1} suffix="万円/年" />
+          <Field label="年金受給額"   id="spPenAmt" value={p.spPenAmt} onChange={v => up({ spPenAmt: v })} min={0} step={0.1} suffix="万円/年" />
         </SubSection>
       </Section>
 
@@ -503,6 +503,7 @@ export default function SimulatorForm() {
         <Field label="iDeCo受取開始" id="idecoStartAge" value={p.idecoStartAge} onChange={v => up({ idecoStartAge: v })} min={60} max={75} suffix="歳" />
 
         <SubSection title="配偶者を入力する">
+          <SubHeading>保有資産</SubHeading>
           <Field label="NISA残高"          id="spNisaBal"   value={p.spNisaBal  ?? 0} onChange={v => up({ spNisaBal: v })}  min={0} step={0.1} suffix="万円" />
           <Field
             label="NISA積立" id="spNisaCon" value={p.spNisaCon ?? 0} onChange={v => up({ spNisaCon: v })}
@@ -523,6 +524,9 @@ export default function SimulatorForm() {
           <Field label="特定口座積立"      id="spTaxCon"    value={p.spTaxCon   ?? 0} onChange={v => up({ spTaxCon: v })}  min={0} step={0.1} suffix="万円/年" />
           <Field label="特定口座積立終了"  id="spTaxTo"     value={p.spTaxTo    ?? (p.spRetAge || 60)} onChange={v => up({ spTaxTo: v })}   min={20} max={100} suffix="歳" />
           <Field label="現金残高"          id="spCashBal"   value={p.spCashBal  ?? 0} onChange={v => up({ spCashBal: v })} min={0} step={0.1} suffix="万円" />
+
+          <Divider />
+          <SubHeading>受け取り設定</SubHeading>
           <Field label="勤続年数(退職金控除)" id="spSevYrs" value={p.spSevYrs ?? 0} onChange={v => up({ spSevYrs: v })} min={1} max={45} suffix="年" />
           <div className="flex items-center justify-between gap-1 mt-1">
             <label htmlFor="spIdecoReceiveType" className="w-32 shrink-0 text-xs text-slate-600">iDeCo受取方式</label>
@@ -530,15 +534,49 @@ export default function SimulatorForm() {
               <select
                 id="spIdecoReceiveType"
                 value={p.spIdecoReceiveType ?? 'lump'}
-                onChange={e => up({ spIdecoReceiveType: e.target.value as 'lump' | 'pension' })}
+                onChange={e => up({ spIdecoReceiveType: e.target.value as 'lump' | 'pension' | 'split' })}
                 className={`${INPUT_WIDTH_CLASS} shrink-0 rounded border border-slate-300 px-2 py-1 text-sm`}
               >
-                <option value="lump">一括受取</option>
-                <option value="pension">年金受取</option>
+                <option value="lump">一時金</option>
+                <option value="pension">年金</option>
+                <option value="split">併用</option>
               </select>
               <span className={`${UNIT_WIDTH_CLASS} shrink-0`} aria-hidden="true" />
             </div>
           </div>
+          {p.spIdecoReceiveType === 'split' && (
+            <div className="mt-1 space-y-1">
+              <div className="flex items-center justify-between gap-1">
+                <label htmlFor="spIdecoSplitRatio" className="w-32 shrink-0 text-xs text-slate-600">一時金割合</label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    id="spIdecoSplitRatio"
+                    min={10} max={90} step={10}
+                    value={p.spIdecoSplitRatio ?? 50}
+                    onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                    onClick={e => clearZeroOrSelect(e.currentTarget)}
+                    onChange={e => {
+                      const cleaned = stripLeadingZero(e.target.value);
+                      if (cleaned !== e.target.value) e.target.value = cleaned;
+                      up({ spIdecoSplitRatio: Math.min(90, Math.max(10, Number(cleaned))) });
+                    }}
+                    className={`${INPUT_WIDTH_CLASS} shrink-0 rounded border border-slate-300 px-2 py-1 text-sm text-right`}
+                  />
+                  <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-500`}>%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-1">
+                <span className="w-32 shrink-0" aria-hidden="true" />
+                <p className="w-[156px] shrink-0 text-left text-[11px] text-slate-400">
+                  年金受取分 {100 - (p.spIdecoSplitRatio ?? 50)}%
+                </p>
+              </div>
+            </div>
+          )}
+          {(p.spIdecoReceiveType === 'pension' || p.spIdecoReceiveType === 'split') && (
+            <Field label="年金受取年数" id="spIdecoReceiveYears" value={p.spIdecoReceiveYears ?? 10} onChange={v => up({ spIdecoReceiveYears: v })} min={1} max={20} suffix="年" />
+          )}
           <Field label="iDeCo受取開始" id="spIdecoStartAge" value={p.spIdecoStartAge ?? 60} onChange={v => up({ spIdecoStartAge: v })} min={60} max={75} suffix="歳" />
         </SubSection>
 

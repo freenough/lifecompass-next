@@ -118,7 +118,9 @@ export interface ProfileV3 {
     spTaxTo: number;
     spSevYrs: number;
     spIdecoYrs: number;
-    spIdecoReceiveType: 'lump' | 'pension';
+    spIdecoReceiveType: 'lump' | 'pension' | 'split';
+    spIdecoReceiveYears: number;
+    spIdecoSplitRatio: number;
     spIdecoStartAge: number;
     spCashBal: number;
   };
@@ -173,7 +175,9 @@ export const SAMPLE_PROFILE: ProfileV3 = {
     spNisaBal: 0, spNisaCon: 0, spNisaTo: 60,
     spIdecoBal: 0, spIdecoCon: 0, spIdecoTo: 60,
     spTaxBal: 0, spTaxCon: 0, spTaxTo: 60,
-    spSevYrs: 0, spIdecoYrs: 0, spIdecoReceiveType: 'lump', spIdecoStartAge: 60, spCashBal: 0,
+    spSevYrs: 0, spIdecoYrs: 0, spIdecoReceiveType: 'lump',
+    spIdecoReceiveYears: 10, spIdecoSplitRatio: 50,
+    spIdecoStartAge: 60, spCashBal: 0,
   },
   portfolio: {
     current:    { nisa: [], ideco: [], tax: [], spNisa: [], spIdeco: [], spTax: [] },
@@ -479,7 +483,8 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
           idecoYrs:         p.spIdecoYrs || 0,
           sevYrs:           p.spSevYrs   || 0,
           idecoReceiveType: p.spIdecoReceiveType  || 'lump',
-          idecoReceiveYears: 10,
+          idecoReceiveYears: p.spIdecoReceiveYears || 10,
+          idecoSplitRatio:  p.spIdecoSplitRatio    ?? 50,
           idecoStartAge:    p.spIdecoStartAge || p.spRetAge || 60,
           acct: {
             nisa:  { bal: p.spNisaBal  ?? 0, con: p.spNisaCon  ?? 0, toAge: p.spNisaTo  ?? p.spRetAge ?? 60 },

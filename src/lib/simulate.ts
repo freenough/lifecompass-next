@@ -61,6 +61,7 @@ export function simulate(
   let spIdecoStatus: IdecoStatus = 'accumulation';
   let spIdecoWithdrawalAmount: number | null = null;
   const spIsPension = (p.spouse?.idecoReceiveType ?? 'lump') === 'pension';
+  const spIsSplit   = (p.spouse?.idecoReceiveType ?? 'lump') === 'split';
   let spIdecoRemainingYears = p.spouse?.idecoReceiveYears ?? 10;
 
   // ── Spouse age milestones (in main-person-age terms) ──
@@ -194,22 +195,12 @@ export function simulate(
     if (spIdecoStatus === 'accumulation' || spIdecoStatus === 'pension') spIdeco += spIdeco * (idecoRate / 100);
     spTax   += spTax   * (taxRate   / 100);
 
-    // ── Spouse per-year tax/KPI tracking (declared here so merge block can write) ──
-    let spRetirementTaxPaid = 0, spSeveranceNet = 0;
+    // ── Spouse per-year tax/KPI tracking ──
+    // 本人・配偶者は完全に独立会計。本人のiDeCoプールに配偶者残高を合算する処理は存在しない
+    // （配偶者自身の一時金・年金・併用処理は下の「Spouse retirement income processing」ブロックで完結する）。
+    let spRetirementTaxPaid = 0, spSeveranceNet = 0, spIdecoTaxPaid = 0;
 
     // ── Main retirement income processing (iDeCo lump + severance) ──
-    // 旧HTML版は単一プール: 本人のiDeCo受取開始時に配偶者iDeCo残高を合算して処理する
-    // spIdeco用の課税計算を先に完了させてKPI用に記録し、グロス額を本人プールに合算する
-    if (isIdecoStart && !idecoExitDone && !spIdecoExitDone && spIdeco > 0) {
-      const spRes = retirementTaxCalc(spIdeco, 0, spIdecoYrs, spSevYrs);
-      spIdecoWithdrawalAmount = Math.round(spRes.idecoNet);
-      spRetirementTaxPaid += Math.round(spIdeco - spRes.idecoNet);
-      ideco += spIdeco;
-      spIdeco = 0;
-      spIdecoStatus = 'closed';
-      spIdecoExitDone = true;
-    }
-
     let idecoTaxPaid = 0, retirementTaxPaid = 0, severanceNet = 0;
     let idecoBalanceBeforeWithdrawalThisYear: number | null = null;
     const retirementIncomes: Array<{ type: string; amount: number }> = [];
@@ -252,7 +243,9 @@ export function simulate(
       spRetirementIncomes.push({ type: 'severance', amount: spSeveranceGross });
     }
     if (isSpIdecoStart && !spIdecoExitDone && !spIsPension) {
-      spRetirementIncomes.push({ type: 'ideco', amount: spIdeco });
+      // split: push only the lump portion; the pension portion stays in spIdeco
+      const spLumpAmount = spIsSplit ? spIdeco * ((p.spouse?.idecoSplitRatio ?? 50) / 100) : spIdeco;
+      spRetirementIncomes.push({ type: 'ideco', amount: spLumpAmount });
     }
     if (spRetirementIncomes.length > 0) {
       const totalSev   = spRetirementIncomes.filter(r => r.type === 'severance').reduce((s, r) => s + r.amount, 0);
@@ -261,15 +254,21 @@ export function simulate(
       if (totalSev > 0) { cash += res.severanceNet; spSeveranceNet = Math.round(res.severanceNet); }
       if (totalIdeco > 0) {
         spRetirementTaxPaid += Math.round(totalIdeco - res.idecoNet);
+        spIdecoTaxPaid += Math.round(totalIdeco - res.idecoNet);
         spIdecoWithdrawalAmount = Math.round(res.idecoNet);
         cash += res.idecoNet;
-        spIdeco = 0;
-        spIdecoStatus = 'closed';
+        if (spIsSplit) {
+          // Keep the pension portion; only the lump portion was withdrawn
+          spIdeco = spIdeco * (1 - (p.spouse?.idecoSplitRatio ?? 50) / 100);
+        } else {
+          spIdeco = 0;
+          spIdecoStatus = 'closed';
+        }
       }
       spRetirementTaxPaid += Math.round(totalSev - res.severanceNet);
     }
     if (isSpIdecoStart && !spIdecoExitDone) {
-      if (spIsPension) { spIdecoStatus = 'pension'; spIdecoRemainingYears = p.spouse?.idecoReceiveYears ?? 10; }
+      if (spIsPension || spIsSplit) { spIdecoStatus = 'pension'; spIdecoRemainingYears = p.spouse?.idecoReceiveYears ?? 10; }
       spIdecoExitDone = true;
     }
 
@@ -292,6 +291,7 @@ export function simulate(
     }
 
     // ── Spouse iDeCo pension payout ──
+    let spIdecoAnnualGross = 0;
     if (spIdecoStatus === 'pension' && spIdecoExitDone) {
       if (spIdecoRemainingYears > 0 && spIdeco > 0) {
         const spIdecoAnnualPension = spIdeco / spIdecoRemainingYears;
@@ -299,7 +299,10 @@ export function simulate(
         spIdecoRemainingYears--;
         const spCurrentPenAmt = spAge >= (p.spouse?.penAge ?? 65) ? (p.spouse?.penAmt ?? 0) : 0;
         const spPensionTax = Math.round(calcPensionTaxDiff(spCurrentPenAmt, spIdecoAnnualPension, spAge));
-        spRetirementTaxPaid += spPensionTax;
+        // 年金税（雑所得課税）は退職所得税(spRetirementTaxPaid)には含めない。本人側のidecoTaxPaid/
+        // retirementTaxPaidの分離と対称にするため、iDeCo手取りカード用のspIdecoTaxPaidにのみ計上する。
+        spIdecoTaxPaid += spPensionTax;
+        spIdecoAnnualGross = Math.round(spIdecoAnnualPension);
         income += Math.max(0, spIdecoAnnualPension - spPensionTax);
         if (spIdecoRemainingYears <= 0 || spIdeco <= 0) { spIdeco = 0; spIdecoStatus = 'closed'; }
       } else {
@@ -480,6 +483,8 @@ export function simulate(
       spIdecoWithdrawalAmount,
       spRetirementTaxPaid,
       spSeveranceNet,
+      spIdecoAnnualGross,
+      spIdecoTaxPaid,
     });
 
     idecoWithdrawalAmount    = null;

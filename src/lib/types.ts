@@ -42,8 +42,9 @@ export interface SpouseParams {
   spCurAge: number;
   idecoYrs?: number;
   sevYrs?: number;
-  idecoReceiveType?: 'lump' | 'pension';
+  idecoReceiveType?: 'lump' | 'pension' | 'split';
   idecoReceiveYears?: number;
+  idecoSplitRatio?: number;
   idecoStartAge?: number;
   acct?: SpouseAcct;
 }
@@ -144,6 +145,8 @@ export interface YearSnap {
   spIdecoWithdrawalAmount: number | null;
   spRetirementTaxPaid: number;
   spSeveranceNet: number;
+  spIdecoAnnualGross: number;
+  spIdecoTaxPaid: number;
 }
 
 export interface AnalysisResult {
@@ -155,6 +158,7 @@ export interface AnalysisResult {
   assetLife: number | null;
   withdrawalRate: number | null;
   breakEven: number | null;
+  penAgeAssets: number | null;
   idecoLumpNet: number;
   idecoLumpTax: number;
   idecoTotalTax: number;
@@ -162,6 +166,8 @@ export interface AnalysisResult {
   idecoStartBalance: number;
   severanceNetKPI: number;
   spIdecoLumpNet: number;
+  spIdecoTotalTax: number;
+  spIdecoTotalNetWithdrawal: number;
   spSeveranceNetKPI: number;
   spRetirementTaxKPI: number;
 }

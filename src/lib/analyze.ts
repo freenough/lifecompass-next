@@ -37,6 +37,9 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
     if (avg2 < 0) breakEven = retSnaps[0].age;
   }
 
+  const penAgeSnap = snaps.find(s => s.age === p.penAge);
+  const penAgeAssets = penAgeSnap ? penAgeSnap.totalAssets : null;
+
   const idecoStartSnap = snaps.find(s => s.age === p.idecoStartAge);
   const idecoLumpNet   = idecoStartSnap ? (idecoStartSnap.idecoWithdrawalAmount || 0) : 0;
   // Sum retirementTaxPaid across all snaps (covers severance at retAge ≠ idecoStartAge)
@@ -55,11 +58,15 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
   const spIdecoLumpNet    = snaps.reduce((s, snap) => s + (snap.spIdecoWithdrawalAmount ?? 0), 0);
   const spSeveranceNetKPI = snaps.reduce((s, snap) => s + (snap.spSeveranceNet          ?? 0), 0);
   const spRetirementTaxKPI = snaps.reduce((s, snap) => s + (snap.spRetirementTaxPaid    ?? 0), 0);
+  // 配偶者のiDeCo年金受取分（本人のidecoTotalTax/idecoTotalGross/idecoTotalNetWithdrawalに相当）
+  const spIdecoTotalTax   = snaps.reduce((s, snap) => s + (snap.spIdecoTaxPaid    ?? 0), 0);
+  const spIdecoTotalGross = snaps.reduce((s, snap) => s + (snap.spIdecoAnnualGross ?? 0), 0);
+  const spIdecoTotalNetWithdrawal = Math.max(0, spIdecoTotalGross - spIdecoTotalTax);
 
   return {
     last: snaps[snaps.length - 1].totalAssets,
-    pV, pA, dA, fA, assetLife, withdrawalRate, breakEven,
+    pV, pA, dA, fA, assetLife, withdrawalRate, breakEven, penAgeAssets,
     idecoLumpNet, idecoLumpTax, idecoTotalTax, idecoTotalNetWithdrawal, idecoStartBalance, severanceNetKPI,
-    spIdecoLumpNet, spSeveranceNetKPI, spRetirementTaxKPI,
+    spIdecoLumpNet, spIdecoTotalTax, spIdecoTotalNetWithdrawal, spSeveranceNetKPI, spRetirementTaxKPI,
   };
 }
