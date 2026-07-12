@@ -30,7 +30,7 @@ export interface AccountState {
 export interface SpouseAcct {
   nisa:  { bal: number; con: number; toAge: number };
   ideco: { bal: number; con: number; toAge: number };
-  tax:   { bal: number; con: number; toAge: number };
+  tax:   { bal: number; con: number; toAge: number; costBasis?: number };
   cash?: { bal: number };
 }
 

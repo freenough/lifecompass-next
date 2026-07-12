@@ -45,7 +45,7 @@ export function simulate(
   let spIdeco = p.spouse?.acct?.ideco?.bal ?? 0;
   let spTax   = p.spouse?.acct?.tax?.bal   ?? 0;
   let spCash  = p.spouse?.acct?.cash?.bal  ?? 0;
-  let spTaxCostBasis = p.spouse?.acct?.tax?.bal ?? 0;
+  let spTaxCostBasis = p.spouse?.acct?.tax?.costBasis ?? p.spouse?.acct?.tax?.bal ?? 0;
 
   // ── Main iDeCo state ──
   let idecoExitDone = false;
@@ -397,27 +397,34 @@ export function simulate(
         cash += surplus;
       } else {
         const need = -surplus;
-        // idecoStartAge未到達の間はiDeCoを取崩対象から除外
-        const idecoLocked = idecoStatus === 'accumulation';
+        // iDeCoは「accumulation（受給開始前）」「pension（年金受給中）」のいずれでも
+        // 専用の固定スケジュール払い出し以外から取崩対象にしない（本人・配偶者は独立判定）。
+        // 年金受給中の追加取り崩しは実際の制度と矛盾するため、withdraw()の対象口座から常に除外する。
+        const idecoLocked   = idecoStatus   === 'accumulation' || idecoStatus   === 'pension';
+        const spIdecoLocked = spIdecoStatus === 'accumulation' || spIdecoStatus === 'pension';
         const cn = nisa + spNisa;
-        const ci = idecoLocked ? 0 : (ideco + spIdeco);
+        const ciMain = idecoLocked   ? 0 : ideco;
+        const ciSp   = spIdecoLocked ? 0 : spIdeco;
+        const ci = ciMain + ciSp;
         const ct = tax + spTax, cc = cash + spCash;
         const ccb = taxCostBasis + spTaxCostBasis;
 
-        // iDeCoロック中（受給開始前）は、iDeCo以外の資産（NISA・特定口座・現金）
-        // だけで生活費不足を賄いきれない場合、iDeCo残高自体は正でも実質的な資金
-        // ショート（破綻）とみなす。iDeCoは原則中途引き出し不可のため、残高の
-        // 有無は判定に含めない。withdraw()を呼ぶ前のこの時点でチェックすることで、
-        // withdraw()本体・WithdrawResult型には一切手を入れずに済む。
-        if (idecoLocked && need > cn + ct + cc) {
+        // iDeCoロック中（本人・配偶者いずれか）は、iDeCo以外の資産（NISA・特定口座・現金、
+        // および相手方の取崩可能なiDeCo）だけで生活費不足を賄いきれない場合、ロックされた
+        // iDeCo残高自体は正でも実質的な資金ショート（破綻）とみなす。iDeCoは原則中途引き出し
+        // 不可のため、ロックされた残高の有無は判定に含めない。withdraw()を呼ぶ前のこの時点で
+        // チェックすることで、withdraw()本体・WithdrawResult型には一切手を入れずに済む。
+        const anyIdecoLocked = (idecoLocked && ideco > 0) || (spIdecoLocked && spIdeco > 0);
+        if (anyIdecoLocked && need > cn + ci + ct + cc) {
           idecoLockedBankrupt = true;
         } else {
           const res = withdraw(cn, ci, ct, cc, ccb, need, strategy);
           if (cn > 0) { const r = res.nisa  / cn; nisa  = r * (cn - spNisa);  spNisa  = r * spNisa;  }
           else        { nisa = 0; spNisa = 0; }
-          if (!idecoLocked) {
-            if (ci > 0) { const r = res.ideco / ci; ideco = r * (ci - spIdeco); spIdeco = r * spIdeco; }
-            else        { ideco = 0; spIdeco = 0; }
+          if (ci > 0) {
+            const r = res.ideco / ci;
+            if (!idecoLocked)   ideco   = r * ciMain;
+            if (!spIdecoLocked) spIdeco = r * ciSp;
           }
           if (ct > 0) { const r = res.tax   / ct; tax   = r * (ct - spTax);   spTax   = r * spTax;   }
           else        { tax = 0; spTax = 0; }

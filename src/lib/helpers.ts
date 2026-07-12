@@ -55,7 +55,8 @@ export function retirementTaxCalc(
   const hasSev = severanceAmount > 0;
   // 同一年に両方受け取る場合のみ控除を一本化（max）。別年受取はそれぞれ自分の年数のみを使う。
   // 近似実装: 税制上の重複期間按分調整（19年/9年ルール）は対象外（methodology参照）。
-  const yrs = Math.max(1, Math.floor(
+  // 勤続年数の1年未満の端数は切り上げ（国税庁No.1420）。
+  const yrs = Math.max(1, Math.ceil(
     hasIdeco && hasSev ? Math.max(dcYears, sevYears) :
     hasSev ? sevYears :
     dcYears
@@ -63,7 +64,11 @@ export function retirementTaxCalc(
   const deduction = yrs <= 20 ? 40 * yrs : 800 + 70 * (yrs - 20);
   const total = idecoBalance + severanceAmount;
   if (total <= 0) return { idecoNet: 0, severanceNet: 0, totalTax: 0 };
-  const taxable = Math.max(0, total - deduction) / 2;
+  const remaining = Math.max(0, total - deduction);
+  // 短期退職手当等（役員等以外・勤続年数5年以下）：控除後300万円を超える部分は1/2課税を適用しない。
+  const taxable = yrs <= 5
+    ? Math.min(remaining, 300) / 2 + Math.max(0, remaining - 300)
+    : remaining / 2;
   const totalTax = taxable * 0.20315;
   const taxRatio = totalTax / total;
   return {

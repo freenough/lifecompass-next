@@ -408,6 +408,9 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
   const idecoEligible = calcIdecoEligibleAge(idecoYrs, p.curAge, p.cIdecoTo);
   const idecoStartAge = Math.max(idecoEligible, Math.min(75, p.idecoStartAge));
 
+  const spIdecoEligible = calcIdecoEligibleAge(p.spIdecoYrs || 0, p.spCurAge || p.curAge, p.spIdecoTo);
+  const spIdecoStartAge = Math.max(spIdecoEligible, Math.min(75, p.spIdecoStartAge || p.spRetAge || 60));
+
   const hasIdeco =
     p.bIdeco > 0 ||
     (p.cIdeco > 0 && p.cIdecoTo > p.curAge);
@@ -485,11 +488,11 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
           idecoReceiveType: p.spIdecoReceiveType  || 'lump',
           idecoReceiveYears: p.spIdecoReceiveYears || 10,
           idecoSplitRatio:  p.spIdecoSplitRatio    ?? 50,
-          idecoStartAge:    p.spIdecoStartAge || p.spRetAge || 60,
+          idecoStartAge:    spIdecoStartAge,
           acct: {
             nisa:  { bal: p.spNisaBal  ?? 0, con: p.spNisaCon  ?? 0, toAge: p.spNisaTo  ?? p.spRetAge ?? 60 },
             ideco: { bal: p.spIdecoBal ?? 0, con: p.spIdecoCon ?? 0, toAge: p.spIdecoTo ?? p.spRetAge ?? 60 },
-            tax:   { bal: p.spTaxBal   ?? 0, con: p.spTaxCon   ?? 0, toAge: p.spTaxTo   ?? p.spRetAge ?? 60 },
+            tax:   { bal: p.spTaxBal   ?? 0, con: p.spTaxCon   ?? 0, toAge: p.spTaxTo   ?? p.spRetAge ?? 60, costBasis: p.spTaxBal ?? 0 },
             cash:  { bal: p.spCashBal  ?? 0 },
           },
         }
