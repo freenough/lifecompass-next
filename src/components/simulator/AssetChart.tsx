@@ -31,11 +31,42 @@ export const STRATEGY_LABELS: Record<string, string> = {
 };
 
 // 2番目以降の戦略ライン色（比較時）。先頭（idx===0）は常にプライマリ色(#3b82f6)。
+// MonteCarloPanel等、chartの外側（色ドット表示）で使用。
 export const STRATEGY_COLORS_SUB: Record<string, string> = {
   cash_first:    '#7dd3fc',
   taxable_first: '#94a3b8',
 };
 export const STRATEGY_PRIMARY_COLOR = '#3b82f6';
+
+// 戦略ごとの識別スタイル（色+線種）。基準戦略(displayStrategy)がどれであっても、
+// 同じ戦略は常に同じ見た目にする（学習コストを下げるため、基準切り替えで色/線種そのものは変えない）。
+// 太さ・不透明度は別途「基準かどうか」で動的に切り替える（呼び出し側で isPrimary 判定）。
+// color: 識別色（凡例・MC帯の色にも使う）。lineColor: 実際に線として描く色（未指定ならcolorと同じ）。
+// 課税優先はMC帯の色（グレー）と中央値線の色が同化しないよう、線だけワントーン暗くする
+// （mc_band_opacity_too_darkで調整。帯自体の色はcolor=#94a3b8のまま変えない）。
+export const STRATEGY_STYLE: Record<string, { color: string; lineColor?: string; dash?: string }> = {
+  proportional:  { color: '#3b82f6' },                                    // 実線
+  cash_first:    { color: '#7dd3fc', dash: '8 4' },                       // 破線（長め）
+  taxable_first: { color: '#94a3b8', lineColor: '#64748b', dash: '2 3' }, // 点線（短め）
+};
+function getStrategyStyle(st: string) {
+  const s = STRATEGY_STYLE[st] ?? { color: '#94a3b8' };
+  return { color: s.color, lineColor: s.lineColor ?? s.color, dash: s.dash };
+}
+
+// MCモードのp10〜p90帯（塗りつぶし）は基準戦略の色に連動させる。
+// 帯は面積の広い背景要素なので、数値以上に濃く見える。「帯の存在は分かるが、
+// その上の中央値線が主役として見える」濃さに抑える（mc_band_opacity_too_darkで調整）。
+// グレー（課税優先）は彩度が低く薄く見えるため、他戦略よりfillOpacityをわずかに高めにする。
+// 境界線（#93c5fd・ドット、mc_p10_p90_color_collisionで固定済み）は基準戦略に関わらず変えない。
+const BAND_FILL_OPACITY: Record<string, number> = {
+  proportional:  0.15,
+  cash_first:    0.18,
+  taxable_first: 0.2,
+};
+function getBandFill(st: string) {
+  return { color: getStrategyStyle(st).color, opacity: BAND_FILL_OPACITY[st] ?? 0.4 };
+}
 
 const SCENARIO_CONFIG = [
   { key: 'optimistic' as ScenarioKey, label: '楽観(+2%)', color: '#3b82f6', delta: +2 },
@@ -191,15 +222,21 @@ export default function AssetChart({
               <Legend wrapperStyle={{ fontSize: '12px', display: 'flex', flexWrap: 'wrap', gap: '4px 12px', paddingTop: '4px' }} />
               <EventLines {...eventProps} />
               <FireLines />
-              <Area dataKey="p90" fill="#bfdbfe" stroke="#93c5fd" name="p90" fillOpacity={0.4} />
-              <Area dataKey="p10" fill="#ffffff" stroke="#93c5fd" name="p10" fillOpacity={1} />
-              {activeStrategies.map((st, idx) => {
+              <Area dataKey="p90" legendType="plainline" fill={getBandFill(baseStrategy).color} fillOpacity={getBandFill(baseStrategy).opacity}
+                stroke="#93c5fd" strokeWidth={1} strokeOpacity={0.55} strokeDasharray="1 3" name="p90" />
+              <Area dataKey="p10" legendType="plainline" fill="#ffffff" fillOpacity={1}
+                stroke="#93c5fd" strokeWidth={1} strokeOpacity={0.55} strokeDasharray="1 3" name="p10" />
+              {activeStrategies.map(st => {
                 const label = isMulti ? (STRATEGY_LABELS[st] ?? st) : '中央値';
+                const isPrimary = st === baseStrategy;
+                const { lineColor, dash } = getStrategyStyle(st);
                 return (
                   <Line key={st} dataKey={label}
-                    stroke={idx === 0 ? STRATEGY_PRIMARY_COLOR : (STRATEGY_COLORS_SUB[st] ?? '#94a3b8')}
-                    strokeWidth={idx === 0 ? 2 : 1.5}
-                    strokeDasharray={idx === 0 ? undefined : '3 3'}
+                    legendType="plainline"
+                    stroke={lineColor}
+                    strokeDasharray={dash}
+                    strokeWidth={isPrimary ? 3 : 1.5}
+                    strokeOpacity={isPrimary ? 1 : 0.65}
                     dot={false} />
                 );
               })}
@@ -356,14 +393,17 @@ export default function AssetChart({
             <Line dataKey="実質値" stroke="#8b5cf6"
               strokeWidth={1.5} strokeDasharray="2 2" dot={false} />
           )}
-          {activeStrategies.map((st, idx) => {
+          {activeStrategies.map(st => {
             const label = STRATEGY_LABELS[st] ?? st;
-            const isPrimary = idx === 0;
+            const isPrimary = st === baseStrategy;
+            const { lineColor, dash } = getStrategyStyle(st);
             return (
               <Line key={st} dataKey={label}
-                stroke={isPrimary ? '#3b82f6' : (STRATEGY_COLORS_SUB[st] ?? '#94a3b8')}
-                strokeWidth={isPrimary ? 2 : 1.5}
-                strokeDasharray={isPrimary ? undefined : '3 3'}
+                legendType="plainline"
+                stroke={lineColor}
+                strokeDasharray={dash}
+                strokeWidth={isPrimary ? 3 : 1.5}
+                strokeOpacity={isPrimary ? 1 : 0.65}
                 dot={false} />
             );
           })}
