@@ -1,11 +1,16 @@
 'use client';
 
 import KpiCard from '@/components/simulator/KpiCard';
+import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
 
 interface StickyKpiBarProps {
   visible: boolean;
   fA: number | null;
   dA: number | null;
+  lifeEx: number;
+  // 退職後/FIRE達成後最低充足率（KpiGrid.tsxの「FIRE達成」カードと同じ値）。
+  // スティッキーバーは情報密度が限られるため、サブテキスト表示はせず色分けの判定にのみ使う。
+  minRatio: number | null;
   bankruptcyRate?: number | null;
 }
 
@@ -26,14 +31,15 @@ type Variant = 'good' | 'warn' | 'danger' | 'neutral';
  * 変更すると自動的にnullへリセットされるため、この基準の方が「タブは選んだがまだ
  * 実行していない」「実行後に入力を変えた」状態を正しく資産寿命表示に倒せる。
  */
-export default function StickyKpiBar({ visible, fA, dA, bankruptcyRate }: StickyKpiBarProps) {
+export default function StickyKpiBar({ visible, fA, dA, lifeEx, minRatio, bankruptcyRate }: StickyKpiBarProps) {
   if (!visible) return null;
 
   const fireAchieved = fA != null;
   const leftCard: { label: string; value: string; variant: Variant } = {
     label: 'FIRE達成',
-    value: fireAchieved ? `${fA}歳` : '未達成',
-    variant: fireAchieved ? 'good' : 'warn',
+    value: fireAchieved ? `${fA}歳で達成` : '未達成',
+    // KpiGrid.tsxの「FIRE達成」カードと同じ共通関数（fireSafetyVariant）を参照
+    variant: fireSafetyVariant(minRatio),
   };
 
   const rightCard: { label: string; value: string; variant: Variant } = bankruptcyRate != null
@@ -46,8 +52,8 @@ export default function StickyKpiBar({ visible, fA, dA, bankruptcyRate }: Sticky
     : {
         label: '資産寿命',
         value: dA == null ? '枯渇なし' : `${dA}歳で枯渇`,
-        // KpiGrid.tsxの資産寿命カードと同じ判定（枯渇なし=緑／枯渇あり=赤）
-        variant: dA == null ? 'good' : 'danger',
+        // KpiGrid.tsxの資産寿命カードと同じ共通関数（assetLongevityVariant）を参照
+        variant: assetLongevityVariant(dA, lifeEx),
       };
 
   return (

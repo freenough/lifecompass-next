@@ -140,12 +140,13 @@ export default function GuidePage() {
         <div className="space-y-4 text-sm text-slate-600">
           <div>
             <h3 className="font-medium text-slate-700 mb-1">資産寿命</h3>
-            <p>退職時の資産が何歳まで持つかを示します。余命(終端年齢)まで資産が残る場合は「枯渇なし」と表示されます。</p>
+            <p>退職時の資産が何歳まで持つかを示します。余命(終端年齢)まで資産が残る場合は「枯渇なし」(緑)と表示されます。枯渇する場合、余命の5年以内であれば「注意」(黄)、それより早い時期であれば「危険」(赤)として色分けされます。</p>
           </div>
           <div>
-            <h3 className="font-medium text-slate-700 mb-1">FIRE達成年齢・FIRE達成率</h3>
+            <h3 className="font-medium text-slate-700 mb-1">FIRE達成年齢・退職後最低充足率</h3>
             <p className="mb-1"><span className="font-medium text-slate-700">FIRE達成年齢</span>は、取崩期を通じて総資産が「年間支出×25倍」を下回らない最速の退職年齢です。この水準を維持できれば、理論上は資産運用のみで生活できるという考え方(4%ルール)にもとづいています。</p>
-            <p><span className="font-medium text-slate-700">FIRE達成率</span>は、資産が「年間支出×25倍」の何%に達しているかを示します。達成済みの場合はFIRE達成年齢時点、未達成の場合は退職予定年齢時点の資産をもとに計算されます。達成できない場合は「未達成」と表示されます。</p>
+            <p className="mb-1">カードのサブテキストには、達成済みの場合は<span className="font-medium text-slate-700">FIRE達成後最低充足率</span>、未達成の場合は<span className="font-medium text-slate-700">退職後最低充足率</span>が表示されます。これは、退職後(達成済みの場合はFIRE達成後)の期間を通じて、資産が「年間支出×25倍」に対して最も少なかった時点の充足率です。一時的に100%を下回る時期があると、達成年齢が確定していても、その時期だけ資産に余裕がなくなることを示しています。</p>
+            <p>退職した瞬間だけを切り取った「退職時充足率」は、詳細指標(アコーディオン内)で別途確認できます。こちらは退職後の期間全体ではなく、退職時点1年分のみの充足率です。</p>
           </div>
           <div>
             <h3 className="font-medium text-slate-700 mb-1">資産取り崩し開始</h3>
@@ -153,12 +154,24 @@ export default function GuidePage() {
             <p>退職以降ずっと収支が均衡し取り崩しが発生しない場合は「転換なし」と表示されます。</p>
           </div>
           <div>
+            <h3 className="font-medium text-slate-700 mb-1">退職時充足率</h3>
+            <p>退職した瞬間の資産が、「その年の年間支出×25倍」の何%に達しているかを示します。FIRE達成年齢カードの「退職後最低充足率」とは異なり、退職時点1年分だけを切り取った値です。詳細指標(アコーディオン)で確認できます。</p>
+          </div>
+          <div>
             <h3 className="font-medium text-slate-700 mb-1">初年度取崩率</h3>
             <p>退職直後の年間引き出し額が、退職時点の総資産に対して何%にあたるかを示します。一般に、この比率が低いほど資産が長持ちしやすいとされ、3%未満を目安とする考え方があります。</p>
           </div>
           <div>
+            <h3 className="font-medium text-slate-700 mb-1">年金開始時資産</h3>
+            <p>公的年金の受給が始まる年齢時点での資産残高です。詳細指標(アコーディオン)で確認できます。</p>
+          </div>
+          <div>
+            <h3 className="font-medium text-slate-700 mb-1">年金開始までの年数</h3>
+            <p>退職年齢から年金受給開始年齢までの年数です。この期間は年金収入がなく資産を取り崩して生活するため、長いほど市場変動の影響を受けやすい期間になります。詳細指標(アコーディオン)で確認できます。</p>
+          </div>
+          <div>
             <h3 className="font-medium text-slate-700 mb-1">破綻確率(モンテカルロ)</h3>
-            <p>1,000通りの市場シナリオのうち、余命(終端年齢)までに資産が枯渇した割合です。5%未満を目安に安全圏とする考え方が一般的です。詳細は<Link href="/methodology" className="underline text-slate-500">計算ロジック</Link>をご覧ください。</p>
+            <p>1,000通りの市場シナリオのうち、余命(終端年齢)までに資産が枯渇した割合です。5%未満を目安に安全圏(緑)、5〜15%は注意(黄)、15%以上は危険水準(赤)として色分けしています。詳細は<Link href="/methodology" className="underline text-slate-500">計算ロジック</Link>をご覧ください。</p>
           </div>
           <div>
             <h3 className="font-medium text-slate-700 mb-1">最終資産・資産ピーク</h3>

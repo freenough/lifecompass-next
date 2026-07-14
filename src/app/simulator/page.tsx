@@ -94,15 +94,10 @@ export default function SimulatorPage() {
   const unconfiguredAccounts = getUnconfiguredAccounts(profile);
   // 最終資産KPIの黄/緑判定用：最終年（インフレ調整後・名目）の年間支出
   const lastExpense  = baseSnaps.length > 0 ? baseSnaps[baseSnaps.length - 1].expense : 0;
-  // FIRE達成率（未達成時）：初年度取崩率と同じretSnap取得パターンに揃える（退職時点のスナップショット）
+  // 退職時充足率（詳細アコーディオン用）：退職時点のスナップショットで資産÷(支出×25)を計算
   const retSnap = baseSnaps.find(s => s.age === p.retAge);
   const fireAchievementRate = retSnap && retSnap.expense > 0
     ? Math.round((retSnap.totalAssets / (retSnap.expense * 25)) * 100)
-    : null;
-  // FIRE達成率（達成時）：同じパターンでage===p.retAgeをage===a.fAに差し替え、FIRE達成年齢時点のスナップショットを使う
-  const fireAgeSnap = baseAnalysis.fA != null ? baseSnaps.find(s => s.age === baseAnalysis.fA) : undefined;
-  const fireAchievementRateAtFA = fireAgeSnap && fireAgeSnap.expense > 0
-    ? Math.round((fireAgeSnap.totalAssets / (fireAgeSnap.expense * 25)) * 100)
     : null;
 
   if (!mounted) return (
@@ -317,9 +312,9 @@ export default function SimulatorPage() {
               strategy={strategy}
               activeStrategies={activeStrategies}
               lifeEx={p.lifeEx}
+              retAge={p.retAge}
               lastExpense={lastExpense}
               fireAchievementRate={fireAchievementRate}
-              fireAchievementRateAtFA={fireAchievementRateAtFA}
               penAge={p.penAge}
               idecoReceiveType={profile.params.idecoReceiveType ?? 'lump'}
               spIdecoReceiveType={profile.params.spIdecoReceiveType ?? 'lump'}
@@ -365,6 +360,8 @@ export default function SimulatorPage() {
         visible={formInView && !kpiInView}
         fA={baseAnalysis.fA}
         dA={baseAnalysis.dA}
+        lifeEx={p.lifeEx}
+        minRatio={baseAnalysis.minRatio}
         bankruptcyRate={mcResult?.strategies[strategy as keyof typeof mcResult.strategies]?.bankruptcyRate}
       />
     </div>

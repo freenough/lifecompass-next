@@ -155,6 +155,12 @@ export interface AnalysisResult {
   pA: number;
   dA: number | null;
   fA: number | null;
+  // 退職後最低充足率：totalAssets/(baseExp×25)×100 の最小値(%)と、その最小値を記録した年齢。
+  // 達成時(fA!=null)はfA以降のみ、未達成時(fA==null)はretAge以降全体で計算する
+  // （lifetime_min_ratio_naming_fixで確定）。この結果、fA != null ⇒ minRatio >= 100 が
+  // 常に成立する（逆に、fA以前に一時的にラインを割った期間があってもminRatioには反映されない）。
+  minRatio: number | null;
+  minRatioAge: number | null;
   assetLife: number | null;
   withdrawalRate: number | null;
   breakEven: number | null;

@@ -17,6 +17,26 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
     }
   }
 
+  // 退職後最低充足率：totalAssets / (baseExp×25) の最小値と、その年齢を追跡する。
+  // 達成時(fA != null)はfA以降のみを見る（fA以前の一時的な谷は定義上fAの成立に影響しないため、
+  // ここに含めると「◯◯歳で達成」というメイン表示と矛盾する100%未満の値が出てしまう。
+  // fA以降は定義上必ずラインを割らないため、この範囲の最小値は必ず100%以上になる）。
+  // 未達成時(fA == null)は比較対象のfAがないため、従来通りretAge〜lifeEx全体を見る
+  // （積立期は対象外。積立途上でラインに届いていないのは当然のため、これを含めると
+  // 「退職後のリスク」を示す指標として機能しなくなる）。
+  const minRatioStartAge = fA ?? p.retAge;
+  let minRatio: number | null = null;
+  let minRatioAge: number | null = null;
+  for (const s of snaps) {
+    if (s.age >= minRatioStartAge && s.baseExp != null) {
+      const ratio = (s.totalAssets / (s.baseExp * 25)) * 100;
+      if (minRatio === null || ratio < minRatio) {
+        minRatio = ratio;
+        minRatioAge = s.age;
+      }
+    }
+  }
+
   const assetLife = dA ? dA - p.retAge : null;
 
   const retSnap = snaps.find(s => s.age === p.retAge);
@@ -65,7 +85,7 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
 
   return {
     last: snaps[snaps.length - 1].totalAssets,
-    pV, pA, dA, fA, assetLife, withdrawalRate, breakEven, penAgeAssets,
+    pV, pA, dA, fA, minRatio, minRatioAge, assetLife, withdrawalRate, breakEven, penAgeAssets,
     idecoLumpNet, idecoLumpTax, idecoTotalTax, idecoTotalNetWithdrawal, idecoStartBalance, severanceNetKPI,
     spIdecoLumpNet, spIdecoTotalTax, spIdecoTotalNetWithdrawal, spSeveranceNetKPI, spRetirementTaxKPI,
   };

@@ -8,6 +8,7 @@ import { simulate, analyze, runMC } from '@/lib';
 import type { SimParams, LifeEvent } from '@/lib/types';
 import KpiCard from '@/components/simulator/KpiCard';
 import { formatYen, addFireLines, FireLines, EventLines } from '@/components/simulator/AssetChart';
+import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
 
 const DEMO_PROFILE: SimParams = {
   curAge: 35, lifeEx: 90,
@@ -107,7 +108,8 @@ const KPI_LABELS = ['FIRE達成', '資産寿命', 'MC破綻率'];
 
 export default function HeroDemo() {
   const [fireAge, setFireAge] = useState<number | null>(null);
-  const [assetLifeNull, setAssetLifeNull] = useState(false);
+  const [minRatio, setMinRatio] = useState<number | null>(null);
+  const [dA, setDA] = useState<number | null>(null);
   const [bankruptcyRate, setBankruptcyRate] = useState<number | null>(null);
   const [chartData, setChartData] = useState<ChartRow[]>([]);
   const [visible, setVisible] = useState(false);
@@ -122,7 +124,8 @@ export default function HeroDemo() {
     const snaps = simulate(DEMO_PROFILE, DEMO_EVENTS, 'cash_first');
     const a = analyze(snaps, DEMO_PROFILE);
     setFireAge(a.fA);
-    setAssetLifeNull(a.assetLife === null);
+    setMinRatio(a.minRatio);
+    setDA(a.dA);
 
     const mc = runMC(DEMO_PROFILE, DEMO_EVENTS, ['cash_first'], 1000);
     const rate = mc.strategies.cash_first.bankruptcyRate;
@@ -145,20 +148,21 @@ export default function HeroDemo() {
   const fireAgeVal = useCountUp(fireAge, 1200, 0);
   const rateVal    = useCountUp(bankruptcyRate, 1500, 1);
 
-  // 計算完了（chartDataが埋まった時点）まではneutral（灰）にし、シミュレーター実機と同じ
-  // 状態色ロジック（FIRE達成＝緑/未達成＝黄、資産寿命＝枯渇なし緑/枯渇あり赤、
-  // MC破綻確率＝5%未満緑・5〜15%黄・15%以上赤）を適用する。
+  // 計算完了（chartDataが埋まった時点）まではneutral（灰）にし、シミュレーター実機（KpiGrid.tsx）
+  // と同じ状態色ロジックを共通関数（kpi-thresholds.ts）経由で適用する
+  // （FIRE達成＝minRatioベース3段階、資産寿命＝lifeEx-5年以内で黄の3段階、
+  // MC破綻確率＝5%未満緑・5〜15%黄・15%以上赤）。
   const loaded = chartData.length > 0;
   type Variant = 'good' | 'warn' | 'danger' | 'neutral';
   const kpiVariants: Variant[] = [
-    !loaded ? 'neutral' : (fireAge != null ? 'good' : 'warn'),
-    !loaded ? 'neutral' : (assetLifeNull ? 'good' : 'danger'),
+    !loaded ? 'neutral' : fireSafetyVariant(minRatio),
+    !loaded ? 'neutral' : assetLongevityVariant(dA, DEMO_PROFILE.lifeEx),
     !loaded || bankruptcyRate == null ? 'neutral' : (bankruptcyRate < 5 ? 'good' : bankruptcyRate < 15 ? 'warn' : 'danger'),
   ];
 
   const kpiValues = [
-    fireAge === null      ? '—' : `${Math.round(fireAgeVal)}歳`,
-    bankruptcyRate === null ? '—' : assetLifeNull ? '枯渇なし' : `${DEMO_PROFILE.lifeEx}歳`,
+    !loaded ? '—' : (fireAge != null ? `${Math.round(fireAgeVal)}歳で達成` : '未達成'),
+    !loaded ? '—' : (dA == null ? '枯渇なし' : `${dA}歳で枯渇`),
     bankruptcyRate === null ? '—' : `${rateVal.toFixed(1)}%`,
   ];
 

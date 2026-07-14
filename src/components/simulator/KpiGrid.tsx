@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { AnalysisResult, MCResult } from '@/lib/types';
 import KpiCard from '@/components/simulator/KpiCard';
 import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
+import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
 
 interface KpiGridProps {
   analysis: AnalysisResult;
@@ -14,10 +15,12 @@ interface KpiGridProps {
   strategy: string;
   activeStrategies: string[];
   lifeEx: number;
+  retAge: number;
   penAge: number;
   lastExpense: number;
+  // 退職時充足率（詳細アコーディオン用）：退職年齢時点1年分のスナップショットで
+  // 「資産 ÷ 支出×25」を計算した値。FIRE達成カードの退職後/FIRE達成後最低充足率(minRatio)とは別指標。
   fireAchievementRate: number | null;
-  fireAchievementRateAtFA: number | null;
   idecoReceiveType?: 'lump' | 'pension' | 'split';
   spIdecoReceiveType?: 'lump' | 'pension' | 'split';
   hasIdeco: boolean;
@@ -30,10 +33,6 @@ function fmt(v: number | null | undefined, suffix = '万円'): string {
   if (v == null) return '—';
   if (v >= 10000) return `${(v / 10000).toFixed(1)}億円`;
   return `${Math.round(v).toLocaleString()}${suffix}`;
-}
-
-function ageStr(v: number | null | undefined): string {
-  return v == null ? '—' : `${v}歳`;
 }
 
 function SpouseRow({ label, value }: { label: string; value: string }) {
@@ -54,13 +53,20 @@ function TaxSubline({ value }: { value: string }) {
 }
 
 export default function KpiGrid({
-  analysis: a, mcResult, mode, strategy, activeStrategies, lifeEx, penAge, lastExpense, fireAchievementRate, fireAchievementRateAtFA, idecoReceiveType, spIdecoReceiveType,
+  analysis: a, mcResult, mode, strategy, activeStrategies, lifeEx, retAge, penAge, lastExpense, fireAchievementRate, idecoReceiveType, spIdecoReceiveType,
   hasIdeco, spHasIdeco, hasSeverance,
 }: KpiGridProps) {
   const [eventsOpen, setEventsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
-  // FIRE達成: 達成時はFIRE達成年齢時点、未達成時は退職予定年齢時点のスナップショットで「達成率（資産 ÷ 支出×25）」を表示する
+  // FIRE達成：達成(fA != null)時はFIRE達成年齢、未達成時は「未達成」を表示。
+  // 根拠となるサブ値はminRatio（退職後/FIRE達成後最低充足率）。ラベル文言は状態で出し分ける
+  // （lifetime_min_ratio_label_switch.md：達成時「FIRE達成後最低充足率」・未達成時「退職後最低充足率」）。
   const fireAchieved = a.fA != null;
+  const minRatioRounded = a.minRatio != null ? Math.round(a.minRatio) : null;
+  const minRatioLabel = fireAchieved ? 'FIRE達成後最低充足率' : '退職後最低充足率';
+  // 閾値・判定はStickyKpiBar.tsxと共有するfireSafetyVariant()に切り出し済み（sticky_kpi_bar_fire_safety_sync）。
+  const fireVariant = fireSafetyVariant(a.minRatio);
 
   const isMultiStrategy = activeStrategies.length > 1;
   const mcStrat = mcResult?.strategies[strategy as keyof typeof mcResult.strategies];
@@ -94,26 +100,29 @@ export default function KpiGrid({
   const wrStr = wr != null ? `${wr.toFixed(1)}%` : '—';
   const wrVariant: 'good' | 'warn' | 'danger' | 'neutral' =
     wr == null ? 'neutral' : wr < 3 ? 'good' : wr < 5 ? 'warn' : 'danger';
-  const wrSub = wr != null ? '退職直後の引出率' : '退職時に資産ゼロ';
+  const wrLabel = wr == null ? null : wr < 3 ? '適正' : wr < 5 ? 'やや高め' : '過大';
+  const wrSub = wr != null ? `退職直後の引出率・${wrLabel}` : '退職時に資産ゼロ';
 
   // 資産寿命：値を年齢主役に統一し、3分岐（枯渇＜余命／枯渇≧余命／枯渇なし）を復元。
   // 「枯渇なし」の表示文言自体は維持しつつ、旧版にあった補足テキストを追加する。
-  let dAVariant: 'good' | 'danger';
+  // kpi_grid_redesign.md：黄色を追加（終端年齢の5年以内に枯渇する場合は黄、それより早ければ赤）。
+  // 閾値・判定はStickyKpiBar.tsxと共有するassetLongevityVariant()に切り出し済み（sticky_kpi_bar_asset_longevity_sync_1）。
+  const dAVariant = assetLongevityVariant(a.dA, lifeEx);
   let dAValue: string;
   let dASub: string;
   if (a.dA != null && a.dA < lifeEx) {
-    dAVariant = 'danger';
     dAValue = `${a.dA}歳で枯渇`;
     dASub = `退職後${a.assetLife}年で資産ゼロ`;
   } else if (a.dA != null) {
-    dAVariant = 'danger';
     dAValue = `${lifeEx - 1}歳まで存続`;
     dASub = `${lifeEx}歳時点で資産ゼロ`;
   } else {
-    dAVariant = 'good';
     dAValue = '枯渇なし';
     dASub = `${lifeEx}歳時点でも資産残存`;
   }
+
+  // 年金開始までの年数（新規）：年金受給開始年齢 - 退職年齢。既に退職済みのケースの基準切り替えは対象外。
+  const yearsToPension = penAge - retAge;
 
   // 年金開始時資産：本人の年金開始年齢（penAge）時点の総資産。退職〜年金開始までの
   // 「年金空白期間」でどれだけ取り崩したかの目安。該当年齢のスナップショットがない場合は
@@ -153,25 +162,21 @@ export default function KpiGrid({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* メインKPI：常時表示6枠（モバイル2列→3行、SM以上3列→2行） */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {/* トップKPI：「生涯を通じて安全か」に統一した4枠（モバイル2×2、SM以上1行4列） */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard
           label="資産寿命"
           value={dAValue}
           sub={dASub}
           variant={dAVariant}
-          tooltip="退職後に資産が枯渇する年齢。「枯渇なし」は終端年齢まで資産がプラスを維持することを示します。"
+          tooltip="退職後に資産が枯渇する年齢。「枯渇なし」は終端年齢まで資産がプラスを維持することを示します。終端年齢の5年以内に枯渇する場合は要注意、それより早い場合はリスク大の目安です。"
         />
         <KpiCard
           label="FIRE達成"
-          value={fireAchieved ? ageStr(a.fA) : '未達成'}
-          sub={
-            fireAchieved
-              ? (fireAchievementRateAtFA != null ? `達成率 ${fireAchievementRateAtFA}%` : '算出不可')
-              : (fireAchievementRate != null ? `達成率 ${fireAchievementRate}%` : '算出不可')
-          }
-          variant={fireAchieved ? 'good' : 'warn'}
-          tooltip="取崩期を通じて資産が「年間支出×25」を下回らない最速の退職年齢。達成できない場合は「未達成」を表示します。FIRE達成率は、達成時はFIRE達成年齢時点、未達成時は退職予定年齢時点の資産が、「年間支出×25」の何%に達しているかを表します。"
+          value={fireAchieved ? `${a.fA}歳で達成` : '未達成'}
+          sub={minRatioRounded != null ? `${minRatioLabel} ${minRatioRounded}%` : '算出不可'}
+          variant={fireVariant}
+          tooltip={`取崩期を通じて資産が「年間支出×25」を下回らない最速の退職年齢。${minRatioLabel}は、${fireAchieved ? 'その年齢以降' : '退職後'}で資産に最も余裕がなかった年（${a.minRatioAge != null ? `${a.minRatioAge}歳` : '算出不可'}）の充足率です。100%以上が安全、80%未満は要注意の目安です。`}
         />
         <KpiCard
           label="MC 破綻確率"
@@ -191,19 +196,46 @@ export default function KpiGrid({
           variant={lastVariant}
           tooltip="終端年齢（余命設定）時点の総資産額。最終年の年間支出1年分を下回ると「残高わずか」、0円以下は「枯渇」を示します。"
         />
-        <KpiCard
-          label="初年度取崩率"
-          value={wrStr}
-          sub={wrSub}
-          variant={wrVariant}
-          tooltip="退職初年度の実質引出額 ÷ 退職時総資産。3%未満が良好、5%以上は要注意の目安です。"
-        />
-        <KpiCard
-          label="年金開始時資産"
-          value={penAgeValue}
-          sub={penAgeSub}
-          tooltip="本人の年金受給開始年齢時点での総資産額。退職からこの年齢までの、いわゆる「年金空白期間」をどれだけ取り崩したかの目安になります。"
-        />
+      </div>
+
+      {/* 詳細指標：興味があれば深掘りする4枠（モバイル2×2、SM以上1行4列） */}
+      <div className="rounded-xl border border-slate-200 bg-white">
+        <button
+          onClick={() => setDetailsOpen(o => !o)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+        >
+          <span>詳細指標</span>
+          <span className="text-slate-400">{detailsOpen ? '▲' : '▼'}</span>
+        </button>
+        {detailsOpen && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4 pb-4">
+            <KpiCard
+              label="退職時充足率"
+              value={fireAchievementRate != null ? `${fireAchievementRate}%` : '算出不可'}
+              sub="退職した瞬間の充足率です"
+              tooltip="退職年齢時点1年分のスナップショットで、資産 ÷ (退職時支出×25) を計算した値。FIRE達成カードの「最低充足率」とは異なり、退職後の変動は反映されません。"
+            />
+            <KpiCard
+              label="初年度取崩率"
+              value={wrStr}
+              sub={wrSub}
+              variant={wrVariant}
+              tooltip="退職初年度の実質引出額 ÷ 退職時総資産。3%未満が良好、5%以上は要注意の目安です。"
+            />
+            <KpiCard
+              label="年金開始時資産"
+              value={penAgeValue}
+              sub={penAgeSub}
+              tooltip="本人の年金受給開始年齢時点での総資産額。退職からこの年齢までの、いわゆる「年金空白期間」をどれだけ取り崩したかの目安になります。"
+            />
+            <KpiCard
+              label="年金開始までの年数"
+              value={`${yearsToPension}年`}
+              sub="退職〜年金受給開始"
+              tooltip="年金受給開始年齢 − 退職年齢。この期間は年金収入がないため、資産の取り崩しに依存します。"
+            />
+          </div>
+        )}
       </div>
 
       {/* 退職イベント：退職金・iDeCo受給イベントがある場合のみアコーディオンで詳細表示 */}

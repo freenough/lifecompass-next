@@ -5,6 +5,10 @@ import { createPortal } from 'react-dom';
 
 const TOOLTIP_WIDTH = 208; // w-52相当
 const GAP = 8; // トリガーとの間隔（0.5rem相当）
+// 右端のみ左端(8px)より広め。clientWidth基準のクランプで機能上の「切れ」は解消済みだが、
+// 実ブラウザ(Windows Chrome/Edge等)ではスクロールバーの帯にツールチップの右端が
+// 数pxだけ重なって見える環境があるため、視覚的な余裕を持たせる（tooltip_right_margin_scrollbar_adjust）。
+const RIGHT_EDGE_MARGIN = 14;
 
 interface Pos { top: number; left: number; arrowLeft: number; openUp: boolean }
 
@@ -34,10 +38,17 @@ export default function InfoTooltip({ text }: { text: string }) {
   const tipRef = useRef<HTMLDivElement>(null);
 
   // 1st pass: トリガー直下・左揃えを起点に、横方向のはみ出しだけ先に解消する
+  // 基準幅は window.innerWidth ではなく document.documentElement.clientWidth を使う。
+  // innerWidthは縦スクロールバーを含んだ幅を返すため、classic方式のスクロールバー
+  // （Windows Chrome/Edge等、約15〜17px）がある環境では、innerWidth基準でクランプすると
+  // 計算上は画面内でも、スクロールバーの下に隠れて実際には見えない領域まで右端を
+  // 許してしまう。clientWidthはスクロールバーを除いた実際の描画可能幅を返すため、
+  // これを基準にすることで環境によらず確実に見える範囲に収める。
   useLayoutEffect(() => {
     if (!show || !btnRef.current) return;
     const b = btnRef.current.getBoundingClientRect();
-    const left = Math.min(Math.max(8, b.left), window.innerWidth - TOOLTIP_WIDTH - 8);
+    const viewportWidth = document.documentElement.clientWidth;
+    const left = Math.min(Math.max(8, b.left), viewportWidth - TOOLTIP_WIDTH - RIGHT_EDGE_MARGIN);
     setPos({ top: b.bottom + GAP, left, arrowLeft: b.left - left + b.width / 2 - 6, openUp: false });
   }, [show]);
 
