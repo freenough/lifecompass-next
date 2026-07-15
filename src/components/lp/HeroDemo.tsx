@@ -166,6 +166,16 @@ export default function HeroDemo() {
     bankruptcyRate === null ? '—' : `${rateVal.toFixed(1)}%`,
   ];
 
+  // FIRE達成カードのみサブテキストを表示する（StickyKpiBar.tsxと同じminRatioベースの1行、
+  // sticky_kpi_bar_subtext：改善案文言はKpiGrid.tsx本体のみに表示しここには含めない）
+  const minRatioRounded = minRatio != null ? Math.round(minRatio) : null;
+  const minRatioLabel = fireAge != null ? 'FIRE達成後最低充足率' : '退職後最低充足率';
+  const kpiSubs: (string | undefined)[] = [
+    loaded && minRatioRounded != null ? `${minRatioLabel} ${minRatioRounded}%` : undefined,
+    undefined,
+    undefined,
+  ];
+
   // Y軸目盛り：0/中間/最大の3段階のみ（LPとしての簡潔さを優先し、実機のような細かい目盛りは付けない）
   const maxVal = chartData.length > 0 ? Math.max(...chartData.map(r => r.p90)) : 0;
   const yMax = Math.max(5000, Math.ceil(maxVal / 5000) * 5000);
@@ -185,7 +195,7 @@ export default function HeroDemo() {
               transition: `opacity 0.4s ease ${i * 0.15}s, transform 0.4s ease ${i * 0.15}s`,
             }}
           >
-            <KpiCard label={label} value={kpiValues[i]} variant={kpiVariants[i]} size="sm" />
+            <KpiCard label={label} value={kpiValues[i]} sub={kpiSubs[i]} variant={kpiVariants[i]} size="sm" />
           </div>
         ))}
       </div>

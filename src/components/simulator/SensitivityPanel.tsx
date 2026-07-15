@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, R
 import { useSimulatorStore } from '@/store/simulatorStore';
 import { profileToSimParams } from '@/lib/profile';
 import { simulate } from '@/lib';
+import { buildRetirementExtension } from '@/lib/improvement-search';
 import type { YearSnap } from '@/lib/types';
 
 interface Deltas {
@@ -82,21 +83,28 @@ export default function SensitivityPanel() {
   const inflClamped = baseP.inflR + deltas.dI < 0;
 
   const newCurAge = Math.max(20, Math.min(baseP.lifeEx - 1, baseP.curAge + deltas.dAge));
+  const newRetAge = Math.max(newCurAge + 1, Math.min(baseP.lifeEx - 1, baseP.retAge + deltas.dA));
+  // 退職年齢の変化分は、口座別toAge連動+特定口座への合算積立を行うbuildRetirementExtension()に
+  // 委譲する(retirement_extension_rollout)。dAが負(退職前倒し)の場合も同じ関数を使ってよいことを
+  // 検証済み(素のretAge変更のみの場合と数値が完全一致するため、前倒し方向では実質no-opになる)。
+  const retDelta = newRetAge - baseP.retAge;
+  const { params: pRetExt, extraEvents: retExtraEvents } = buildRetirementExtension(baseP, retDelta);
+
   const altP = {
-    ...baseP,
+    ...pRetExt,
     curAge: newCurAge,
     inflR: Math.max(0, baseP.inflR + deltas.dI),
-    retAge: Math.max(newCurAge + 1, Math.min(baseP.lifeEx - 1, baseP.retAge + deltas.dA)),
     acct: {
-      nisa:  { ...baseP.acct.nisa,  rW: baseP.acct.nisa.rW  + deltas.dW, rR: baseP.acct.nisa.rR  + deltas.dR },
-      ideco: { ...baseP.acct.ideco, rW: baseP.acct.ideco.rW + deltas.dW, rR: baseP.acct.ideco.rR + deltas.dR },
-      tax:   { ...baseP.acct.tax,   rW: baseP.acct.tax.rW   + deltas.dW, rR: baseP.acct.tax.rR   + deltas.dR },
-      cash:  baseP.acct.cash,
+      nisa:  { ...pRetExt.acct.nisa,  rW: pRetExt.acct.nisa.rW  + deltas.dW, rR: pRetExt.acct.nisa.rR  + deltas.dR },
+      ideco: { ...pRetExt.acct.ideco, rW: pRetExt.acct.ideco.rW + deltas.dW, rR: pRetExt.acct.ideco.rR + deltas.dR },
+      tax:   { ...pRetExt.acct.tax,   rW: pRetExt.acct.tax.rW   + deltas.dW, rR: pRetExt.acct.tax.rR   + deltas.dR },
+      cash:  pRetExt.acct.cash,
     },
   };
+  const altEvs = retExtraEvents.length > 0 ? [...baseEvs, ...retExtraEvents] : baseEvs;
 
   const baseSnaps = simulate(baseP, baseEvs, strategy as 'proportional');
-  const altSnaps  = simulate(altP,  baseEvs, strategy as 'proportional');
+  const altSnaps  = simulate(altP,  altEvs,  strategy as 'proportional');
 
   const baseFire = findFireAge(baseSnaps, null);
   const sensFire = findFireAge(altSnaps, baseSnaps);

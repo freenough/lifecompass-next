@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import type { AnalysisResult, MCResult } from '@/lib/types';
+import { useMemo, useState } from 'react';
+import type { AnalysisResult, LifeEvent, MCResult, SimParams, WithdrawalStrategy } from '@/lib/types';
 import KpiCard from '@/components/simulator/KpiCard';
 import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
 import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
+import { findImprovementThresholds } from '@/lib/improvement-search';
 
 interface KpiGridProps {
   analysis: AnalysisResult;
@@ -14,6 +15,9 @@ interface KpiGridProps {
   // モンテカルロ分析欄（MonteCarloPanel）に表示するため、このカードはstrategy1つ分のみ表示する。
   strategy: string;
   activeStrategies: string[];
+  // FIRE達成カード未達成時の改善案探索(findImprovementThresholds)用。
+  p: SimParams;
+  events: LifeEvent[];
   lifeEx: number;
   retAge: number;
   penAge: number;
@@ -53,7 +57,7 @@ function TaxSubline({ value }: { value: string }) {
 }
 
 export default function KpiGrid({
-  analysis: a, mcResult, mode, strategy, activeStrategies, lifeEx, retAge, penAge, lastExpense, fireAchievementRate, idecoReceiveType, spIdecoReceiveType,
+  analysis: a, mcResult, mode, strategy, activeStrategies, p, events, lifeEx, retAge, penAge, lastExpense, fireAchievementRate, idecoReceiveType, spIdecoReceiveType,
   hasIdeco, spHasIdeco, hasSeverance,
 }: KpiGridProps) {
   const [eventsOpen, setEventsOpen] = useState(false);
@@ -67,6 +71,18 @@ export default function KpiGrid({
   const minRatioLabel = fireAchieved ? 'FIRE達成後最低充足率' : '退職後最低充足率';
   // 閾値・判定はStickyKpiBar.tsxと共有するfireSafetyVariant()に切り出し済み（sticky_kpi_bar_fire_safety_sync）。
   const fireVariant = fireSafetyVariant(a.minRatio);
+
+  // 未達成時のみ、改善案(支出削減%/退職延長年数)を探索して3行目に表示する（kpi_improvement_suggestion_display）。
+  // findImprovementThresholds()は二分探索+線形探索で複数回simulate()を呼ぶため、達成済みカードでは
+  // 計算自体を行わない。またpropsのp/eventsは呼び出し元(page.tsx)で毎レンダー新規生成されるため、
+  // オブジェクト参照ではなく内容(JSON文字列)をuseMemoの依存キーにして、実質的な入力が変わらない
+  // 限り再探索が走らないようにする。
+  const improvementKey = fireAchieved ? null : JSON.stringify({ p, events, strategy });
+  const improvement = useMemo(() => {
+    if (fireAchieved) return null;
+    return findImprovementThresholds(p, events, strategy as WithdrawalStrategy);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [improvementKey]);
 
   const isMultiStrategy = activeStrategies.length > 1;
   const mcStrat = mcResult?.strategies[strategy as keyof typeof mcResult.strategies];
@@ -177,6 +193,7 @@ export default function KpiGrid({
           sub={minRatioRounded != null ? `${minRatioLabel} ${minRatioRounded}%` : '算出不可'}
           variant={fireVariant}
           tooltip={`取崩期を通じて資産が「年間支出×25」を下回らない最速の退職年齢。${minRatioLabel}は、${fireAchieved ? 'その年齢以降' : '退職後'}で資産に最も余裕がなかった年（${a.minRatioAge != null ? `${a.minRatioAge}歳` : '算出不可'}）の充足率です。100%以上が安全、80%未満は要注意の目安です。`}
+          footer={improvement && <p className="text-[11px] text-slate-400 mt-1 leading-tight">{improvement.message}</p>}
         />
         <KpiCard
           label="MC 破綻確率"

@@ -9,7 +9,7 @@ interface StickyKpiBarProps {
   dA: number | null;
   lifeEx: number;
   // 退職後/FIRE達成後最低充足率（KpiGrid.tsxの「FIRE達成」カードと同じ値）。
-  // スティッキーバーは情報密度が限られるため、サブテキスト表示はせず色分けの判定にのみ使う。
+  // 色分けの判定に使うほか、FIRE達成カードのサブテキスト（`{%}`部分）にもそのまま表示する。
   minRatio: number | null;
   bankruptcyRate?: number | null;
 }
@@ -35,9 +35,15 @@ export default function StickyKpiBar({ visible, fA, dA, lifeEx, minRatio, bankru
   if (!visible) return null;
 
   const fireAchieved = fA != null;
-  const leftCard: { label: string; value: string; variant: Variant } = {
+  // KpiGrid.tsxと同じminRatio（既存のanalyze.ts算出値）でサブテキストのみ追加する。
+  // 改善案文言(findImprovementThresholds())はKpiGrid.tsx本体のみに表示し、ここには含めない
+  // （sticky_kpi_bar_subtext：省スペースUIでの可変長テキストによるレイアウト崩れを避けるため）。
+  const minRatioRounded = minRatio != null ? Math.round(minRatio) : null;
+  const minRatioLabel = fireAchieved ? 'FIRE達成後最低充足率' : '退職後最低充足率';
+  const leftCard: { label: string; value: string; sub?: string; variant: Variant } = {
     label: 'FIRE達成',
     value: fireAchieved ? `${fA}歳で達成` : '未達成',
+    sub: minRatioRounded != null ? `${minRatioLabel} ${minRatioRounded}%` : undefined,
     // KpiGrid.tsxの「FIRE達成」カードと同じ共通関数（fireSafetyVariant）を参照
     variant: fireSafetyVariant(minRatio),
   };
@@ -62,7 +68,7 @@ export default function StickyKpiBar({ visible, fA, dA, lifeEx, minRatio, bankru
       style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
     >
       <div className="grid grid-cols-2 gap-2">
-        <KpiCard label={leftCard.label} value={leftCard.value} variant={leftCard.variant} />
+        <KpiCard label={leftCard.label} value={leftCard.value} sub={leftCard.sub} variant={leftCard.variant} />
         <KpiCard label={rightCard.label} value={rightCard.value} variant={rightCard.variant} />
       </div>
     </div>

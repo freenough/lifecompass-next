@@ -5,6 +5,7 @@ import { useSimulatorStore } from '@/store/simulatorStore';
 import { profileToSimParams } from '@/lib/profile';
 import { simulate, analyze, runMC } from '@/lib';
 import type { SimParams, LifeEvent } from '@/lib/types';
+import { buildRetirementExtension } from '@/lib/improvement-search';
 
 function fmt(v: number): string {
   const sign = v >= 0 ? '+' : '';
@@ -27,12 +28,13 @@ function buildImpactRows(
 ): ImpactRow[] {
   const rows: ImpactRow[] = [];
 
-  const run = (pAlt: SimParams) => {
-    const snaps = simulate(pAlt, evs, strategy);
+  const run = (pAlt: SimParams, extraEvents: LifeEvent[] = []) => {
+    const evsAlt = extraEvents.length > 0 ? [...evs, ...extraEvents] : evs;
+    const snaps = simulate(pAlt, evsAlt, strategy);
     const a = analyze(snaps, pAlt);
     let brDelta: number | null = null;
     if (withMC) {
-      const mc = runMC(pAlt, evs, [strategy], 300);
+      const mc = runMC(pAlt, evsAlt, [strategy], 300);
       const baseMC = runMC(baseP, evs, [strategy], 300);
       brDelta = (mc.strategies[strategy]?.bankruptcyRate ?? 0)
               - (baseMC.strategies[strategy]?.bankruptcyRate ?? 0);
@@ -49,8 +51,8 @@ function buildImpactRows(
 
   // 2. 退職を2年延長
   if (baseP.curAge < baseP.retAge) {
-    const pAlt = { ...baseP, retAge: baseP.retAge + 2 };
-    const { last, brDelta } = run(pAlt);
+    const { params: pAlt, extraEvents } = buildRetirementExtension(baseP, 2);
+    const { last, brDelta } = run(pAlt, extraEvents);
     rows.push({ label: `退職を2年延長（${baseP.retAge + 2}歳）`, assetDelta: last - baseLast, brDelta });
   }
 

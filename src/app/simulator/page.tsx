@@ -311,6 +311,8 @@ export default function SimulatorPage() {
               mode={mode}
               strategy={strategy}
               activeStrategies={activeStrategies}
+              p={p}
+              events={profile.events}
               lifeEx={p.lifeEx}
               retAge={p.retAge}
               lastExpense={lastExpense}

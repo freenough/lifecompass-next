@@ -5,6 +5,7 @@ import { useSimulatorStore } from '@/store/simulatorStore';
 import { simulate, analyze } from '@/lib';
 import { profileToSimParams } from '@/lib/profile';
 import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
+import { buildRetirementExtension } from '@/lib/improvement-search';
 import type { MCResult, WithdrawalStrategy } from '@/lib/types';
 
 const GEMINI_MODEL = 'gemini-2.5-flash-lite';
@@ -99,8 +100,8 @@ function buildAIPayload(
 
   // 2. RetAge +2
   if (p.curAge < p.retAge) {
-    const pRet = { ...p, retAge: p.retAge + 2 };
-    const aRet = analyze(simulate(pRet, events, strategy), pRet);
+    const { params: pRet, extraEvents: retExtraEvents } = buildRetirementExtension(p, 2);
+    const aRet = analyze(simulate(pRet, [...events, ...retExtraEvents], strategy), pRet);
     const retDelta = Math.round(aRet.last - a.last);
     improvements.push({
       type: 'retirement',
