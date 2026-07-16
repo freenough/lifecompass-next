@@ -3,9 +3,12 @@
 import { useMemo, useState } from 'react';
 import type { AnalysisResult, LifeEvent, MCResult, SimParams, WithdrawalStrategy } from '@/lib/types';
 import KpiCard from '@/components/simulator/KpiCard';
+import InfoTooltip from '@/components/simulator/InfoTooltip';
 import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
 import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
 import { findImprovementThresholds } from '@/lib/improvement-search';
+import { useEqualHeight } from '@/hooks/useEqualHeight';
+import { useSimulatorStore } from '@/store/simulatorStore';
 
 interface KpiGridProps {
   analysis: AnalysisResult;
@@ -62,6 +65,15 @@ export default function KpiGrid({
 }: KpiGridProps) {
   const [eventsOpen, setEventsOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // MC破綻確率カードの「MCモードで実行」をクリック可能にする（mc_bankruptcy_card_clickable）。
+  // ImpactTable.tsxの同名リンクと同じ導線（setMode('mc') → runMonteCarlo()）をそのまま呼び出す。
+  const { setMode, runMonteCarlo } = useSimulatorStore();
+
+  // トップKPI4枚(資産寿命・FIRE達成・MC破綻確率・最終資産)の高さ統一（tooltip_wrap_fix）。
+  // 改善案文言の長さでFIRE達成カードだけ行が高くなっても、min-heightで4枚全部を揃える。
+  const { setRef: setKpiCardRef, maxHeight: kpiCardMaxHeight } = useEqualHeight(4);
+  const kpiCardWrapperStyle = kpiCardMaxHeight ? { minHeight: kpiCardMaxHeight } : undefined;
 
   // FIRE達成：達成(fA != null)時はFIRE達成年齢、未達成時は「未達成」を表示。
   // 根拠となるサブ値はminRatio（退職後/FIRE達成後最低充足率）。ラベル文言は状態で出し分ける
@@ -137,8 +149,15 @@ export default function KpiGrid({
     dASub = `${lifeEx}歳時点でも資産残存`;
   }
 
-  // 年金開始までの年数（新規）：年金受給開始年齢 - 退職年齢。既に退職済みのケースの基準切り替えは対象外。
-  const yearsToPension = penAge - retAge;
+  // 年金開始までの年数：3分岐（pension_years_basis_switch）。
+  // - まだ退職前(curAge < retAge)：penAge - retAge（退職年齢基準、従来通り）
+  // - 退職済みだが年金はまだ(retAge <= curAge < penAge)：penAge - curAge（現在年齢基準に切り替え）
+  // - 年金も既に受給中(curAge >= penAge、境界含む)：数値ではなく「受給中」と表示（マイナス年数を出さない）
+  // curAge・retAge・penAgeという入力値のみで計算できるため、analyze.ts/simulate.tsは変更不要。
+  const pensionStarted = p.curAge >= penAge;
+  const yearsToPension = pensionStarted
+    ? null
+    : (p.curAge < retAge ? penAge - retAge : penAge - p.curAge);
 
   // 年金開始時資産：本人の年金開始年齢（penAge）時点の総資産。退職〜年金開始までの
   // 「年金空白期間」でどれだけ取り崩したかの目安。該当年齢のスナップショットがない場合は
@@ -180,39 +199,68 @@ export default function KpiGrid({
     <div className="flex flex-col gap-3">
       {/* トップKPI：「生涯を通じて安全か」に統一した4枠（モバイル2×2、SM以上1行4列） */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard
-          label="資産寿命"
-          value={dAValue}
-          sub={dASub}
-          variant={dAVariant}
-          tooltip="退職後に資産が枯渇する年齢。「枯渇なし」は終端年齢まで資産がプラスを維持することを示します。終端年齢の5年以内に枯渇する場合は要注意、それより早い場合はリスク大の目安です。"
-        />
-        <KpiCard
-          label="FIRE達成"
-          value={fireAchieved ? `${a.fA}歳で達成` : '未達成'}
-          sub={minRatioRounded != null ? `${minRatioLabel} ${minRatioRounded}%` : '算出不可'}
-          variant={fireVariant}
-          tooltip={`取崩期を通じて資産が「年間支出×25」を下回らない最速の退職年齢。${minRatioLabel}は、${fireAchieved ? 'その年齢以降' : '退職後'}で資産に最も余裕がなかった年（${a.minRatioAge != null ? `${a.minRatioAge}歳` : '算出不可'}）の充足率です。100%以上が安全、80%未満は要注意の目安です。`}
-          footer={improvement && <p className="text-[11px] text-slate-400 mt-1 leading-tight">{improvement.message}</p>}
-        />
-        <KpiCard
-          label="MC 破綻確率"
-          value={mcStr ?? '—'}
-          sub={
-            mcStr
-              ? (isMultiStrategy ? `${STRATEGY_LABELS[strategy] ?? strategy}基準・詳細は下記` : '1,000試行・90歳時点')
-              : 'MCモードで実行'
-          }
-          variant={mcStr ? mcVariant : 'neutral'}
-          tooltip="モンテカルロ法（1,000試行）で終端年齢時点に資産が枯渇する試行の割合。運用利回りのランダムなブレを考慮しています。5%未満が良好、15%以上は要注意の目安です。複数戦略選択時は表示戦略基準の値を表示し、戦略ごとの内訳はモンテカルロ分析欄をご覧ください。"
-        />
-        <KpiCard
-          label="最終資産"
-          value={lastValue}
-          sub={lastSub}
-          variant={lastVariant}
-          tooltip="終端年齢（余命設定）時点の総資産額。最終年の年間支出1年分を下回ると「残高わずか」、0円以下は「枯渇」を示します。"
-        />
+        <div ref={setKpiCardRef(0)} style={kpiCardWrapperStyle}>
+          <KpiCard
+            label="資産寿命"
+            value={dAValue}
+            sub={dASub}
+            variant={dAVariant}
+            tooltip="退職後に資産が枯渇する年齢。「枯渇なし」は終端年齢まで資産がプラスを維持することを示します。終端年齢の5年以内に枯渇する場合は要注意、それより早い場合はリスク大の目安です。"
+          />
+        </div>
+        <div ref={setKpiCardRef(1)} style={kpiCardWrapperStyle}>
+          <KpiCard
+            label="FIRE達成"
+            value={fireAchieved ? `${a.fA}歳で達成` : '未達成'}
+            sub={minRatioRounded != null ? `${minRatioLabel} ${minRatioRounded}%` : '算出不可'}
+            variant={fireVariant}
+            tooltip={`取崩期を通じて資産が「年間支出×25」を下回らない最速の退職年齢。${minRatioLabel}は、${fireAchieved ? 'その年齢以降' : '退職後'}で資産に最も余裕がなかった年（${a.minRatioAge != null ? `${a.minRatioAge}歳` : '算出不可'}）の充足率です。100%以上が安全、80〜100%未満はまだ届いていないものの赤ほど深刻ではない状態、80%未満は要注意の目安です。`}
+            footer={improvement && (
+              <p className="text-[11px] text-slate-400 mt-1 leading-tight">
+                {improvement.retirement.achievable ? (
+                  <InfoTooltip text="退職延長した期間も、現在と同じペースで貯蓄を続けた場合の試算です">
+                    {improvement.message}
+                  </InfoTooltip>
+                ) : (
+                  improvement.message
+                )}
+              </p>
+            )}
+          />
+        </div>
+        <div ref={setKpiCardRef(2)} style={kpiCardWrapperStyle}>
+          <KpiCard
+            label="MC 破綻確率"
+            value={mcStr ?? '—'}
+            sub={
+              mcStr
+                ? (isMultiStrategy ? `${STRATEGY_LABELS[strategy] ?? strategy}基準・詳細は下記` : '1,000試行・90歳時点')
+                : undefined
+            }
+            variant={mcStr ? mcVariant : 'neutral'}
+            tooltip="モンテカルロ法（1,000試行）で終端年齢時点に資産が枯渇する試行の割合。運用利回りのランダムなブレを考慮しています。5%未満が良好、15%以上は要注意の目安です。複数戦略選択時は表示戦略基準の値を表示し、戦略ごとの内訳はモンテカルロ分析欄をご覧ください。"
+            footer={!mcStr && (
+              <p className="text-[11px] mt-1 leading-tight">
+                <button
+                  type="button"
+                  onClick={() => { setMode('mc'); setTimeout(() => runMonteCarlo(), 50); }}
+                  className="text-blue-600 hover:underline"
+                >
+                  MCモードで実行
+                </button>
+              </p>
+            )}
+          />
+        </div>
+        <div ref={setKpiCardRef(3)} style={kpiCardWrapperStyle}>
+          <KpiCard
+            label="最終資産"
+            value={lastValue}
+            sub={lastSub}
+            variant={lastVariant}
+            tooltip="終端年齢（余命設定）時点の総資産額。最終年の年間支出1年分を下回ると「残高わずか」、0円以下は「枯渇」を示します。"
+          />
+        </div>
       </div>
 
       {/* 詳細指標：興味があれば深掘りする4枠（モバイル2×2、SM以上1行4列） */}
@@ -247,9 +295,9 @@ export default function KpiGrid({
             />
             <KpiCard
               label="年金開始までの年数"
-              value={`${yearsToPension}年`}
-              sub="退職〜年金受給開始"
-              tooltip="年金受給開始年齢 − 退職年齢。この期間は年金収入がないため、資産の取り崩しに依存します。"
+              value={yearsToPension != null ? `${yearsToPension}年` : '受給中'}
+              sub={yearsToPension != null ? '退職〜年金受給開始' : '既に受給開始済み'}
+              tooltip="年金受給開始年齢までの残り年数です。退職前は「年金受給開始年齢 − 退職年齢」、退職後で受給前は「年金受給開始年齢 − 現在年齢」を表示します。この期間は年金収入がないため、資産の取り崩しに依存します。既に受給開始済みの場合は「受給中」と表示します。"
             />
           </div>
         )}

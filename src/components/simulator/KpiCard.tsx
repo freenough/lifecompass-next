@@ -43,7 +43,10 @@ export default function KpiCard({ label, value, sub, variant = 'neutral', footer
         </div>
       )}
       <p className="text-xs font-medium text-slate-500 mb-1 truncate">{label}</p>
-      <p className={`${size === 'sm' ? 'text-sm' : 'text-xl'} font-bold leading-tight ${text[variant]}`}>{value}</p>
+      {/* text-wrap:balanceで折り返し行の文字数を均等化し、「52歳で達/成」のような
+          1文字だけの孤立行（オーファン）を防ぐ（hero_demo_kpi_layout_fix）。
+          1行に収まる場合は見た目に影響しない。 */}
+      <p className={`${size === 'sm' ? 'text-sm' : 'text-xl'} font-bold leading-tight [text-wrap:balance] ${text[variant]}`}>{value}</p>
       {sub && <p className="text-[11px] text-slate-400 mt-1 leading-tight">{sub}</p>}
       {footer}
     </div>

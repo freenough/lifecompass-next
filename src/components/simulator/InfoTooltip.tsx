@@ -31,7 +31,19 @@ interface Pos { top: number; left: number; arrowLeft: number; openUp: boolean }
  * を行う。useLayoutEffectはブラウザの描画前に同期実行されるため、位置が
  * 入れ替わる瞬間がユーザーに見えることはない。
  */
-export default function InfoTooltip({ text }: { text: string }) {
+interface InfoTooltipProps {
+  text: string;
+  /**
+   * 指定時、「?」バッジの代わりに子要素(通常はテキスト)自体をトリガーにし、
+   * 点線下線(dotted underline)でツールチップの存在を示す。改善案文言のように
+   * 可変長テキストへ後付けする場合、別要素の「?」アイコンを追加すると
+   * その分だけ折り返しが増えてしまうため（tooltip_wrap_fix）、テキスト自体を
+   * トリガーにして追加の幅を消費しないようにする。
+   */
+  children?: React.ReactNode;
+}
+
+export default function InfoTooltip({ text, children }: InfoTooltipProps) {
   const [show, setShow] = useState(false);
   const [pos, setPos] = useState<Pos | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -81,10 +93,12 @@ export default function InfoTooltip({ text }: { text: string }) {
         ref={btnRef}
         type="button"
         onClick={e => { e.stopPropagation(); setShow(v => !v); }}
-        className="w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:bg-slate-300"
+        className={children
+          ? 'underline decoration-dotted decoration-slate-400 underline-offset-2 text-inherit bg-transparent cursor-help'
+          : 'w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:bg-slate-300'}
         aria-label="説明を表示"
       >
-        ?
+        {children ?? '?'}
       </button>
       {show && pos && typeof document !== 'undefined' && createPortal(
         <>

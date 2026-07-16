@@ -170,6 +170,12 @@ export default function MethodologyPage() {
                   破綻と判定された年以降は、iDeCoを含むすべての口座残高を0円として表示します。
                 </p>
               </li>
+              <li>
+                <span className="font-medium">⑥ 改善案提案機能（退職延長）の近似</span>
+                <p className="mt-0.5">
+                  改善案提案機能で退職延長を試算する際、延長期間中の新規積立はNISA・iDeCo分も含めて特定口座に計上しています。口座別利率の有利・不利を考慮した最適配分ではなく、簡略化した近似です。
+                </p>
+              </li>
             </ul>
           </div>
         </div>
