@@ -156,7 +156,7 @@ export default function HomePage() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             {featuredPosts.map((post) => (
-              <a
+              <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
                 className="rounded-xl border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
@@ -183,7 +183,7 @@ export default function HomePage() {
                   {/* 「◯分で読む→」は表示しない（noteのタイプ診断カードとの統一感を優先。
                       readingTimeフィールド自体は将来の用途のため残す） */}
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
 

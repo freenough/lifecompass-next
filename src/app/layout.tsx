@@ -14,13 +14,15 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: 'LifeCompass — FIRE資産シミュレーター',
   description: '老後の資産推移・FIRE達成年齢・破綻リスクをシミュレーションします。',
-  metadataBase: new URL(SITE_URL),
+  // 末尾スラッシュ必須: new URL()の相対パス解決はスラッシュなしだとbasePathの
+  // 最後のセグメントを置き換えてしまい、basePathが消えたURLになる。
+  metadataBase: new URL(`${SITE_URL}/`),
   openGraph: {
-    images: [{ url: '/images/ogp.png', width: 1200, height: 630 }],
+    images: [{ url: 'images/ogp.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['/images/ogp.png'],
+    images: ['images/ogp.png'],
   },
 };
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import { loadProfiles, saveProfile, deleteProfile, encodeProfileUrl, decodeProfileUrl } from '@/lib/storage';
 import type { ProfileV3 } from '@/lib/profile';
+import { BASE_PATH } from '@/lib/siteConfig';
 
 interface ProfileDrawerProps {
   /** トリガーボタンの見た目を呼び出し元で差し替えるためのクラス。省略時は従来の見た目。 */
@@ -46,7 +47,7 @@ export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) 
 
   const handleShare = () => {
     const encoded = encodeProfileUrl(profile);
-    const url = `${window.location.origin}/simulator?s=${encoded}`;
+    const url = `${window.location.origin}${BASE_PATH}/simulator?s=${encoded}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

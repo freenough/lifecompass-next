@@ -4,8 +4,22 @@ import matter from 'gray-matter';
 import { remark } from 'remark';
 import remarkGfm from 'remark-gfm';
 import remarkHtml from 'remark-html';
+import { BASE_PATH, SITE_URL, withBasePath } from '@/lib/siteConfig';
 
 const POSTS_DIR = path.join(process.cwd(), 'src/content/blog');
+
+/**
+ * Markdown本文をHTML化した後の後処理。記事本文はbasePath導入前に書かれたものが
+ * 大半のため、執筆者がbasePathを意識せず書けるよう、ここで一括変換する
+ * （個々のMarkdownファイルを手で書き換えると置換漏れ・表記揺れが起きるため）。
+ * - ルート相対の画像パス（例: src="/images/..."）にbasePathを付与
+ * - 記事内CTAリンクの.vercel.app直リンクを正規ドメイン（SITE_URL）に統一
+ */
+function applyBasePathToHtml(html: string): string {
+  return html
+    .replace(/src="\/images\//g, `src="${BASE_PATH}/images/`)
+    .replace(/https:\/\/freenough-lifecompass\.vercel\.app\//g, `${SITE_URL}/`);
+}
 
 export interface BlogPostMeta {
   title: string;
@@ -40,7 +54,7 @@ export function getAllPosts(): BlogPostMeta[] {
       slug:        data.slug        ?? slug,
       category:    data.category    ?? '',
       description: data.description ?? '',
-      eyecatch:    data.eyecatch,
+      eyecatch:    withBasePath(data.eyecatch),
       excerpt:     data.excerpt,
       tags:        data.tags,
       featured:    data.featured,
@@ -73,13 +87,13 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     slug:        data.slug        ?? slug,
     category:    data.category    ?? '',
     description: data.description ?? '',
-    eyecatch:    data.eyecatch,
+    eyecatch:    withBasePath(data.eyecatch),
     excerpt:     data.excerpt,
     tags:        data.tags,
     featured:    data.featured,
     priority:    data.priority,
     readingTime: data.readingTime,
-    content:     processed.toString(),
+    content:     applyBasePathToHtml(processed.toString()),
   };
 }
 
