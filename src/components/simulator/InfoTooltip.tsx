@@ -94,7 +94,7 @@ export default function InfoTooltip({ text, children }: InfoTooltipProps) {
         type="button"
         onClick={e => { e.stopPropagation(); setShow(v => !v); }}
         className={children
-          ? 'underline decoration-dotted decoration-slate-400 underline-offset-2 text-inherit bg-transparent cursor-help'
+          ? 'underline decoration-dotted decoration-slate-400 underline-offset-2 text-inherit bg-transparent cursor-help text-left'
           : 'w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold leading-none flex items-center justify-center hover:bg-slate-300'}
         aria-label="説明を表示"
       >
