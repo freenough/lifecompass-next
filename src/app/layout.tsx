@@ -12,7 +12,7 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: 'LifeCompass — FIRE資産シミュレーター',
+  title: 'FIREシミュレーター | FREENOUGH 資産シミュレーター',
   description: '老後の資産推移・FIRE達成年齢・破綻リスクをシミュレーションします。',
   // 末尾スラッシュ必須: new URL()の相対パス解決はスラッシュなしだとbasePathの
   // 最後のセグメントを置き換えてしまい、basePathが消えたURLになる。

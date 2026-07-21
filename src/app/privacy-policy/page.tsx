@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'プライバシーポリシー — LifeCompass',
+  title: 'プライバシーポリシー | FREENOUGH 資産シミュレーター',
 };
 
 export default function PrivacyPolicyPage() {
@@ -8,7 +8,7 @@ export default function PrivacyPolicyPage() {
       <h1 className="text-3xl font-bold text-slate-900 mb-8">プライバシーポリシー</h1>
 
       <p className="text-slate-600 leading-relaxed mb-8">
-        freenough（以下「当方」）は、LifeCompass（以下「本サービス」）における
+        freenough（以下「当方」）は、FREENOUGH 資産シミュレーター（以下「本サービス」）における
         利用者の個人情報の取り扱いについて、以下のとおりプライバシーポリシーを定めます。
       </p>
 

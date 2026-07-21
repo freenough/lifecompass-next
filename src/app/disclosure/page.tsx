@@ -1,5 +1,5 @@
 export const metadata = {
-  title: '広告・アフィリエイトに関する開示 — LifeCompass',
+  title: '広告・アフィリエイトに関する開示 | FREENOUGH 資産シミュレーター',
 };
 
 export default function DisclosurePage() {

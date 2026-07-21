@@ -119,7 +119,7 @@ export function buildRssFeed(posts: BlogPostMeta[], siteUrl: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>LifeCompass ブログ</title>
+    <title>FREENOUGH 資産シミュレーター ブログ</title>
     <link>${siteUrl}/blog</link>
     <description>FIREと資産形成の情報を発信</description>
     <language>ja</language>

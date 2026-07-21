@@ -1,5 +1,5 @@
 export const metadata = {
-  title: '免責事項 — LifeCompass',
+  title: '免責事項 | FREENOUGH 資産シミュレーター',
 };
 
 export default function DisclaimerPage() {
@@ -10,7 +10,7 @@ export default function DisclaimerPage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-slate-900 mb-3">1. 情報の正確性について</h2>
         <p className="text-slate-600 leading-relaxed mb-4">
-          LifeCompass（以下「本サービス」）が提供するシミュレーション結果は、
+          FREENOUGH 資産シミュレーター（以下「本サービス」）が提供するシミュレーション結果は、
           利用者が入力した数値をもとに計算した<strong>参考情報</strong>です。
           将来の資産額・退職時期・税額等を保証するものではありません。
         </p>

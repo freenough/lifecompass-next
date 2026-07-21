@@ -1,19 +1,19 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: '使い方ガイド | LifeCompass',
-  description: 'LifeCompassの入力項目・タイムライン登録・結果の読み方を解説します。',
+  title: '使い方ガイド | FREENOUGH 資産シミュレーター',
+  description: 'FREENOUGH 資産シミュレーターの入力項目・タイムライン登録・結果の読み方を解説します。',
 };
 
 export default function GuidePage() {
   return (
     <main className="max-w-2xl mx-auto px-4 py-12">
       <p className="text-sm text-slate-400 mb-2">
-        <Link href="/" className="hover:underline">LifeCompass</Link> &rsaquo; 使い方ガイド
+        <Link href="/" className="hover:underline">資産シミュレーター</Link> &rsaquo; 使い方ガイド
       </p>
       <h1 className="text-2xl font-bold text-slate-800 mb-2">使い方ガイド</h1>
       <p className="text-slate-500 text-sm mb-10">
-        LifeCompassの基本的な入力方法と、結果の読み方を説明します。
+        FREENOUGH 資産シミュレーターの基本的な入力方法と、結果の読み方を説明します。
       </p>
 
       {/* 基本の流れ */}

@@ -8,7 +8,7 @@ export default function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold text-slate-800 tracking-tight">
           <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
-          LifeCompass
+          資産シミュレーター
         </Link>
         <nav className="flex gap-6 text-sm text-slate-600">
           <Link href="/simulator" className="hover:text-slate-900 transition-colors">シミュレーター</Link>

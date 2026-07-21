@@ -1,5 +1,5 @@
 export const metadata = {
-  title: '運営者情報 — LifeCompass',
+  title: '運営者情報 | FREENOUGH 資産シミュレーター',
 };
 
 export default function AboutPage() {
@@ -9,7 +9,7 @@ export default function AboutPage() {
 
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-slate-900 mb-3">サービス名</h2>
-        <p className="text-slate-600">LifeCompass（ライフコンパス）</p>
+        <p className="text-slate-600">FREENOUGH 資産シミュレーター</p>
       </section>
 
       <section className="mb-8">
@@ -29,7 +29,7 @@ export default function AboutPage() {
         <h2 className="text-xl font-semibold text-slate-900 mb-3">主なコンテンツ</h2>
         <ul className="text-slate-600 space-y-2 pl-2">
           <li>
-            <strong>LifeCompass</strong>：モンテカルロシミュレーション対応のFIRE・資産シミュレーター
+            <strong>FREENOUGH 資産シミュレーター</strong>：モンテカルロシミュレーション対応のFIREシミュレーター
           </li>
           <li>
             <strong>note連載</strong>：田中誠・山本恒一・中村夫婦・佐々木誠一のFIRE挑戦シリーズ

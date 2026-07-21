@@ -1,19 +1,19 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: '計算ロジック・前提 | LifeCompass',
-  description: 'LifeCompassの計算モデル・前提条件・税金の扱いを解説します。',
+  title: '計算ロジック・前提 | FREENOUGH 資産シミュレーター',
+  description: 'FREENOUGH 資産シミュレーターの計算モデル・前提条件・税金の扱いを解説します。',
 };
 
 export default function MethodologyPage() {
   return (
     <main className="max-w-2xl mx-auto px-4 py-12">
       <p className="text-sm text-slate-400 mb-2">
-        <Link href="/" className="hover:underline">LifeCompass</Link> &rsaquo; 計算ロジック・前提
+        <Link href="/" className="hover:underline">資産シミュレーター</Link> &rsaquo; 計算ロジック・前提
       </p>
       <h1 className="text-2xl font-bold text-slate-800 mb-2">計算ロジック・前提</h1>
       <p className="text-slate-500 text-sm mb-10">
-        LifeCompassがどのように計算しているかを説明します。
+        FREENOUGH 資産シミュレーターがどのように計算しているかを説明します。
         シミュレーター結果を正しく解釈するためにお読みください。
       </p>
 
@@ -192,7 +192,7 @@ export default function MethodologyPage() {
           </p>
           <p>
             年間生活費×25倍は「4%ルール」から導かれる水準です。資産の4%を毎年取り崩しても資産が30年以上持続するという米国の研究（トリニティスタディ）に基づいています。
-            LifeCompassでは住宅ローン・教育費などの一時的な支出を判定から除外し、恒久的な生活費のみを基準としています。
+            FREENOUGH 資産シミュレーターでは住宅ローン・教育費などの一時的な支出を判定から除外し、恒久的な生活費のみを基準としています。
           </p>
           <p>
             グラフ上のFIREライン（ピンク破線）は「その年のインフレ調整後の生活費×25」を示しています。
@@ -236,7 +236,7 @@ export default function MethodologyPage() {
         </h2>
         <div className="text-sm text-slate-600 leading-relaxed space-y-3">
           <p>
-            LifeCompassは将来の資産推移を試算するツールです。実際の運用成果・税額・社会保障給付額を保証するものではありません。
+            FREENOUGH 資産シミュレーターは将来の資産推移を試算するツールです。実際の運用成果・税額・社会保障給付額を保証するものではありません。
           </p>
           <p>
             税制・制度は変更される場合があります。iDeCoの控除計算や退職金の課税など、個別の状況による差異が生じる場合は税理士・FP等の専門家にご確認ください。

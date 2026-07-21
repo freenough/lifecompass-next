@@ -17,7 +17,7 @@ export async function generateMetadata({
   const post = await getPostBySlug(slug);
   if (!post) return {};
   return {
-    title: `${post.title} | LifeCompass`,
+    title: `${post.title} | FREENOUGH 資産シミュレーター`,
     description: post.description,
     openGraph: {
       title: post.title,
@@ -104,7 +104,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <div className="mt-12 bg-[#EFF6FF] border border-blue-100 rounded-xl p-8 text-center">
         <p className="text-sm text-slate-500 mb-2">この記事を読んで気になった方へ</p>
         <h2 className="text-xl font-bold text-[#0F2A4A] mb-4">
-          LifeCompassで<br />あなたのFIRE達成時期をシミュレーションする
+          FREENOUGH 資産シミュレーターで<br />あなたのFIRE達成時期を試算する
         </h2>
         <p className="text-sm text-slate-500 mb-6">無料・登録不要・データは端末内に保存</p>
         <Link

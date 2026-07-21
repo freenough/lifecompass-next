@@ -3,7 +3,7 @@ import { getAllPosts } from '@/lib/blog';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ブログ | LifeCompass',
+  title: 'ブログ | FREENOUGH 資産シミュレーター',
   description: 'FIREと資産形成に関する記事を発信しています。',
 };
 
