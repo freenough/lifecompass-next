@@ -14,11 +14,13 @@ const POSTS_DIR = path.join(process.cwd(), 'src/content/blog');
  * （個々のMarkdownファイルを手で書き換えると置換漏れ・表記揺れが起きるため）。
  * - ルート相対の画像パス（例: src="/images/..."）にbasePathを付与
  * - 記事内CTAリンクの.vercel.app直リンクを正規ドメイン（SITE_URL）に統一
+ * - CTAリンクの旧ルート名(/simulator)を現行ルート名(/app)に統一
  */
 function applyBasePathToHtml(html: string): string {
   return html
     .replace(/src="\/images\//g, `src="${BASE_PATH}/images/`)
-    .replace(/https:\/\/freenough-lifecompass\.vercel\.app\//g, `${SITE_URL}/`);
+    .replace(/https:\/\/freenough-lifecompass\.vercel\.app\//g, `${SITE_URL}/`)
+    .split(`${SITE_URL}/simulator`).join(`${SITE_URL}/app`);
 }
 
 export interface BlogPostMeta {

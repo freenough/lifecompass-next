@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/siteConfig';
 
 const STATIC_PATHS = [
   '',
-  '/simulator',
+  '/app',
   '/blog',
   '/guide',
   '/methodology',

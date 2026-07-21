@@ -11,7 +11,7 @@ export default function Header() {
           資産シミュレーター
         </Link>
         <nav className="flex gap-6 text-sm text-slate-600">
-          <Link href="/simulator" className="hover:text-slate-900 transition-colors">シミュレーター</Link>
+          <Link href="/app" className="hover:text-slate-900 transition-colors">シミュレーター</Link>
           <Link href="/blog"      className="hover:text-slate-900 transition-colors">ブログ</Link>
         </nav>
       </div>

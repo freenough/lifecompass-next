@@ -47,7 +47,7 @@ export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) 
 
   const handleShare = () => {
     const encoded = encodeProfileUrl(profile);
-    const url = `${window.location.origin}${BASE_PATH}/simulator?s=${encoded}`;
+    const url = `${window.location.origin}${BASE_PATH}/app?s=${encoded}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

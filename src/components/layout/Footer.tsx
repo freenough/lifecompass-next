@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 text-center">
         <p>© {new Date().getFullYear()} FREENOUGH — FIRE資産シミュレーター</p>
         <nav className="flex flex-wrap justify-center gap-4">
-          <Link href="/simulator"      className="hover:text-slate-700">シミュレーター</Link>
+          <Link href="/app"            className="hover:text-slate-700">シミュレーター</Link>
           <Link href="/blog"           className="hover:text-slate-700">ブログ</Link>
           <Link href="/disclosure"     className="hover:text-slate-700">広告開示</Link>
           <Link href="/privacy-policy" className="hover:text-slate-700">プライバシーポリシー</Link>

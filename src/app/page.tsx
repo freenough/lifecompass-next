@@ -107,7 +107,7 @@ export default function HomePage() {
               1,000通りの市場変動で、破綻確率まで計算します。
             </p>
             <Link
-              href="/simulator"
+              href="/app"
               className="mt-12 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
               style={{ backgroundColor: '#334155' }}
             >
@@ -291,7 +291,7 @@ export default function HomePage() {
           </h2>
           <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
           <Link
-            href="/simulator"
+            href="/app"
             className="mt-8 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
             style={{ backgroundColor: '#334155' }}
           >

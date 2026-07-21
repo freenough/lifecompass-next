@@ -216,7 +216,7 @@ export default function GuidePage() {
         <Link href="/methodology" className="text-slate-500 hover:underline">
           → 計算ロジック・前提を読む
         </Link>
-        <Link href="/simulator" className="text-slate-500 hover:underline">
+        <Link href="/app" className="text-slate-500 hover:underline">
           → シミュレーターを開く
         </Link>
       </div>
