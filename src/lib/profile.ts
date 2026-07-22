@@ -314,6 +314,39 @@ export function getUnconfiguredAccounts(profile: ProfileV3): string[] {
   return issues;
 }
 
+/**
+ * 退職年齢を変更した際に取り残されがちな、退職年齢と連動すべき値のズレを検出する。
+ * simulate()は積立を必ず退職年齢で打ち切るため計算結果には影響しないが、UI表示が
+ * 実態と食い違って見える（積立終了年齢が退職年齢より後のまま等）ことへの注意喚起。
+ * 戻り値: 警告メッセージ一覧（空配列なら問題なし）。
+ */
+export function getRetirementAgeWarnings(profile: ProfileV3): string[] {
+  const p = profile.params;
+  const warnings: string[] = [];
+
+  if (p.cNisaTo && p.cNisaTo > p.retAge) {
+    warnings.push(`NISA積立終了年齢（${p.cNisaTo}歳）が退職年齢（${p.retAge}歳）より後になっています。実際の積立は退職年齢で停止します。`);
+  }
+  if (p.cIdecoTo && p.cIdecoTo > p.retAge) {
+    warnings.push(`iDeCo積立終了年齢（${p.cIdecoTo}歳）が退職年齢（${p.retAge}歳）より後になっています。実際の積立は退職年齢で停止します。`);
+  }
+  if (p.cTaxTo && p.cTaxTo > p.retAge) {
+    warnings.push(`特定口座積立終了年齢（${p.cTaxTo}歳）が退職年齢（${p.retAge}歳）より後になっています。実際の積立は退職年齢で停止します。`);
+  }
+
+  for (const ev of profile.events) {
+    if (ev.category === 'income' && ev.subtype === 'severance') {
+      const targetAge = ev.owner === 'spouse' ? p.spRetAge : p.retAge;
+      if (targetAge && ev.age !== targetAge) {
+        const who = ev.owner === 'spouse' ? '配偶者の退職年齢' : '退職年齢';
+        warnings.push(`退職金イベントの年齢（${ev.age}歳）が現在の${who}（${targetAge}歳）と一致していません。`);
+      }
+    }
+  }
+
+  return warnings;
+}
+
 export type AcctKey = 'Nisa' | 'Ideco' | 'Tax';
 const ACCT_ROWS_KEY: Record<AcctKey, 'nisa' | 'ideco' | 'tax'> = { Nisa: 'nisa', Ideco: 'ideco', Tax: 'tax' };
 

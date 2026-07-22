@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import type { ScenarioKey } from '@/store/simulatorStore';
 import { decodeProfileUrl } from '@/lib/storage';
-import { profileToSimParams, getUnconfiguredAccounts } from '@/lib/profile';
+import { profileToSimParams, getUnconfiguredAccounts, getRetirementAgeWarnings } from '@/lib/profile';
+import { BASE_PATH } from '@/lib/siteConfig';
 import type { WithdrawalStrategy } from '@/lib/types';
 import { useInView } from '@/hooks/useInView';
 import KpiGrid             from '@/components/simulator/KpiGrid';
@@ -41,7 +42,7 @@ function SearchParamsLoader() {
     if (s) {
       try {
         loadProfile(decodeProfileUrl(s));
-        window.history.replaceState(null, '', '/simulator');
+        window.history.replaceState(null, '', `${BASE_PATH}/app`);
       } catch {
         // ignore malformed URL param
       }
@@ -92,6 +93,7 @@ export default function SimulatorPage() {
   const baseAnalysis = analysis[strategy];
   const p            = profileToSimParams(profile);
   const unconfiguredAccounts = getUnconfiguredAccounts(profile);
+  const retirementAgeWarnings = getRetirementAgeWarnings(profile);
   // 最終資産KPIの黄/緑判定用：最終年（インフレ調整後・名目）の年間支出
   const lastExpense  = baseSnaps.length > 0 ? baseSnaps[baseSnaps.length - 1].expense : 0;
   // 退職時充足率（詳細アコーディオン用）：退職時点のスナップショットで資産÷(支出×25)を計算
@@ -180,6 +182,12 @@ export default function SimulatorPage() {
             <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
               {unconfiguredAccounts.join('、')}の資産配分が未設定です（利回り0%として計算されています）。ポートフォリオに1行追加するか、利回り設定で直接利回りを入力してください。
             </p>
+          )}
+
+          {retirementAgeWarnings.length > 0 && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
+              {retirementAgeWarnings.map((w, i) => <p key={i}>{w}</p>)}
+            </div>
           )}
 
           {/* 「入力を閉じる」クリック時の自動スクロール先（固定モード/MCモードタブの直上）。
