@@ -39,8 +39,11 @@ export default function DisclosurePage() {
         <p className="text-slate-600 leading-relaxed mb-4">
           本サイトで紹介する商品・サービスは、独自の調査・比較・検証に基づき、利用者の皆さまへの情報提供を目的として掲載しています。掲載内容は特定の商品・サービスへの申込みや契約を断定的に推奨するものではなく、最終的なご判断はご自身の責任においてお願いいたします。
         </p>
-        <p className="text-slate-600 leading-relaxed">
+        <p className="text-slate-600 leading-relaxed mb-4">
           なお、現時点ではアフィリエイト広告の掲載は開始しておりません。提携ASPおよび広告主との提携が承認され、広告掲載を開始した際には、本ページの内容を適宜更新いたします。
+        </p>
+        <p className="text-slate-600 leading-relaxed">
+          Amazonのアソシエイトとして、本サイトは適格販売により収入を得ています。
         </p>
       </section>
 
