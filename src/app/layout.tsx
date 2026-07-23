@@ -1,9 +1,13 @@
 import type { Metadata } from 'next';
 import { Noto_Sans_JP } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { SITE_URL } from '@/lib/siteConfig';
+
+// 旧HTML版から引き継ぐ測定ID（新規プロパティは作成しない）
+const GA_MEASUREMENT_ID = 'G-KQNTWNKPJ7';
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
@@ -30,6 +34,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja" className={notoSansJP.className}>
       <body className="bg-white text-slate-800 antialiased min-h-screen flex flex-col">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
