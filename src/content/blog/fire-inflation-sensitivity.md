@@ -58,10 +58,9 @@ readingTime: 2
 
 同じ「支出300万円」という前提でも、インフレ率が1%か2%かで、90歳時点で資産が残るか、83歳で資産が尽きるかという、まったく異なる結果になりました。
 
-<div class="cta-inline">
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
-<a href="https://freenough-lifecompass.vercel.app/simulator?utm_source=blog&utm_medium=referral&utm_campaign=fire-inflation-sensitivity&utm_content=mid">資産シミュレーターで試算する →</a>
-</div>
+
+[資産シミュレーターで試算する →](https://freenough-lifecompass.vercel.app/simulator?utm_source=blog&utm_medium=referral&utm_campaign=fire-inflation-sensitivity&utm_content=mid)
 
 ### 感度分析で連続的に見る
 

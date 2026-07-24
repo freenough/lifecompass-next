@@ -4,9 +4,91 @@ import matter from 'gray-matter';
 import { remark } from 'remark';
 import remarkGfm from 'remark-gfm';
 import remarkHtml from 'remark-html';
+import { defaultSchema } from 'hast-util-sanitize';
+import type { Root, Html, Parent, Node } from 'mdast';
+import type { Handler, Handlers } from 'mdast-util-to-hast';
+import type { Element } from 'hast';
 import { BASE_PATH, SITE_URL, withBasePath } from '@/lib/siteConfig';
+import { getAffiliateLink } from '@/lib/affiliateLinks';
 
 const POSTS_DIR = path.join(process.cwd(), 'src/content/blog');
+
+const AFFILIATE_TAG_RE = /^<AffiliateLink\s+provider="([^"]+)"\s+landing="([^"]+)"\s*\/>$/;
+
+// remark-html はデフォルトでhast-util-sanitizeのdefaultSchemaを使い、<a>にはhref以外の
+// 属性(target・rel等)を許可しない。AffiliateLinkが生成する<a target="_blank" rel="...">が
+// 属性ごと剥がされないよう、<a>の許可属性リストにtarget・relだけを追加する
+// （サイト全体のサニタイズを無効化するsanitize:falseは使わない。<a>以外の要素・属性の
+// 扱いはdefaultSchemaのまま = <script>等の意図しない生HTMLは引き続き除去される）。
+const affiliateLinkSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    a: [...(defaultSchema.attributes?.a ?? []), 'target', 'rel'],
+  },
+};
+
+interface AffiliateLinkNode extends Node {
+  type: 'affiliateLink';
+  url: string;
+  text: string;
+}
+
+// AffiliateLinkNodeをそのまま<a>のhast要素へ変換するハンドラ。generic'html'ノードの
+// 経路(allowDangerousHtml必須)を通さないため、defaultSchemaベースのsanitizeスキーマの
+// もとでも正しく<a>要素として出力される。
+const affiliateLinkHandler: Handler = (_state, node) => {
+  const n = node as AffiliateLinkNode;
+  const element: Element = {
+    type: 'element',
+    tagName: 'a',
+    properties: { href: n.url, target: '_blank', rel: 'sponsored noopener noreferrer' },
+    children: [{ type: 'text', value: n.text }],
+  };
+  return element;
+};
+
+const affiliateLinkHandlers: Handlers = {
+  affiliateLink: affiliateLinkHandler,
+} as Handlers;
+
+function isParentWithChildren(node: unknown): node is Parent {
+  return typeof node === 'object' && node !== null && Array.isArray((node as Parent).children);
+}
+
+/**
+ * `<AffiliateLink provider="..." landing="..." />` という記法を検出し、
+ * affiliateLinks.tsの対応表に基づいてaffiliateLinkノード(上記ハンドラで<a>に変換される)
+ * に置き換える。remarkはこの記法を生HTML(html型ノード)としてパースするだけなので、
+ * mdast変換の段階でここで独自ノードに差し替える。
+ */
+function remarkAffiliateLink() {
+  return (tree: Root) => {
+    const visit = (node: Parent) => {
+      node.children.forEach((child, index) => {
+        if (child.type === 'html') {
+          const htmlNode = child as Html;
+          const match = AFFILIATE_TAG_RE.exec(htmlNode.value.trim());
+          if (match) {
+            const [, provider, landing] = match;
+            const entry = getAffiliateLink(provider, landing);
+            if (entry) {
+              const replacement: AffiliateLinkNode = { type: 'affiliateLink', url: entry.url, text: entry.text };
+              node.children[index] = replacement as unknown as Parent['children'][number];
+            } else {
+              console.warn(
+                `[AffiliateLink] 未登録の provider="${provider}" landing="${landing}" が指定されています。該当箇所はレンダリングされません。`
+              );
+              htmlNode.value = '';
+            }
+          }
+        }
+        if (isParentWithChildren(child)) visit(child);
+      });
+    };
+    visit(tree);
+  };
+}
 
 /**
  * Markdown本文をHTML化した後の後処理。記事本文はbasePath導入前に書かれたものが
@@ -82,7 +164,11 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   if (!fs.existsSync(filepath)) return null;
   const raw = fs.readFileSync(filepath, 'utf-8');
   const { data, content: markdown } = matter(raw);
-  const processed = await remark().use(remarkGfm).use(remarkHtml).process(markdown);
+  const processed = await remark()
+    .use(remarkGfm)
+    .use(remarkAffiliateLink)
+    .use(remarkHtml, { sanitize: affiliateLinkSchema, handlers: affiliateLinkHandlers })
+    .process(markdown);
   return {
     title:       data.title       ?? '',
     date:        data.date        ?? '',
