@@ -10,19 +10,21 @@ export default function DisclosurePage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-slate-900 mb-3">広告について</h2>
         <p className="text-slate-600 leading-relaxed mb-4">
-          本サイトでは、Google AdSenseによる広告を掲載する場合があります。広告収入は、本サイトの運営および改善のために活用いたします。
+          本サイトではGoogle AdSenseによる広告を掲載する場合があります。
+          広告収入はサービスの運営・改善費用に充てられます。
         </p>
         <p className="text-slate-600 leading-relaxed">
-          Googleおよびそのパートナーは、Cookie等を利用して利用者の興味・関心に応じた広告を配信することがあります。広告のパーソナライズを無効にしたい場合は、
+          Googleが広告配信にCookieを使用することがあります。
+          広告のカスタマイズを無効にする場合は
           <a
             href="https://adssettings.google.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
-            Googleの広告設定
+            Googleの広告設定ページ
           </a>
-          から変更できます。
+          からオプトアウトできます。
         </p>
       </section>
 
@@ -32,26 +34,31 @@ export default function DisclosurePage() {
           本サイトでは、第三者配信のアフィリエイトサービス（A8.net、もしもアフィリエイト、アクセストレード等）を利用し、提携事業者の商品・サービスを紹介する場合があります。
         </p>
         <p className="text-slate-600 leading-relaxed mb-4">
-          Amazonのアソシエイトとして、本サイトは適格販売により収入を得ています。
+          アフィリエイト広告を掲載する記事・ページには、広告であることが分かるよう「[PR]」「広告」等の表記を行います。
         </p>
         <p className="text-slate-600 leading-relaxed mb-4">
-          アフィリエイト広告を掲載する記事・ページには、「[PR]」等の表記を行い、広告であることが分かるよう配慮します。
+          本サイトで紹介する商品・サービスは、独自の調査・比較・検証に基づき、利用者の皆さまへの情報提供を目的として掲載しています。掲載内容は特定の商品・サービスへの申込みや契約を断定的に推奨するものではなく、最終的なご判断はご自身の責任においてお願いいたします。
+        </p>
+        <p className="text-slate-600 leading-relaxed mb-4">
+          なお、現時点ではアフィリエイト広告の掲載は開始しておりません。提携ASPおよび広告主との提携が承認され、広告掲載を開始した際には、本ページの内容を適宜更新いたします。
         </p>
         <p className="text-slate-600 leading-relaxed">
-          本サイトでは、公開情報や独自の調査・比較等をもとに情報を掲載しています。掲載内容は、特定の商品・サービスへの申込みや契約を推奨・保証するものではありません。最終的なご判断は、ご自身の責任においてお願いいたします。
+          Amazonのアソシエイトとして、本サイトは適格販売により収入を得ています。
         </p>
       </section>
 
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-slate-900 mb-3">情報提供について</h2>
         <p className="text-slate-600 leading-relaxed">
-          本サイトに掲載している情報は、一般的な情報提供・教育を目的としたものであり、特定の金融商品・サービスへの投資勧誘や助言を目的とするものではありません。投資判断は、ご自身の責任において行ってください。
+          本サイトに掲載している情報は情報提供・教育目的であり、
+          特定の金融商品・サービスへの投資を勧誘するものではありません。
+          投資判断はご自身の責任において行ってください。
         </p>
       </section>
 
       <div className="text-sm text-slate-400 border-t border-slate-100 pt-6">
         <p>制定日：2026年7月1日</p>
-        <p>最終更新日：2026年7月24日</p>
+        <p>最終更新日：2026年7月23日</p>
       </div>
     </div>
   );
