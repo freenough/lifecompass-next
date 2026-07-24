@@ -1,0 +1,173 @@
+{
+  "id": 1784817355466,
+  "name": "中村夫婦①(口座分割版)",
+  "savedAt": "2026-07-23T00:00:00.000Z",
+  "version": 3,
+  "params": {
+    "curAge": 38,
+    "lifeEx": 90,
+    "baseInc": 480,
+    "baseExp": 360,
+    "inflR": 2,
+    "mcStd": 16,
+    "mcStdR": 8,
+    "rWNisa": 7,
+    "rRNisa": 4,
+    "rWIdeco": 7,
+    "rRIdeco": 4,
+    "rWTax": 7,
+    "rRTax": 4,
+    "rateSameAsWorking": false,
+    "sigmaSameAsWorking": false,
+    "pfManualFlags": {
+      "rWNisa": true,
+      "rWIdeco": true,
+      "rWTax": true,
+      "rRNisa": true,
+      "rRIdeco": true,
+      "rRTax": true,
+      "mcStd": true,
+      "mcStdR": true
+    },
+    "retAge": 58,
+    "penAge": 65,
+    "penAmtVal": 170,
+    "bNisa": 350,
+    "cNisa": 70,
+    "cNisaTo": 58,
+    "bIdeco": 200,
+    "cIdeco": 0,
+    "cIdecoTo": 58,
+    "idecoYrs": 13,
+    "sevYrs": 13,
+    "idecoReceiveType": "pension",
+    "idecoReceiveYears": 15,
+    "idecoSplitRatio": 50,
+    "idecoStartAge": 65,
+    "bTax": 240,
+    "cTax": 35,
+    "cTaxTo": 58,
+    "bCash": 500,
+    "penAmt": 170,
+    "spInc": 355,
+    "spRetAge": 56,
+    "spPenAge": 65,
+    "spPenAmt": 120,
+    "spCurAge": 36,
+    "spNisaBal": 250,
+    "spNisaCon": 75,
+    "spNisaTo": 56,
+    "spIdecoBal": 100,
+    "spIdecoCon": 0,
+    "spIdecoTo": 56,
+    "spSevYrs": 13,
+    "spIdecoYrs": 8,
+    "spIdecoReceiveType": "lump",
+    "spIdecoReceiveYears": 10,
+    "spIdecoSplitRatio": 50,
+    "spIdecoStartAge": 60,
+    "spTaxBal": 160,
+    "spTaxCon": 0,
+    "spTaxTo": 56,
+    "spCashBal": 400
+  },
+  "portfolio": {
+    "current": {
+      "nisa": [],
+      "ideco": [],
+      "tax": [],
+      "spNisa": [],
+      "spIdeco": [],
+      "spTax": []
+    },
+    "working": {
+      "nisa": [],
+      "ideco": [],
+      "tax": []
+    },
+    "retirement": {
+      "nisa": [],
+      "ideco": [],
+      "tax": [],
+      "sameAsWorking": true
+    }
+  },
+  "events": [
+    {
+      "category": "income",
+      "subtype": "severance",
+      "name": "",
+      "age": 58,
+      "years": 1,
+      "amount": 1500
+    },
+    {
+      "category": "income",
+      "subtype": "severance",
+      "name": "",
+      "age": 56,
+      "years": 1,
+      "amount": 1000,
+      "owner": "spouse"
+    },
+    {
+      "category": "expense",
+      "subtype": "education",
+      "name": "",
+      "age": 49,
+      "years": 4,
+      "amount": 250
+    },
+    {
+      "category": "expense",
+      "subtype": "education",
+      "name": "",
+      "age": 52,
+      "years": 4,
+      "amount": 250
+    },
+    {
+      "category": "expense",
+      "subtype": "mortgage",
+      "name": "",
+      "age": 38,
+      "years": 30,
+      "amount": 158.25,
+      "principal": 4100,
+      "rate": 1,
+      "termYears": 30
+    },
+    {
+      "category": "expense",
+      "subtype": "base_change",
+      "name": "",
+      "age": 68,
+      "years": 1,
+      "amount": 240
+    },
+    {
+      "category": "expense",
+      "subtype": "care",
+      "name": "",
+      "age": 55,
+      "years": 3,
+      "amount": 100
+    }
+  ],
+  "ui": {
+    "cmpMode": "strategy",
+    "activeStrategies": [
+      "proportional"
+    ],
+    "activeScenarios": [
+      "base"
+    ],
+    "currentMode": "fixed",
+    "balSync": {
+      "nisa": false,
+      "ideco": false,
+      "tax": false,
+      "cash": false
+    }
+  }
+}
