@@ -17,6 +17,10 @@ export const AFFILIATE_LINKS: Record<string, Record<string, AffiliateLinkEntry>>
       url: 'https://px.a8.net/svt/ejp?a8mat=4B8791+7118VM+3XCC+64C3M',
       text: '証券口座開設先の一例として、松井証券の情報はこちら',
     },
+    usstock: {
+      url: 'https://px.a8.net/svt/ejp?a8mat=4B8791+7118VM+3XCC+6LP3M',
+      text: '米国株投資の一例として、松井証券の情報はこちら',
+    },
   },
 };
 
