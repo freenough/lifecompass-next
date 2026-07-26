@@ -9,6 +9,7 @@ export default function Footer() {
           <a href="https://www.freenough.com/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700">Freenoughについて</a>
           <Link href="/app"            className="hover:text-slate-700">シミュレーター</Link>
           <Link href="/blog"           className="hover:text-slate-700">ブログ</Link>
+          <Link href="/tools"          className="hover:text-slate-700">ツール</Link>
           <Link href="/disclosure"     className="hover:text-slate-700">広告開示</Link>
           <Link href="/privacy-policy" className="hover:text-slate-700">プライバシーポリシー</Link>
           <Link href="/guide"          className="hover:text-slate-700">使い方ガイド</Link>
