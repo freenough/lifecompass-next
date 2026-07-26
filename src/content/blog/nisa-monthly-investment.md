@@ -1,5 +1,5 @@
 ---
-title: "新NISAは毎月いくら積み立てればいい?目標資産から逆算する方法【無料シミュレーター付き】"
+title: "新NISAは毎月いくら積み立てればいい?目標資産から逆算する方法"
 date: "2026-07-26"
 slug: "nisa-monthly-investment"
 category: "シミュレーター活用"
