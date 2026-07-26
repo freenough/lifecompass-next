@@ -120,29 +120,50 @@ const TARGET_SNAP_AGE = CUR_AGE + YEARS - 1; // 54
 console.log(`  設定: NISA残高${CURRENT_ASSETS}万円・積立${monthly5.toFixed(2)}万円/月(年間${annual5.toFixed(2)}万円)・rW=rR=5%・mcStd=${MC_STD}`);
 console.log(`  判定スナップの年齢: ${TARGET_SNAP_AGE}歳（年末積立方式の規約により、${YEARS}回目の積立完了時点）`);
 
-console.log('  計算中 (本番runMC() N=1000)...');
-const mcResult = runMC(p5, [], ['proportional'], 1000);
-const strat = mcResult.strategies['proportional'];
-const snapIdx = TARGET_SNAP_AGE - p5.curAge;
-const p10 = strat.percentiles.p10[snapIdx];
-const p50 = strat.percentiles.p50[snapIdx];
-const p90 = strat.percentiles.p90[snapIdx];
-
-console.log('  計算中 (目標到達率, N=1000, 同一のsimulate()を用いた独自試行ループ)...');
+// 「目標到達率」と「資産分布(p10/p50/p90)」を同一の1,000試行から算出する。
+// runMC()は内部で毎回 randNorm() から新しいZスコア列を生成するため、runMC()を呼び出した上で
+// 別ループを回すと、2つの指標が異なる乱数列（＝別々の1,000試行）から得られてしまい、
+// 数字同士が厳密には対応しなくなる（この問題は一度実装した後に発覚し、修正した）。
+// そのため、simulate()を直接1,000回呼び出す単一ループで両方を同時に算出する。
+// percentile算出（pct関数）はmontecarlo.tsのpct()と同一の線形補間式をそのまま踏襲しており、
+// 財務計算式の再実装ではなく汎用的な統計処理（順位補間）である。
+console.log('  計算中 (目標到達率＋資産分布, N=1000, simulate()を用いた単一の試行ループ)...');
 const N = 1000;
 const years_sim = p5.lifeEx - p5.curAge + 1;
+const snapIdx = TARGET_SNAP_AGE - p5.curAge;
+const totalsAtTarget = [];
 let achievedCount = 0;
 for (let t = 0; t < N; t++) {
   const shockZ = Array.from({ length: years_sim }, () => randNorm(0, 1));
   const snaps = simulate(p5, [], 'proportional', shockZ);
-  const snap = snaps.find(s => s.age === TARGET_SNAP_AGE);
-  if (snap && snap.totalAssets >= TARGET_ASSETS) achievedCount++;
+  const snap = snaps[snapIdx];
+  totalsAtTarget.push(snap.totalAssets);
+  if (snap.totalAssets >= TARGET_ASSETS) achievedCount++;
 }
 const achievedRate = (achievedCount / N) * 100;
 
+// montecarlo.ts の pct() と同一の線形補間パーセンタイル（汎用統計処理）
+function pct(arr, q) {
+  const s = [...arr].sort((a, b) => a - b);
+  const i = (s.length - 1) * q;
+  const lo = Math.floor(i), hi = Math.ceil(i);
+  return s[lo] + (s[hi] - s[lo]) * (i - lo);
+}
+const p10 = Math.round(pct(totalsAtTarget, 0.1));
+const p50 = Math.round(pct(totalsAtTarget, 0.5));
+const p90 = Math.round(pct(totalsAtTarget, 0.9));
+
 console.log(`\n  1,000試行中、${TARGET_AGE}歳時点(スナップage=${TARGET_SNAP_AGE})で資産${TARGET_ASSETS}万円以上を維持できた試行の割合: ${achievedRate.toFixed(1)}%`);
-console.log(`  資産分布（本番runMC()の戻り値、${TARGET_SNAP_AGE}歳時点）: p10=${p10}万円 / 中央値(p50)=${p50}万円 / p90=${p90}万円`);
-console.log('  ※ runMC()はp10/p50/p90のみを返す設計のため、p25/p75は算出していない');
+console.log(`  資産分布（同一の1,000試行、${TARGET_SNAP_AGE}歳時点）: p10=${p10}万円 / 中央値(p50)=${p50}万円 / p90=${p90}万円`);
+console.log('  （p25/p75は算出していない。runMC()の既存出力形式(p10/p50/p90)に合わせた）');
+
+// 独立クロスチェック: 本番runMC()を別途1,000試行で呼び出し、上記と近い値になるかを確認する
+// （別々の乱数列のため完全一致はしないが、実装ドリフトがないことの検証用）。
+console.log('\n  [クロスチェック] 本番runMC()を独立した別の1,000試行で実行し、統計的な近さを確認...');
+const mcCheck = runMC(p5, [], ['proportional'], 1000);
+const stratCheck = mcCheck.strategies['proportional'];
+console.log(`  runMC()独立試行: p10=${stratCheck.percentiles.p10[snapIdx]}万円 / p50=${stratCheck.percentiles.p50[snapIdx]}万円 / p90=${stratCheck.percentiles.p90[snapIdx]}万円`);
+console.log('  （上記の単一ループの値と近ければ、simulate()の呼び出し方・パラメータに実装ドリフトがないことの確認になる。別乱数列のため完全一致は期待しない）');
 
 // ================================================================
 // 3.（参考・任意）積立額を固定し、利回り3%/5%/7%での資産推移比較（決定論的、mcStd=0）
