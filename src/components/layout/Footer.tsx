@@ -4,8 +4,9 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-slate-200 bg-slate-50 py-8 text-sm text-slate-500">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 text-center">
-        <p>© {new Date().getFullYear()} FREENOUGH — FIRE資産シミュレーター</p>
+        <p>© {new Date().getFullYear()} FREENOUGH</p>
         <nav className="flex flex-wrap justify-center gap-4">
+          <a href="https://www.freenough.com/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700">Freenoughについて</a>
           <Link href="/app"            className="hover:text-slate-700">シミュレーター</Link>
           <Link href="/blog"           className="hover:text-slate-700">ブログ</Link>
           <Link href="/disclosure"     className="hover:text-slate-700">広告開示</Link>

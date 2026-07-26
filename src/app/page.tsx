@@ -101,7 +101,7 @@ export default function HomePage() {
               <HeroDemo />
             </div>
             <p className="mt-10 text-base text-slate-500 leading-relaxed text-balance sm:text-lg">
-              未来の選択肢を、自分の数字で確かめる。
+              未来の選択肢を、自分の数字で描く。
             </p>
             <p className="mt-2 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
               1,000通りの市場変動で、破綻確率まで計算します。
