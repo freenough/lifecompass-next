@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { IconCalculator, IconHourglass, IconTrendingUp } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
@@ -33,6 +33,12 @@ const TOOLS: ToolItem[] = [
     description: '現在の資産・毎月の積立額・利回り・期間から、将来の資産額を試算します',
     href: '/tools/compound',
     Icon: IconTrendingUp,
+  },
+  {
+    title: '年金 繰上げ・繰下げ 比較シミュレーター',
+    description: '受給開始年齢を早める・遅らせる場合の年額・損益分岐年齢を試算します',
+    href: '/tools/pension-timing',
+    Icon: IconClockDollar,
   },
 ];
 

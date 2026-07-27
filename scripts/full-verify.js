@@ -601,3 +601,14 @@ for (const ex of SASAKI_EXPECTED) {
 console.log('-'.repeat(100));
 console.log(`合計（総資産一致基準）: ${sPass} PASS / ${sFail} FAIL`);
 console.log('  ※収入表示 = snap.income + snap.severanceNet（HTML CSV形式）');
+
+// ================================================================
+// 年金 繰上げ・繰下げ比較シミュレーター（pensionCore.ts）
+// scripts/verify-pension-timing.js を実行対象に含める。同スクリプトはFAILがあれば
+// process.exitCode = 1 を自ら設定するため、この require だけで結果が本スクリプトの
+// 終了コードにも反映される（別プロセスに分離せず、同一プロセス内でそのまま実行）。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【年金 繰上げ・繰下げ比較シミュレーター】pensionCore.ts検証（verify-pension-timing.js）');
+console.log('='.repeat(100));
+require('./verify-pension-timing.js');
