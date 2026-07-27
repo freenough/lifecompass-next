@@ -115,6 +115,11 @@ eyecatch: "/images/blog/nisa-monthly-investment-eyecatch.png"
 | 入力項目 | 5項目 | 詳細な家計・資産・運用方針 |
 | 向いている人 | まず目安を知りたい人 | 具体的な条件で詳しく試算したい人 |
 
+毎月の積立額が決まったら、次に気になるのは「実際に何歳で届くのか」では
+ないでしょうか。続編記事「[新NISA、今のペースで積み立てたら何歳で3,000万円に届く?](/asset-simulator/blog/nisa-achievement-age)」
+では、目標資産到達年齢シミュレーターとモンテカルロ法を使って、到達年齢と
+そのブレ幅を検証しています。
+
 [積立額シミュレーターで試算する](/asset-simulator/tools/monthly-investment?utm_source=blog&utm_medium=referral&utm_campaign=nisa_monthly_investment&utm_content=bottom_cta)
 
 [PR] <AffiliateLink provider="matsui" landing="nisa" />

@@ -14,3 +14,15 @@
   --color-danger-text:  #991b1b;
   --font-sans: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
 }
+
+/* ブログ記事内、画像直後のキャプション行（remarkImageCaption()が付与、src/lib/blog.ts参照）。
+   このサイトはダークモード非対応（layout.tsxで常時bg-white/text-slate-800固定）のため、
+   ダークモード分岐は設けない。旧HTML版の--tx2（本文セカンダリカラー）相当として
+   --color-accent-light（#64748b、Tailwind slate-500相当）を使う。 */
+.img-caption {
+  font-size: 0.8em;
+  color: var(--color-accent-light);
+  text-align: center;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+}

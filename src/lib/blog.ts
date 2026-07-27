@@ -20,11 +20,15 @@ const AFFILIATE_TAG_RE = /^<AffiliateLink\s+provider="([^"]+)"\s+landing="([^"]+
 // 属性ごと剥がされないよう、<a>の許可属性リストにtarget・relだけを追加する
 // （サイト全体のサニタイズを無効化するsanitize:falseは使わない。<a>以外の要素・属性の
 // 扱いはdefaultSchemaのまま = <script>等の意図しない生HTMLは引き続き除去される）。
+// remarkImageCaption()が生成する<p class="img-caption">のclassNameもデフォルトschemaでは
+// 剥がされる（defaultSchemaの属性ホワイトリストにclassNameがグローバルに含まれていないため）。
+// AffiliateLinkのtarget/relと同様、pタグにclassNameだけを追加で許可する。
 const affiliateLinkSchema = {
   ...defaultSchema,
   attributes: {
     ...defaultSchema.attributes,
     a: [...(defaultSchema.attributes?.a ?? []), 'target', 'rel'],
+    p: [...(defaultSchema.attributes?.p ?? []), 'className'],
   },
 };
 
@@ -85,6 +89,40 @@ function remarkAffiliateLink() {
         }
         if (isParentWithChildren(child)) visit(child);
       });
+    };
+    visit(tree);
+  };
+}
+
+/**
+ * 画像の直後に置かれた「イタリックのみで構成された1行の段落」をキャプションとして検出し、
+ * <p class="img-caption">として出力されるようにする（instruction_blog_image_caption_style.md）。
+ * 誤検出防止のため、以下2条件を両方満たす場合のみ適用する（通常の本文イタリックには影響しない）:
+ * - 直前の兄弟ノードが「imageノード1つのみで構成されたparagraph」（画像だけの段落）
+ * - 対象のparagraph自体が「emphasisノード1つのみで構成」（イタリックだけの1行）
+ * mdast-util-to-hastはnode.data.hName/hPropertiesを見て標準ノードの変換結果を上書きできるため、
+ * 新しいノード型は作らず、対象paragraphのdataにhName:'p'・class名だけを設定する。
+ */
+function remarkImageCaption() {
+  return (tree: Root) => {
+    const visit = (node: Parent) => {
+      const children = node.children;
+      for (let i = 1; i < children.length; i++) {
+        const prev = children[i - 1];
+        const cur = children[i];
+        const prevIsImageOnlyParagraph =
+          prev.type === 'paragraph' && prev.children.length === 1 && prev.children[0].type === 'image';
+        const curIsItalicOnlyParagraph =
+          cur.type === 'paragraph' && cur.children.length === 1 && cur.children[0].type === 'emphasis';
+        if (prevIsImageOnlyParagraph && curIsItalicOnlyParagraph) {
+          cur.data = {
+            ...cur.data,
+            hName: 'p',
+            hProperties: { className: ['img-caption'] },
+          };
+        }
+      }
+      children.forEach(child => { if (isParentWithChildren(child)) visit(child); });
     };
     visit(tree);
   };
@@ -167,6 +205,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   const processed = await remark()
     .use(remarkGfm)
     .use(remarkAffiliateLink)
+    .use(remarkImageCaption)
     .use(remarkHtml, { sanitize: affiliateLinkSchema, handlers: affiliateLinkHandlers })
     .process(markdown);
   return {
