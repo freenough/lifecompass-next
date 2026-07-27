@@ -97,3 +97,37 @@ export function calcAchievementAge(
 
   return currentAge + years;
 }
+
+/**
+ * 現在資産・毎月積立額・年数・利回りから、n年後の将来評価額を計算する（年金終価の閉じた式）。
+ * calcRequiredMonthlyContribution()の代数的な逆関数であり、同じ式に基づく順算版。
+ * scripts/verify-finance-core.js にあった forwardFutureValue() と完全に同一のロジックを
+ * そのまま昇格させたもの（独自の再実装・簡略化はしていない）。検証スクリプト側は
+ * 重複実装をやめ、本関数をimportする形に統一した。
+ *
+ * 境界値の扱い: 閉じた式はyears=0で自動的にgrowthFactor=(1+r)^0=1となり、
+ * currentAssetsそのものを返す（特別なガード不要）。負のyearsを渡した場合は
+ * 過去方向への外挿（割引現在価値相当の値）になり「将来価値」としての意味を
+ * 持たないため、呼び出し側は必ずyears>=0を渡すこと。
+ *
+ * @param currentAssets 現在の資産額（万円）
+ * @param monthlyContribution 毎月の積立額（万円/月）
+ * @param years 運用期間（年）
+ * @param annualRatePct 想定利回り（年率%、例: 5 は年率5%）。他の2関数と単位を揃えている
+ *                        （関数内部で/100してから使う）。
+ * @returns n年後の将来評価額（万円）
+ */
+export function calcFutureValue(
+  currentAssets: number,
+  monthlyContribution: number,
+  years: number,
+  annualRatePct: number
+): number {
+  const annualContribution = monthlyContribution * 12;
+  const r = annualRatePct / 100;
+
+  if (Math.abs(r) < 1e-9) return currentAssets + annualContribution * years;
+
+  const growthFactor = Math.pow(1 + r, years);
+  return currentAssets * growthFactor + (annualContribution * (growthFactor - 1)) / r;
+}

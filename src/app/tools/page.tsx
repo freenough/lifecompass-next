@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { IconCalculator, IconHourglass } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
@@ -27,6 +27,12 @@ const TOOLS: ToolItem[] = [
     description: '今の積立額を続けたら、目標資産に何歳で到達するかを計算します',
     href: '/tools/fire-age',
     Icon: IconHourglass,
+  },
+  {
+    title: '積立(複利)計算機',
+    description: '現在の資産・毎月の積立額・利回り・期間から、将来の資産額を試算します',
+    href: '/tools/compound',
+    Icon: IconTrendingUp,
   },
 ];
 

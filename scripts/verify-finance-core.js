@@ -10,7 +10,7 @@ require('ts-node').register({
   transpileOnly: true,
 });
 const { simulate } = require('../src/lib');
-const { calcRequiredMonthlyContribution } = require('../src/lib/financeCore');
+const { calcRequiredMonthlyContribution, calcFutureValue } = require('../src/lib/financeCore');
 
 // ── 丸め誤差の調査結果 ──
 // simulate.ts(451-458行)は口座残高をMath.max(0, x)でクランプするのみでMath.round()はしない。
@@ -64,22 +64,16 @@ function buildDummyProfileForVerification(currentAssets, monthlyContribution, ye
   };
 }
 
-// financeCore.tsの閉じた式の「順方向」(現在資産・毎月積立額・年数・利回り→n年後の資産額)。
-// calcRequiredMonthlyContributionの代数的な逆関数であり、同じ年金終価の式に基づく。
-// 「積立額を先に決めて、それがどの目標資産に相当するか」を求める検証用ケースを作るために使う。
-function forwardFutureValue(currentAssets, monthlyContribution, years, ratePct) {
-  const annualContribution = monthlyContribution * 12;
-  const r = ratePct / 100;
-  if (Math.abs(r) < 1e-9) return currentAssets + annualContribution * years;
-  const growthFactor = Math.pow(1 + r, years);
-  return currentAssets * growthFactor + (annualContribution * (growthFactor - 1)) / r;
-}
+// 「積立額を先に決めて、それがどの目標資産に相当するか」を求める検証用ケースを作るために、
+// financeCore.tsの calcFutureValue()（順方向: 現在資産・毎月積立額・年数・利回り→n年後の資産額）
+// をそのまま使う。以前はこのファイル内に forwardFutureValue() として重複実装していたが、
+// financeCore.ts へ calcFutureValue() として昇格させたため、import して使う形に統一した。
 
-// 1件のケースを検証する: financeCoreの想定目標資産(=forwardFutureValueで求めた値)を
+// 1件のケースを検証する: financeCoreの想定目標資産(=calcFutureValueで求めた値)を
 // calcRequiredMonthlyContributionに渡し、そこで求まった積立額をsimulate()に実際に流し込んで
 // years年後の資産額を実測、想定目標資産と比較する。
 function runCase(label, currentAssets, monthlyContribution, years, ratePct) {
-  const targetAssets = forwardFutureValue(currentAssets, monthlyContribution, years, ratePct);
+  const targetAssets = calcFutureValue(currentAssets, monthlyContribution, years, ratePct);
   const computedMonthly = calcRequiredMonthlyContribution(currentAssets, targetAssets, years, ratePct);
 
   if (computedMonthly === null) {
