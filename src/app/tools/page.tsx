@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
@@ -39,6 +39,12 @@ const TOOLS: ToolItem[] = [
     description: '受給開始年齢を早める・遅らせる場合の年額・損益分岐年齢を試算します',
     href: '/tools/pension-timing',
     Icon: IconClockDollar,
+  },
+  {
+    title: '退職金手取り計算ツール',
+    description: '退職金の額と勤続年数から、税引き後の手取り額を試算します',
+    href: '/tools/retirement-tax',
+    Icon: IconReceipt2,
   },
 ];
 

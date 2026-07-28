@@ -628,3 +628,11 @@ console.log('\n' + '='.repeat(100));
 console.log('【retirementTaxCalc 80万円下限】verify-retirement-tax-80man-floor.js');
 console.log('='.repeat(100));
 require('./verify-retirement-tax-80man-floor.js');
+
+// ================================================================
+// 第5弾ツール(退職金手取り計算) src/lib/tax/retirement.ts
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【第5弾ツール:退職金手取り計算】verify-retirement-tax-tool.js');
+console.log('='.repeat(100));
+require('./verify-retirement-tax-tool.js');
