@@ -620,3 +620,11 @@ console.log('\n' + '='.repeat(100));
 console.log('【退職後 余剰キャッシュフロー再投資機能】verify-retirement-surplus-reinvestment.js');
 console.log('='.repeat(100));
 require('./verify-retirement-surplus-reinvestment.js');
+
+// ================================================================
+// retirementTaxCalc() 退職所得控除額 80万円下限バグ修正（helpers.ts）
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【retirementTaxCalc 80万円下限】verify-retirement-tax-80man-floor.js');
+console.log('='.repeat(100));
+require('./verify-retirement-tax-80man-floor.js');

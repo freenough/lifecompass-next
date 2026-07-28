@@ -61,7 +61,8 @@ export function retirementTaxCalc(
     hasSev ? sevYears :
     dcYears
   ));
-  const deduction = yrs <= 20 ? 40 * yrs : 800 + 70 * (yrs - 20);
+  // 勤続20年以下は40万円×勤続年数だが、国税庁の規定により最低80万円の下限がある。
+  const deduction = yrs <= 20 ? Math.max(40 * yrs, 80) : 800 + 70 * (yrs - 20);
   const total = idecoBalance + severanceAmount;
   if (total <= 0) return { idecoNet: 0, severanceNet: 0, totalTax: 0 };
   const remaining = Math.max(0, total - deduction);
