@@ -612,3 +612,11 @@ console.log('\n' + '='.repeat(100));
 console.log('【年金 繰上げ・繰下げ比較シミュレーター】pensionCore.ts検証（verify-pension-timing.js）');
 console.log('='.repeat(100));
 require('./verify-pension-timing.js');
+
+// ================================================================
+// 退職後 余剰キャッシュフロー再投資機能（simulate.ts: retirementSurplusReinvest）
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【退職後 余剰キャッシュフロー再投資機能】verify-retirement-surplus-reinvestment.js');
+console.log('='.repeat(100));
+require('./verify-retirement-surplus-reinvestment.js');

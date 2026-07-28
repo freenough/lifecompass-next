@@ -125,16 +125,20 @@ export function simulate(
 
     // ── Income calculation ──
     let baseInc = isRet ? 0 : p.baseInc;
+    // 退職後黒字再投資（retirementSurplusReinvest）の按分計算専用。income変数と
+    // 完全に並行して積み上げ、本人分/配偶者分の内訳だけを別途保持する
+    // （income自体の構築ロジックは一切変更しない）。取崩期のみ意味を持つ。
+    let ownRetIncome = 0, spouseRetIncome = 0;
     if (!isRet) {
       for (const ic of incChanges) {
         if (age >= ic.age) baseInc = ic.amount;
       }
     }
-    if (age >= p.penAge) baseInc += p.penAmt;
+    if (age >= p.penAge) { baseInc += p.penAmt; ownRetIncome += p.penAmt; }
     if (p.spouse) {
       const spPenOk = spAge >= p.spouse.penAge;
-      if (!isSpRet) baseInc += p.spouse.inc;
-      if (spPenOk)  baseInc += p.spouse.penAmt;
+      if (!isSpRet) { baseInc += p.spouse.inc; spouseRetIncome += p.spouse.inc; }
+      if (spPenOk)  { baseInc += p.spouse.penAmt; spouseRetIncome += p.spouse.penAmt; }
     }
 
     let currentBaseExp = p.baseExp;
@@ -165,8 +169,10 @@ export function simulate(
           }
         } else if (kind === 'lump' && age === evAge) {
           extraInc += ev.amount;
+          if ((ev.owner ?? 'self') === 'spouse') spouseRetIncome += ev.amount; else ownRetIncome += ev.amount;
         } else if (kind === 'period' && age >= evAge && age < evAge + ev.years) {
           extraInc += ev.amount;
+          if ((ev.owner ?? 'self') === 'spouse') spouseRetIncome += ev.amount; else ownRetIncome += ev.amount;
         }
       } else {
         const expEv = ev as { subtype: string; principal?: number; rate?: number; termYears?: number; age: number; years: number; amount: number };
@@ -283,7 +289,9 @@ export function simulate(
         const pensionTax = Math.round(calcPensionTaxDiff(currentPenAmt, idecoAnnualPension, age));
         idecoTaxPaid += pensionTax;
         idecoAnnualGross = Math.round(idecoAnnualPension);
-        income += Math.max(0, idecoAnnualPension - pensionTax);
+        const idecoPensionNet = Math.max(0, idecoAnnualPension - pensionTax);
+        income += idecoPensionNet;
+        ownRetIncome += idecoPensionNet;
         if (idecoRemainingYears <= 0 || ideco <= 0) { ideco = 0; idecoStatus = 'closed'; }
       } else {
         ideco = 0; idecoStatus = 'closed';
@@ -303,7 +311,9 @@ export function simulate(
         // retirementTaxPaidの分離と対称にするため、iDeCo手取りカード用のspIdecoTaxPaidにのみ計上する。
         spIdecoTaxPaid += spPensionTax;
         spIdecoAnnualGross = Math.round(spIdecoAnnualPension);
-        income += Math.max(0, spIdecoAnnualPension - spPensionTax);
+        const spIdecoPensionNet = Math.max(0, spIdecoAnnualPension - spPensionTax);
+        income += spIdecoPensionNet;
+        spouseRetIncome += spIdecoPensionNet;
         if (spIdecoRemainingYears <= 0 || spIdeco <= 0) { spIdeco = 0; spIdecoStatus = 'closed'; }
       } else {
         spIdeco = 0; spIdecoStatus = 'closed';
@@ -393,9 +403,33 @@ export function simulate(
     } else {
       // ── Retirement withdrawal ──
       const surplus = income - expense;
-      if (surplus >= 0) {
-        cash += surplus;
-      } else {
+      if (surplus > 0) {
+        if (p.retirementSurplusReinvest) {
+          // 退職後黒字再投資：黒字分を無利回りのcashではなく特定口座(tax/spTax)へ積み立て、
+          // 取崩期の利率(rR+ショック)で運用継続する。積立期の拠出処理(tax += taxConEff*ratio;
+          // taxCostBasis += taxConEff*ratio;)と同じパターンでcostBasisも同額加算し、
+          // 黒字分（本来元本）が将来含み益として誤って課税されないようにする。
+          if (!p.spouse) {
+            tax += surplus;
+            taxCostBasis += surplus;
+          } else {
+            // 按分比率はその年ごとに独立して算出する（前年の比率を保持・使い回さない）。
+            // 対象は「income変数に合流する収入」(給与・年金・収入イベント・iDeCo年金受取の
+            // 税引後手取り)のみ。退職金・iDeCo一時金はincomeを経由せずcashへ直接計上される
+            // 別経路のため、按分対象に含めない（ownRetIncome/spouseRetIncomeもこれに揃えてある）。
+            const totalSplitIncome = ownRetIncome + spouseRetIncome;
+            const ownRatio = totalSplitIncome > 0 ? ownRetIncome / totalSplitIncome : 0.5;
+            const ownShare = surplus * ownRatio;
+            const spouseShare = surplus - ownShare;
+            tax += ownShare;
+            taxCostBasis += ownShare;
+            spTax += spouseShare;
+            spTaxCostBasis += spouseShare;
+          }
+        } else {
+          cash += surplus;
+        }
+      } else if (surplus < 0) {
         const need = -surplus;
         // iDeCoは「accumulation（受給開始前）」「pension（年金受給中）」のいずれでも
         // 専用の固定スケジュール払い出し以外から取崩対象にしない（本人・配偶者は独立判定）。

@@ -58,7 +58,7 @@ export default function SimulatorPage() {
   const {
     profile, snaps, analysis, mcResult, mcError, mode, cmpMode, activeStrategies, displayStrategy, activeScenarios,
     isMcRunning, setMode, setCmpMode, setActiveStrategies, setDisplayStrategy, setActiveScenarios,
-    runMonteCarlo,
+    runMonteCarlo, updateProfile,
   } = useSimulatorStore();
 
   const [formOpen, setFormOpen] = useState(true);
@@ -301,6 +301,32 @@ export default function SimulatorPage() {
                 <span className="text-xs text-slate-400">楽観+2% / 中立±0% / 悲観-2%（全口座共通Δ）</span>
               </div>
             )}
+          </div>
+
+          {/* 退職後 余剰キャッシュフロー再投資：取崩期に収支が黒字になった年、その差額を
+              特定口座で運用継続するかどうかのトグル。比例取崩・現金優先・課税優先の
+              取崩戦略選択の直下に置き、「黒字/赤字で挙動が変わる」設定であることが
+              視覚的に伝わる位置にする。 */}
+          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm text-slate-700">退職後の収支黒字を運用する</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={!!profile.params.retirementSurplusReinvest}
+                onClick={() => updateProfile({ retirementSurplusReinvest: !profile.params.retirementSurplusReinvest })}
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                  profile.params.retirementSurplusReinvest ? 'bg-blue-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    profile.params.retirementSurplusReinvest ? 'translate-x-4' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+            <span className="text-xs text-slate-400">年金などの収入が支出を上回った場合、その差額を特定口座で運用します。</span>
           </div>
 
           {cmpMode === 'strategy' && activeStrategies.length > 1 && (

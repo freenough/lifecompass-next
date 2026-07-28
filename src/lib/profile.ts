@@ -82,6 +82,9 @@ export interface ProfileV3 {
     // 取崩期の標準偏差を積立期と揃えるかどうか（PF側・利回り側のsameAsWorkingとは独立したフラグ）
     sigmaSameAsWorking: boolean;
     pfManualFlags: Record<string, boolean>;
+    // trueのとき、取崩期に収支が黒字になった年、その黒字分を特定口座で運用継続する。
+    // 未設定/false＝従来通りcashに滞留するのみ。
+    retirementSurplusReinvest?: boolean;
     retAge: number;
     penAge: number;
     penAmtVal: number;
@@ -163,6 +166,7 @@ export const SAMPLE_PROFILE: ProfileV3 = {
     // サンプルデータのrW/rR/mcStdはポートフォリオ内訳から導出したものではなく、
     // 直接指定された固定値のため「手動」扱いにする（PFが空でもMCバリデーションに引っかからないように）。
     pfManualFlags: { rWNisa: true, rWIdeco: true, rWTax: true, rRNisa: true, rRIdeco: true, rRTax: true, mcStd: true },
+    retirementSurplusReinvest: false,
     retAge: 60, penAge: 65, penAmtVal: 150,
     bNisa: 200, cNisa: 72, cNisaTo: 60,
     bIdeco: 0, cIdeco: 0, cIdecoTo: 60,
@@ -469,6 +473,7 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
     // 口座別σ×その時点の残高で再計算する。手動入力（OFF）のときは従来通り固定値。
     mcStdDynamic:  !p.pfManualFlags['mcStd'],
     mcStdRDynamic: p.sigmaSameAsWorking ? !p.pfManualFlags['mcStd'] : !p.pfManualFlags['mcStdR'],
+    retirementSurplusReinvest: p.retirementSurplusReinvest ?? false,
     hasIdeco,
     idecoYrs,
     sevYrs,

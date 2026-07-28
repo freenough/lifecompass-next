@@ -65,6 +65,10 @@ export interface SimParams {
   // 未設定/false＝従来通りmcStd/mcStdR固定値を使う静的モード。
   mcStdDynamic?: boolean;
   mcStdRDynamic?: boolean;
+  // trueのとき、取崩期に収支が黒字(income > expense)になった年、その黒字分を
+  // 特定口座(tax/spTax)で運用継続する（従来はcashに無利回りで滞留するのみだった）。
+  // 未設定/false＝従来通りcashに加算するのみの静的動作。
+  retirementSurplusReinvest?: boolean;
   hasIdeco: boolean;
   idecoYrs: number;
   idecoReceiveType: 'lump' | 'pension' | 'split';
