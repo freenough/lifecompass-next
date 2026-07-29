@@ -11,7 +11,7 @@ const SIMULATOR_HREF = '/app?utm_source=tools&utm_medium=referral&utm_campaign=f
  */
 export default function FireAgeCta() {
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
       <div className="text-center">
         <p className="text-sm text-slate-500">税金・NISA・iDeCo・退職金まで考慮した試算ができます</p>
         <p className="mt-2 text-xs text-slate-400 leading-relaxed">

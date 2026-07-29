@@ -12,7 +12,7 @@ const SIMULATOR_HREF = '/app?utm_source=tools&utm_medium=referral&utm_campaign=c
  */
 export default function CompoundInterestCta() {
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
       <div className="text-center">
         <p className="text-sm text-slate-500">
           この試算はシンプルな複利計算のみです。税金・NISA枠上限・取り崩し後の資産寿命まで含めて確認したい方は本格シミュレーターへ
