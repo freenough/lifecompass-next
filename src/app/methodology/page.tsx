@@ -104,6 +104,8 @@ export default function MethodologyPage() {
               一時金受取の場合は退職所得控除を適用します。控除額は「40万円×20年＋70万円×（加入年数−20年）」が基本です。
               年金受取の場合は公的年金等控除を適用します。
               いずれも控除後の手取り額をシミュレーターが自動計算して表示します。
+              一時金・年金・併用のどの受取方法が手取り最大になるかを一次情報に基づいて正確に比較したい場合は、
+              <Link href="/tools/ideco-withdrawal" className="hover:underline">iDeCo/DC出口戦略シミュレーター</Link>をご利用ください。
             </p>
           </div>
           <div>
@@ -133,9 +135,9 @@ export default function MethodologyPage() {
                 <span className="font-medium">① 税率は簡易計算</span>
                 <p className="mt-0.5">
                   実際の退職所得は、退職所得控除・1/2課税適用後、所得税（累進課税）・住民税・復興特別所得税により税額が決まります。
-                  本シミュレーターでは、長期の資産シミュレーションを高速に実行するため、課税退職所得（控除・1/2適用後）に一律20.315%を適用する簡易計算モデルを採用しています。
+                  本シミュレーターでは、長期にわたる資産推移を継続的に試算する都合上、課税退職所得（控除・1/2適用後）に一律20.315%を適用する簡易計算モデルを採用しています。
                   そのため、実際の税額と差が生じる場合があります。
-                  正確な税額を確認したい場合は、<Link href="/tools/retirement-tax" className="hover:underline">退職金手取り計算ツール</Link>をご利用ください。
+                  特定の受け取り方について具体的な手取り額を確認したい場合は、<Link href="/tools/retirement-tax" className="hover:underline">退職金手取り計算ツール</Link>をご利用ください。
                 </p>
               </li>
               <li>
@@ -175,6 +177,14 @@ export default function MethodologyPage() {
                 <span className="font-medium">⑥ 改善案提案機能（退職延長）の近似</span>
                 <p className="mt-0.5">
                   改善案提案機能で退職延長を試算する際、延長期間中の新規積立はNISA・iDeCo分も含めて特定口座に計上しています。口座別利率の有利・不利を考慮した最適配分ではなく、簡略化した近似です。
+                </p>
+              </li>
+              <li>
+                <span className="font-medium">⑦ iDeCo年金受取の税計算（近似実装）</span>
+                <p className="mt-0.5">
+                  本シミュレーターでは、長期にわたる資産推移を継続的に試算する都合上、iDeCo年金の受取に伴う税額を「公的年金のみの場合との差分」として、一律20.315%の簡易モデルで近似的に計算しています。実際の税額と差が生じる場合があります。
+                  一時金・年金・併用のどの受取方法が手取り最大になるかを比較検討したい場合は、
+                  <Link href="/tools/ideco-withdrawal" className="hover:underline">iDeCo/DC出口戦略シミュレーター</Link>をご利用ください。
                 </p>
               </li>
             </ul>

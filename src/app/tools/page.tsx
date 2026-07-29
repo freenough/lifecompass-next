@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2 } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
@@ -45,6 +45,12 @@ const TOOLS: ToolItem[] = [
     description: '退職金の額と勤続年数から、税引き後の手取り額を試算します',
     href: '/tools/retirement-tax',
     Icon: IconReceipt2,
+  },
+  {
+    title: 'iDeCo/DC出口戦略シミュレーター',
+    description: '一時金・年金・併用のどの方法で受け取ると手取りが最大になるかを比較します',
+    href: '/tools/ideco-withdrawal',
+    Icon: IconArrowsSplit,
   },
 ];
 

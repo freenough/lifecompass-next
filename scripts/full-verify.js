@@ -636,3 +636,11 @@ console.log('\n' + '='.repeat(100));
 console.log('【第5弾ツール:退職金手取り計算】verify-retirement-tax-tool.js');
 console.log('='.repeat(100));
 require('./verify-retirement-tax-tool.js');
+
+// ================================================================
+// 第6弾ツール(iDeCo/DC出口戦略シミュレーター) src/lib/tax/ideco.ts
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【第6弾ツール:iDeCo/DC出口戦略シミュレーター】verify-ideco-withdrawal-tool.js');
+console.log('='.repeat(100));
+require('./verify-ideco-withdrawal-tool.js');

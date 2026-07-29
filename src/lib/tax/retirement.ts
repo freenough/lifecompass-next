@@ -129,7 +129,10 @@ export function calcRetirementTaxableIncome(
 
 /**
  * 令和8年分・源泉徴収税額速算表(所得税の速算表と共通)
- * (課税退職所得金額 × 税率 - 控除額) の形で使用する
+ * (課税所得金額 × 税率 - 控除額) の形で使用する。
+ * 退職所得(分離課税)・総合課税いずれも、税率表自体は同一のものを使う
+ * (第6弾ツール src/lib/tax/ideco.ts の calcComprehensiveIncomeTax() から
+ * calcProgressiveIncomeTax() を再利用することで、この表を共有している)。
  */
 const INCOME_TAX_BRACKETS: Array<{
   upTo: number; // この金額以下(円)。Infinityは上限なし
@@ -148,6 +151,39 @@ const INCOME_TAX_BRACKETS: Array<{
 const RECONSTRUCTION_SURTAX_RATE = 1.021; // 復興特別所得税込み(102.1%)
 const MUNICIPAL_TAX_RATE = 0.06; // 市民税(標準税率)
 const PREFECTURAL_TAX_RATE = 0.04; // 県民税(標準税率)
+
+/**
+ * 課税所得金額から、超過累進税率表(5%〜45%)を適用した所得税額(円)を計算する共通関数。
+ * 退職所得(分離課税)・総合課税のどちらでも同じ税率表を使うため、
+ * src/lib/tax/ideco.ts の calcComprehensiveIncomeTax() からも再利用する。
+ *
+ * 戻り値は「端数処理前・復興特別所得税を含まない」生の金額(円、浮動小数点)。
+ * 端数処理(1円未満切り捨て等)・復興特別所得税の加算は呼び出し側の責務とする。
+ * これにより、呼び出し側ごとに異なる丸め順序(退職所得は「復興特別所得税込みで
+ * 1回だけ切り捨て」、総合課税は「所得税を先に切り捨ててから複興特別所得税を
+ * 別途計算」)を、この関数の中身を変えずに実現できる。
+ */
+export function calcProgressiveIncomeTax(taxableIncome: number): number {
+  const bracket = INCOME_TAX_BRACKETS.find((b) => taxableIncome <= b.upTo)!;
+  return taxableIncome * bracket.rate - bracket.deduction;
+}
+
+/**
+ * 課税所得金額から住民税額(市民税6%+県民税4%、標準税率)を計算する共通関数。
+ * 市民税・県民税をそれぞれ100円未満切り捨ててから合算する(一括計算後に
+ * 切り捨てると実務上の金額とズレるため)。src/lib/tax/ideco.ts からも再利用する。
+ */
+export function calcResidentTax(taxableIncome: number): {
+  municipal: number;
+  prefectural: number;
+  total: number;
+} {
+  const municipal =
+    Math.floor((taxableIncome * MUNICIPAL_TAX_RATE) / 100 + 1e-6) * 100;
+  const prefectural =
+    Math.floor((taxableIncome * PREFECTURAL_TAX_RATE) / 100 + 1e-6) * 100;
+  return { municipal, prefectural, total: municipal + prefectural };
+}
 
 /**
  * Step 3〜5: 所得税・住民税・手取り額を計算するメイン関数
@@ -173,20 +209,18 @@ export function calcRetirementIncomeTax(
   );
 
   // Step 3: 所得税(復興特別所得税込み)
-  const bracket = INCOME_TAX_BRACKETS.find((b) => taxableIncome <= b.upTo)!;
+  // 退職所得は「(税率適用後の額)×102.1%」を1回だけ切り捨てる、という既存の丸め方を
+  // そのまま維持する(calcProgressiveIncomeTax()の生値に対して従来と同じ演算順序で
+  // 復興特別所得税分を掛けてから切り捨てるため、リファクタリング前と結果は変わらない)。
   const rawIncomeTax =
-    (taxableIncome * bracket.rate - bracket.deduction) *
-    RECONSTRUCTION_SURTAX_RATE;
+    calcProgressiveIncomeTax(taxableIncome) * RECONSTRUCTION_SURTAX_RATE;
   // 浮動小数点誤差対策(例: 50000*1.021が51049.99999999999になり、本来51050円のところ
   // 51049円にfloorされてしまう問題)として、floor前に微小なイプシロンを加える。
   const incomeTax = Math.max(0, Math.floor(rawIncomeTax + 1e-6)); // 1円未満切り捨て
 
   // Step 4: 住民税(市民税・県民税を別々に計算し、それぞれ100円未満切り捨ててから合算)
-  const municipal =
-    Math.floor((taxableIncome * MUNICIPAL_TAX_RATE) / 100 + 1e-6) * 100;
-  const prefectural =
-    Math.floor((taxableIncome * PREFECTURAL_TAX_RATE) / 100 + 1e-6) * 100;
-  const residentTaxTotal = municipal + prefectural;
+  const { municipal, prefectural, total: residentTaxTotal } =
+    calcResidentTax(taxableIncome);
 
   // Step 5: 手取り額
   const netAmount = income - incomeTax - residentTaxTotal;
