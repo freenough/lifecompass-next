@@ -5,7 +5,7 @@ import type { Icon } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
   title: 'ツール | FREENOUGH 資産シミュレーター',
-  description: '気になる数字を30秒でチェック。詳しい分析は本格シミュレーターへ。',
+  description: 'シミュレーターの前に、気になる数字だけサクッと試せます。詳しい分析は本格シミュレーターへ。',
 };
 
 interface ToolItem {
@@ -57,9 +57,9 @@ const TOOLS: ToolItem[] = [
 export default function ToolsPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#0F2A4A] leading-snug">ツール</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#0F2A4A] leading-snug">かんたん計算ツール</h1>
       <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-        気になる数字を30秒でチェック。詳しい分析は本格シミュレーターへ
+        シミュレーターの前に、気になる数字だけサクッと試せます
       </p>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2">

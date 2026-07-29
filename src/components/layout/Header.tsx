@@ -13,6 +13,9 @@ export default function Header() {
         <nav className="flex gap-4 sm:gap-6 text-xs sm:text-sm text-slate-600">
           <Link href="/app" className="hover:text-slate-900 transition-colors">シミュレーター</Link>
           <Link href="/blog"      className="hover:text-slate-900 transition-colors">ブログ</Link>
+          {/* デスクトップのみ表示。モバイルはハンバーガーメニュー化等の改修まで既存2項目のままとする
+              (hidden lg:のブレークポイントはsrc/app/app/page.tsxの「入力を編集」トグル表示範囲と同じ閾値に統一)。 */}
+          <Link href="/tools" className="hidden lg:inline hover:text-slate-900 transition-colors">ツール</Link>
         </nav>
       </div>
     </header>

@@ -11,6 +11,10 @@ import {
   IconPencil,
   IconPlayerPlay,
   IconChartLine,
+  IconTrendingUp,
+  IconCalculator,
+  IconHourglass,
+  IconClockDollar,
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import { getFeaturedPosts } from '@/lib/blog';
@@ -32,6 +36,33 @@ const features: { title: string; body: string; Icon: Icon }[] = [
     title: 'データは端末の外に出ない',
     body: '入力した資産情報はサーバーに送信されません',
     Icon: IconLock,
+  },
+];
+
+const lpTools: { title: string; body: string; href: string; Icon: Icon }[] = [
+  {
+    title: '積立(複利)計算機',
+    body: '毎月の積立額と利回りから、将来の資産額を試算します',
+    href: '/tools/compound',
+    Icon: IconTrendingUp,
+  },
+  {
+    title: '積立額逆算ツール',
+    body: '目標資産額から、毎月の積立額を逆算します',
+    href: '/tools/monthly-investment',
+    Icon: IconCalculator,
+  },
+  {
+    title: '目標資産到達年齢シミュレーター',
+    body: '今の積立を続けたら、何歳で目標資産に届くかがわかります',
+    href: '/tools/fire-age',
+    Icon: IconHourglass,
+  },
+  {
+    title: '年金繰上げ・繰下げ比較シミュレーター',
+    body: '年金を何歳から受け取るとお得か、損益分岐年齢で比較します',
+    href: '/tools/pension-timing',
+    Icon: IconClockDollar,
   },
 ];
 
@@ -195,8 +226,40 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ④ あなたはどのタイプ？ */}
+      {/* ③.6 かんたん計算ツール */}
       <section className="py-12">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-slate-900">かんたん計算ツール</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              シミュレーターの前に、気になる数字だけサクッと試せます
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            {lpTools.map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
+              >
+                <tool.Icon size={32} className="text-slate-600 mb-3" />
+                <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
+                <p className="mt-2 text-sm text-slate-500 leading-relaxed">{tool.body}</p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link href="/tools" className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
+              ツール一覧を見る →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ④ あなたはどのタイプ？ */}
+      <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
             あなたはどのタイプ？
@@ -266,7 +329,7 @@ export default function HomePage() {
       </section>
 
       {/* ⑤ 使い方（3ステップ） */}
-      <section className="bg-slate-50 py-20">
+      <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
@@ -284,7 +347,11 @@ export default function HomePage() {
       </section>
 
       {/* ⑥ CTA */}
-      <section className="py-20">
+      {/* -mb-16はFooter.tsxのmt-16(margin-top: 4rem)を打ち消すための負のマージン。
+          bodyがflex flex-colのため、main/footer間のmarginは通常のブロック要素と違い
+          相殺されず、Footerのmt-16がそのまま本セクション背景色の外側の白い隙間になっていた。
+          Footer.tsx側は変更対象外のため、直前要素のマージンで打ち消す形で対応している。 */}
+      <section className="bg-slate-50 py-20 -mb-16">
         <div className="mx-auto max-w-xl px-6 text-center">
           <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
             まず、自分の数字を入れてみる。
