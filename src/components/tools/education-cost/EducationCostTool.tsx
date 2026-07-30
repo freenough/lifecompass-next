@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import EducationCostForm, { EMPTY_CHILD, type ChildFormValues } from '@/components/tools/education-cost/EducationCostForm';
 import EducationCostResult from '@/components/tools/education-cost/EducationCostResult';
+import EducationCostCta from '@/components/tools/education-cost/EducationCostCta';
 import { MAX_CHILDREN } from '@/lib/educationCostData';
 import type { ChildInput } from '@/lib/educationCostCalc';
+import { trackEvent } from '@/lib/gtag';
+
+const CALCULATE_EVENT_DEBOUNCE_MS = 500;
 
 // 子供1人目は現在の学年を入れた状態で初期表示する（他ツールと同様、送信なしで即座に
 // 結果が見える状態からスタートする）。2・3人目は「+子供を追加」で追加した時点では
@@ -28,6 +32,18 @@ export default function EducationCostTool() {
     setKids(prev => [...prev, EMPTY_CHILD]);
     setActiveIndex(kids.length);
   };
+
+  // kidsのみを依存にする（activeIndexの変更＝タブ切り替えだけでは発火しない。
+  // implementation_education_cost_phase3.md 3章の過剰発火に関する注意点への対応）。
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => trackEvent('tool_calculate'), CALCULATE_EVENT_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [kids]);
 
   const filledKids: ChildInput[] = kids
     .filter((child): child is ChildFormValues & { currentGrade: NonNullable<ChildFormValues['currentGrade']> } =>
@@ -60,6 +76,8 @@ export default function EducationCostTool() {
       />
 
       <EducationCostResult kids={filledKids} />
+
+      <EducationCostCta />
     </div>
   );
 }

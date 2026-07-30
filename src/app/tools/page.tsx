@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
@@ -8,16 +8,15 @@ export const metadata: Metadata = {
   description: 'シミュレーターの前に、気になる数字だけサクッと試せます。詳しい分析は本格シミュレーターへ。',
 };
 
-// 将来3つ目のグループ(税金・家計を最適化する 等)を追加する際は、
-// ここに新しいキーを足し、GROUP_LABELS/GROUP_ORDERに追加するだけでよい設計にしている。
-type ToolGroup = 'accumulate' | 'receive';
+type ToolGroup = 'accumulate' | 'receive' | 'optimize';
 
 const GROUP_LABELS: Record<ToolGroup, string> = {
   accumulate: '資産を増やす',
   receive: '資産を受け取る',
+  optimize: '税金・家計を最適化する',
 };
 
-const GROUP_ORDER: ToolGroup[] = ['accumulate', 'receive'];
+const GROUP_ORDER: ToolGroup[] = ['accumulate', 'receive', 'optimize'];
 
 interface ToolItem {
   title: string;
@@ -69,6 +68,13 @@ const TOOLS: ToolItem[] = [
     href: '/tools/ideco-withdrawal',
     Icon: IconArrowsSplit,
     group: 'receive',
+  },
+  {
+    title: '教育費シミュレーター',
+    description: 'お子さんの教育費、いつ・いくらかかるか試算します',
+    href: '/tools/education-cost',
+    Icon: IconSchool,
+    group: 'optimize',
   },
 ];
 
