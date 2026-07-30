@@ -123,7 +123,7 @@ export default function HomePage() {
 
           {/* 左カラム：テキスト */}
           <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl">
+            <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold tracking-tight text-slate-900 text-balance">
               あなたのFIREは、<br />
               何歳？
             </h1>
@@ -134,7 +134,7 @@ export default function HomePage() {
             <p className="mt-10 text-base text-slate-500 leading-relaxed text-balance sm:text-lg">
               未来の選択肢を、自分の数字で描く。
             </p>
-            <p className="mt-2 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
+            <p className="mt-2 text-left text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
               1,000通りの市場変動で、破綻確率まで計算します。
             </p>
             <Link
