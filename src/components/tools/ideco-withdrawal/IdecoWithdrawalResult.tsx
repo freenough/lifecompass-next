@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { calcLumpSumPattern, calcPensionPattern, calcMixedPattern, type WithdrawalPatternResult } from '@/lib/tax/ideco';
 import type { IdecoWithdrawalFormValues, ReceiveMethod } from './IdecoWithdrawalForm';
+import DetailsAccordion from '@/components/tools/DetailsAccordion';
 
 interface IdecoWithdrawalResultProps {
   values: IdecoWithdrawalFormValues;
@@ -27,8 +27,6 @@ const METHOD_LABEL: Record<ReceiveMethod, string> = {
 };
 
 export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultProps) {
-  const [detailsOpen, setDetailsOpen] = useState(false);
-
   const input = {
     idecoBalance: values.idecoBalanceManYen * 10_000,
     idecoYrs: values.idecoYrs,
@@ -152,47 +150,35 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-slate-200">
-        <button
-          type="button"
-          onClick={() => setDetailsOpen(o => !o)}
-          className="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-        >
-          <span>計算根拠を見る</span>
-          <span className="text-slate-400">{detailsOpen ? '▲' : '▼'}</span>
-        </button>
-        {detailsOpen && (
-          <div className="px-3 pb-3 pt-1 text-xs text-slate-500 leading-relaxed space-y-2">
-            <p>
-              本ツールは、所得税(累進課税)・復興特別所得税・住民税・公的年金等控除を中心に、現行の税制に基づいて計算しています。
-              本体シミュレーターは長期にわたる資産推移を継続的に試算する都合上、税額を一律20.315%とする簡易モデルを採用していますが、
-              本ツールは特定の受け取り方を比較検討するための単発計算のため、より精緻な計算を行っています。また、差分方式による
-              経路依存性を避け、各受取方法(一時金・年金・併用)について、指定いただいた受給期間全体で受け取れる手取り総額を
-              直接計算しています。
-            </p>
-            <p>ただし、以下は反映していません:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>
-                国民健康保険料・後期高齢者医療保険料・介護保険料(特に年金・併用パターンでは、公的年金等に係る雑所得の増加に
-                伴いこれらの保険料負担も増える場合があり、本ツールの試算はその分だけ有利に見える可能性があります)
-              </li>
-              <li>退職所得控除の重複調整(19年・9年ルール)</li>
-              <li>基礎控除以外の各種所得控除</li>
-              <li>年金受取中の運用</li>
-              <li>税制年度ごとの基礎控除差</li>
-              <li>比較期間中に65歳をまたぐ場合の区分切り替え</li>
-            </ul>
-            <p>
-              退職後も給与・事業所得等がある方は「年金以外の所得」欄への入力を推奨します。実際の受取可否・税額は金融機関・
-              企業年金規約・税務署にご確認ください。
-            </p>
-            <p className="pt-2 border-t border-slate-100">
-              本ツールは、受給期間中の物価上昇(インフレ)を考慮せず、入力いただいた年金額やその他所得等を、期間を通じて
-              毎年同額の名目値として計算しています。実際の受取額は物価変動により変わる可能性があります。
-            </p>
-          </div>
-        )}
-      </div>
+      <DetailsAccordion label="計算根拠を見る" className="mt-4">
+        <p>
+          本ツールは、所得税(累進課税)・復興特別所得税・住民税・公的年金等控除を中心に、現行の税制に基づいて計算しています。
+          本体シミュレーターは長期にわたる資産推移を継続的に試算する都合上、税額を一律20.315%とする簡易モデルを採用していますが、
+          本ツールは特定の受け取り方を比較検討するための単発計算のため、より精緻な計算を行っています。また、差分方式による
+          経路依存性を避け、各受取方法(一時金・年金・併用)について、指定いただいた受給期間全体で受け取れる手取り総額を
+          直接計算しています。
+        </p>
+        <p>ただし、以下は反映していません:</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>
+            国民健康保険料・後期高齢者医療保険料・介護保険料(特に年金・併用パターンでは、公的年金等に係る雑所得の増加に
+            伴いこれらの保険料負担も増える場合があり、本ツールの試算はその分だけ有利に見える可能性があります)
+          </li>
+          <li>退職所得控除の重複調整(19年・9年ルール)</li>
+          <li>基礎控除以外の各種所得控除</li>
+          <li>年金受取中の運用</li>
+          <li>税制年度ごとの基礎控除差</li>
+          <li>比較期間中に65歳をまたぐ場合の区分切り替え</li>
+        </ul>
+        <p>
+          退職後も給与・事業所得等がある方は「年金以外の所得」欄への入力を推奨します。実際の受取可否・税額は金融機関・
+          企業年金規約・税務署にご確認ください。
+        </p>
+        <p className="pt-2 border-t border-slate-100">
+          本ツールは、受給期間中の物価上昇(インフレ)を考慮せず、入力いただいた年金額やその他所得等を、期間を通じて
+          毎年同額の名目値として計算しています。実際の受取額は物価変動により変わる可能性があります。
+        </p>
+      </DetailsAccordion>
     </div>
   );
 }
