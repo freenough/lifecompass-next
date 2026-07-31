@@ -6,7 +6,13 @@ export function runMC(
   p: SimParams,
   evs: LifeEvent[],
   strategies: WithdrawalStrategy[],
-  N = 1000
+  N = 1000,
+  // 任意: 外部から共通のショック列(標準正規乱数)を注入する。省略時は従来通り内部生成する
+  // （完全後方互換。既存の全呼び出し箇所は4引数のみで呼んでおり影響なし）。
+  // 用途: 複数シナリオを比較するコンテンツ検証スクリプト等で、シナリオ間の差が
+  // 乱数由来のノイズに埋もれないよう、同一のショック列を複数回のrunMC()呼び出しで
+  // 共有したい場合に使う（このファイル自体で乱数ループを再実装させないための注入経路）。
+  shockOverrides?: number[][]
 ): MCResult {
   const years = p.lifeEx - p.curAge + 1;
   const pct = (arr: number[], q: number): number => {
@@ -21,7 +27,7 @@ export function runMC(
   // または動的モード時は年ごとの口座別残高加重σ）はsimulate()内で年ごとに決定する。
   // randNorm(0,1)×σ は randNorm(0,σ) と数学的に同一分布（正規分布のスケーリング）なので、
   // 静的モード（mcStdDynamic未設定）の既存の挙動は変化しない。
-  const trialReturns: number[][] = Array.from({ length: N }, () =>
+  const trialReturns: number[][] = shockOverrides ?? Array.from({ length: N }, () =>
     Array.from({ length: years }, () => randNorm(0, 1))
   );
 
