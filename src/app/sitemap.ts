@@ -12,6 +12,14 @@ const STATIC_PATHS = [
   '/privacy-policy',
   '/disclaimer',
   '/about',
+  '/tools',
+  '/tools/monthly-investment',
+  '/tools/fire-age',
+  '/tools/compound',
+  '/tools/pension-timing',
+  '/tools/retirement-tax',
+  '/tools/ideco-withdrawal',
+  '/tools/education-cost',
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
