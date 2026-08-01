@@ -10,8 +10,10 @@ const SIMULATOR_HREF = '/app?utm_source=tools&utm_medium=referral&utm_campaign=i
 /**
  * シミュレーターへの導線を主役、アフィリエイトCTAを従とする既存の記事CTAルールと同じ方針。
  * 第1〜5弾と完全に同一の構成(CTA1つ+直下に[PR]アフィリエイトリンク)。
+ * あわせて読みたい欄は、当該ツールのtopicsをキーにサーバー側(page.tsx)で
+ * getRelatedPostsForTopics()により動的取得した結果をpropsで受け取る（ハードコード配列は廃止）。
  */
-export default function IdecoWithdrawalCta() {
+export default function IdecoWithdrawalCta({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   return (
     <div className="flex flex-col items-center gap-5">
       <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
@@ -37,12 +39,7 @@ export default function IdecoWithdrawalCta() {
           />
         </p>
       </div>
-      <RelatedArticles
-        articles={[
-          { title: 'iDeCoとNISA、どう組み合わせる？FIRE目線で考える使い方ガイド', href: '/blog/ideco-nisa' },
-          { title: 'FIRE計画で失敗しないための7つのチェックリスト|シミュレーション前に確認したいポイント', href: '/blog/fire-checklist' },
-        ]}
-      />
+      <RelatedArticles articles={relatedArticles} />
     </div>
   );
 }

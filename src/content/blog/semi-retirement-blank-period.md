@@ -9,6 +9,8 @@ excerpt: "退職〜年金開始までの空白期間、収入をどう確保す�
 tags: ["セミリタイア", "早期退職", "年金"]
 featured: false
 readingTime: 5
+primaryTopic: "pension"
+topics: ["retirement_tax", "pension"]
 ---
 
 ## 早期退職の先にある、意外な壁
@@ -22,6 +24,8 @@ readingTime: 5
 早期退職を考えるとき、多くの人が気にするのは「資産が足りるかどうか」です。しかし、実際にシミュレーションしてみると、もう一つの壁が見えてきます。それが、**退職から年金受給開始までの"空白期間"**です。
 
 退職金や貯蓄はあっても、公的年金がもらえる65歳までは、収入がゼロになる期間が発生します。この期間、資産を取り崩し続けるだけでいいのか、それとも何らかの形で収入を確保すべきなのか。今回は、この問いをFREENOUGH 資産シミュレーターで検証してみます。
+
+この退職金の手取り額が気になる方は、[退職金手取り計算ツール](/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)で試算できます。
 
 ### この記事の結論
 

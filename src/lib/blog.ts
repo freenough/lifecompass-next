@@ -157,6 +157,9 @@ export interface BlogPostMeta {
   featured?: boolean;
   priority?: number;
   readingTime?: number;
+  // 関連コンテンツのマッチング用タクソノミー（getRelatedPosts()・getRelatedPostsForTopics()参照）
+  primaryTopic: string;
+  topics: string[];
 }
 
 export interface BlogPost extends BlogPostMeta {
@@ -182,6 +185,8 @@ export function getAllPosts(): BlogPostMeta[] {
       featured:    data.featured,
       priority:    data.priority,
       readingTime: data.readingTime,
+      primaryTopic: data.primaryTopic ?? '',
+      topics:      data.topics ?? [],
     } as BlogPostMeta;
   });
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -220,14 +225,50 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     featured:    data.featured,
     priority:    data.priority,
     readingTime: data.readingTime,
+    primaryTopic: data.primaryTopic ?? '',
+    topics:      data.topics ?? [],
     content:     applyBasePathToHtml(processed.toString()),
   };
 }
 
-export function getRelatedPosts(currentSlug: string, category: string, limit = 3): BlogPostMeta[] {
+/**
+ * 「共有topics数」でスコアリングし、同スコアの場合はprimaryTopic一致 → date降順でタイブレークする。
+ * 共有topicsが0件の候補は除外する（無関係なコンテンツを無理に表示しない）。
+ */
+export function getRelatedPosts(
+  currentSlug: string,
+  primaryTopic: string,
+  topics: string[],
+  limit = 3
+): BlogPostMeta[] {
+  const topicSet = new Set(topics);
   return getAllPosts()
-    .filter((p) => p.slug !== currentSlug && p.category === category)
-    .slice(0, limit);
+    .filter((p) => p.slug !== currentSlug)
+    .map((post) => ({ post, score: post.topics.filter((t) => topicSet.has(t)).length }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      const aMatch = a.post.primaryTopic === primaryTopic ? 1 : 0;
+      const bMatch = b.post.primaryTopic === primaryTopic ? 1 : 0;
+      if (bMatch !== aMatch) return bMatch - aMatch;
+      return a.post.date < b.post.date ? 1 : -1;
+    })
+    .slice(0, limit)
+    .map(({ post }) => post);
+}
+
+/**
+ * Tools側からの「topicsが交差するブログ記事」検索用（currentSlug・primaryTopicタイブレークなし版）。
+ * スコア降順→date降順のみでソートする。
+ */
+export function getRelatedPostsForTopics(topics: string[], limit = 3): BlogPostMeta[] {
+  const topicSet = new Set(topics);
+  return getAllPosts()
+    .map((post) => ({ post, score: post.topics.filter((t) => topicSet.has(t)).length }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => (b.score !== a.score ? b.score - a.score : (a.post.date < b.post.date ? 1 : -1)))
+    .slice(0, limit)
+    .map(({ post }) => post);
 }
 
 export function buildRssFeed(posts: BlogPostMeta[], siteUrl: string): string {

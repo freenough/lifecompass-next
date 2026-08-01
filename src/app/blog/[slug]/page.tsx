@@ -42,7 +42,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const related = getRelatedPosts(post.slug, post.category);
+  const related = getRelatedPosts(post.slug, post.primaryTopic, post.topics);
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-12">

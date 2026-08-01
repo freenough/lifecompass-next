@@ -7,6 +7,8 @@ description: "教育費は進路パターンでどれだけ資産形成に影響
 tags: ["教育費", "私立公立", "子育て世帯"]
 featured: false
 eyecatch: "/images/blog/education-cost-fire-simulation-eyecatch.png"
+primaryTopic: "education_cost"
+topics: ["education_cost"]
 ---
 
 [PR] 本記事にはアフィリエイト広告を含みます。紹介する内容は、シミュレーターの計算前提や比較検討の一例であり、特定の商品・サービスを推奨するものではありません。

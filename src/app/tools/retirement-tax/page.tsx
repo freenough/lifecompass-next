@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import RetirementTaxTool from '@/components/tools/retirement-tax/RetirementTaxTool';
 import { SITE_URL } from '@/lib/siteConfig';
+import { getRelatedPostsForTopics } from '@/lib/blog';
 
 export const metadata: Metadata = {
   title: '退職金手取り計算ツール | FREENOUGH 資産シミュレーター',
@@ -10,6 +11,11 @@ export const metadata: Metadata = {
   },
 };
 
+// TOOLS配列（src/app/tools/page.tsx）のretirement-taxエントリと同じtopicsを使う
+// （TOOLS配列自体は一覧ページのUI専用のためimportせず、既存のtitle/description重複と同じ方針で値を複製）。
+const TOPICS = ['retirement_tax'];
+
 export default function RetirementTaxPage() {
-  return <RetirementTaxTool />;
+  const relatedArticles = getRelatedPostsForTopics(TOPICS).map((p) => ({ title: p.title, href: `/blog/${p.slug}` }));
+  return <RetirementTaxTool relatedArticles={relatedArticles} />;
 }

@@ -19,7 +19,7 @@ const DEFAULT_FIRST_CHILD: ChildFormValues = {
   currentGrade: 'elem1',
 };
 
-export default function EducationCostTool() {
+export default function EducationCostTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   const [kids, setKids] = useState<ChildFormValues[]>([DEFAULT_FIRST_CHILD]);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -77,7 +77,7 @@ export default function EducationCostTool() {
 
       <EducationCostResult kids={filledKids} />
 
-      <EducationCostCta />
+      <EducationCostCta relatedArticles={relatedArticles} />
     </div>
   );
 }

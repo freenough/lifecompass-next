@@ -17,7 +17,7 @@ const DEFAULT_VALUES: CompoundInterestFormValues = {
   years: 20,
 };
 
-export default function CompoundInterestTool() {
+export default function CompoundInterestTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   const [values, setValues] = useState<CompoundInterestFormValues>(DEFAULT_VALUES);
 
   const futureValue = useMemo(
@@ -72,7 +72,7 @@ export default function CompoundInterestTool() {
         ratePct={values.ratePct}
       />
 
-      <CompoundInterestCta />
+      <CompoundInterestCta relatedArticles={relatedArticles} />
     </div>
   );
 }

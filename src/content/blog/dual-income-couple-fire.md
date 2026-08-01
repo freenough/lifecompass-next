@@ -9,6 +9,8 @@ excerpt: "退職タイミングの違いを試算で比較"
 tags: ["共働き夫婦", "退職タイミング"]
 featured: false
 readingTime: 2
+primaryTopic: "dual_income"
+topics: ["dual_income", "fire_basics"]
 ---
 
 [PR] 本記事にはアフィリエイト広告を含みます。紹介する内容は、シミュレーターの計算前提や比較検討の一例であり、特定の商品・サービスを推奨するものではありません。

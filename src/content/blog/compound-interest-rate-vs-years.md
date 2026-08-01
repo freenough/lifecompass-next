@@ -7,6 +7,8 @@ description: "毎月3万円の積立でも、運用年数と利回りの組み�
 tags: ["複利計算", "利回り", "積立シミュレーション"]
 featured: false
 eyecatch: "/images/blog/compound-interest-rate-vs-years-eyecatch.png"
+primaryTopic: "compound_interest"
+topics: ["compound_interest"]
 ---
 
 「複利は早く始めた方がいい」「利回りが1%違うだけで将来大きな差になる」——どちらもよく聞く話ですが、実際にはどちらの影響がどれくらい大きいのか、具体的な数字で比較されることは意外と少ないのではないでしょうか。

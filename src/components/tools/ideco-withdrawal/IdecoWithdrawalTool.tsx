@@ -23,7 +23,7 @@ const DEFAULT_VALUES: IdecoWithdrawalFormValues = {
   otherIncomeManYen: 0,
 };
 
-export default function IdecoWithdrawalTool() {
+export default function IdecoWithdrawalTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   const [values, setValues] = useState<IdecoWithdrawalFormValues>(DEFAULT_VALUES);
 
   const handleChange = (patch: Partial<IdecoWithdrawalFormValues>) => {
@@ -55,7 +55,7 @@ export default function IdecoWithdrawalTool() {
 
       <IdecoWithdrawalResult values={values} />
 
-      <IdecoWithdrawalCta />
+      <IdecoWithdrawalCta relatedArticles={relatedArticles} />
     </div>
   );
 }

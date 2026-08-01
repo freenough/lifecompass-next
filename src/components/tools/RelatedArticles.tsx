@@ -12,6 +12,7 @@ interface RelatedArticle {
  * サムネイル・日付・カテゴリタグは付けず最小限の構成にしている。
  */
 export default function RelatedArticles({ articles }: { articles: RelatedArticle[] }) {
+  if (articles.length === 0) return null;
   return (
     <div className="w-full rounded-xl border border-slate-200 bg-white px-5 py-4">
       <p className="text-xs text-slate-400 text-center mb-3">あわせて読みたい</p>

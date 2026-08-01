@@ -18,7 +18,7 @@ const DEFAULT_VALUES: MonthlyInvestmentFormValues = {
   ratePct: 5,
 };
 
-export default function MonthlyInvestmentTool() {
+export default function MonthlyInvestmentTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   const [values, setValues] = useState<MonthlyInvestmentFormValues>(DEFAULT_VALUES);
 
   const years = values.targetAge - values.curAge;
@@ -75,7 +75,7 @@ export default function MonthlyInvestmentTool() {
         />
       )}
 
-      <MonthlyInvestmentCta />
+      <MonthlyInvestmentCta relatedArticles={relatedArticles} />
     </div>
   );
 }

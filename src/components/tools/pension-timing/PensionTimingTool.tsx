@@ -19,7 +19,7 @@ const DEFAULT_VALUES: PensionTimingFormValues = {
   compareEndAge: 90,
 };
 
-export default function PensionTimingTool() {
+export default function PensionTimingTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   const [values, setValues] = useState<PensionTimingFormValues>(DEFAULT_VALUES);
 
   const handleChange = (patch: Partial<PensionTimingFormValues>) => {
@@ -68,7 +68,7 @@ export default function PensionTimingTool() {
         compareEndAge={values.compareEndAge}
       />
 
-      <PensionTimingCta />
+      <PensionTimingCta relatedArticles={relatedArticles} />
     </div>
   );
 }

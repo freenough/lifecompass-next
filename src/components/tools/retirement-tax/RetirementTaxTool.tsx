@@ -17,7 +17,7 @@ const DEFAULT_VALUES: RetirementTaxFormValues = {
   hasDisabilityException: false,
 };
 
-export default function RetirementTaxTool() {
+export default function RetirementTaxTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   const [values, setValues] = useState<RetirementTaxFormValues>(DEFAULT_VALUES);
 
   const handleChange = (patch: Partial<RetirementTaxFormValues>) => {
@@ -57,7 +57,7 @@ export default function RetirementTaxTool() {
         hasDisabilityException={values.hasDisabilityException}
       />
 
-      <RetirementTaxCta />
+      <RetirementTaxCta relatedArticles={relatedArticles} />
     </div>
   );
 }

@@ -28,6 +28,8 @@ interface ToolItem {
   href: string;
   Icon: Icon;
   group: ToolGroup;
+  primaryTopic: string;
+  topics: string[];
 }
 
 const TOOLS: ToolItem[] = [
@@ -37,6 +39,8 @@ const TOOLS: ToolItem[] = [
     href: '/tools/compound',
     Icon: IconTrendingUp,
     group: 'accumulate',
+    primaryTopic: 'compound_interest',
+    topics: ['compound_interest'],
   },
   {
     title: '積立額逆算ツール',
@@ -44,6 +48,8 @@ const TOOLS: ToolItem[] = [
     href: '/tools/monthly-investment',
     Icon: IconCalculator,
     group: 'accumulate',
+    primaryTopic: 'compound_interest',
+    topics: ['nisa', 'compound_interest'],
   },
   {
     title: '目標資産到達年齢シミュレーター',
@@ -51,6 +57,8 @@ const TOOLS: ToolItem[] = [
     href: '/tools/fire-age',
     Icon: IconHourglass,
     group: 'accumulate',
+    primaryTopic: 'fire_age',
+    topics: ['fire_age'],
   },
   {
     title: '年金 繰上げ・繰下げ 比較シミュレーター',
@@ -58,6 +66,8 @@ const TOOLS: ToolItem[] = [
     href: '/tools/pension-timing',
     Icon: IconClockDollar,
     group: 'receive',
+    primaryTopic: 'pension',
+    topics: ['pension'],
   },
   {
     title: '退職金手取り計算ツール',
@@ -65,6 +75,8 @@ const TOOLS: ToolItem[] = [
     href: '/tools/retirement-tax',
     Icon: IconReceipt2,
     group: 'receive',
+    primaryTopic: 'retirement_tax',
+    topics: ['retirement_tax'],
   },
   {
     title: 'iDeCo/DC出口戦略シミュレーター',
@@ -72,6 +84,8 @@ const TOOLS: ToolItem[] = [
     href: '/tools/ideco-withdrawal',
     Icon: IconArrowsSplit,
     group: 'receive',
+    primaryTopic: 'ideco',
+    topics: ['ideco', 'withdrawal'],
   },
   {
     title: '教育費シミュレーター',
@@ -79,6 +93,8 @@ const TOOLS: ToolItem[] = [
     href: '/tools/education-cost',
     Icon: IconSchool,
     group: 'optimize',
+    primaryTopic: 'education_cost',
+    topics: ['education_cost'],
   },
 ];
 

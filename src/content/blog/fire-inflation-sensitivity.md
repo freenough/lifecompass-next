@@ -10,6 +10,8 @@ tags: ["インフレ率", "資産寿命"]
 featured: false
 priority: 6
 readingTime: 2
+primaryTopic: "inflation"
+topics: ["inflation"]
 ---
 
 

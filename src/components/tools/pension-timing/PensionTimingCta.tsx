@@ -11,8 +11,10 @@ const SIMULATOR_HREF = '/app?utm_source=tools&utm_medium=referral&utm_campaign=p
  * シミュレーターへの導線を主役、アフィリエイトCTAを従とする既存の記事CTAルールと同じ方針。
  * 第1〜3弾と完全に同一の構成（CTA1つ+直下に[PR]アフィリエイトリンク）。
  * 自動転記（URLパラメータでのpenAge/penAmtへの値埋め込み）は行わない（v1スコープ外、方式B確定）。
+ * あわせて読みたい欄は、当該ツールのtopicsをキーにサーバー側(page.tsx)で
+ * getRelatedPostsForTopics()により動的取得した結果をpropsで受け取る（ハードコード配列は廃止）。
  */
-export default function PensionTimingCta() {
+export default function PensionTimingCta({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   return (
     <div className="flex flex-col items-center gap-5">
       <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
@@ -39,11 +41,7 @@ export default function PensionTimingCta() {
           />
         </p>
       </div>
-      <RelatedArticles
-        articles={[
-          { title: 'FIRE計画で失敗しないための7つのチェックリスト|シミュレーション前に確認したいポイント', href: '/blog/fire-checklist' },
-        ]}
-      />
+      <RelatedArticles articles={relatedArticles} />
     </div>
   );
 }

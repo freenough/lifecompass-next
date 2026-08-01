@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import IdecoWithdrawalTool from '@/components/tools/ideco-withdrawal/IdecoWithdrawalTool';
 import { SITE_URL } from '@/lib/siteConfig';
+import { getRelatedPostsForTopics } from '@/lib/blog';
 
 export const metadata: Metadata = {
   title: 'iDeCo/DC出口戦略シミュレーター | FREENOUGH 資産シミュレーター',
@@ -10,6 +11,11 @@ export const metadata: Metadata = {
   },
 };
 
+// TOOLS配列（src/app/tools/page.tsx）のideco-withdrawalエントリと同じtopicsを使う
+// （TOOLS配列自体は一覧ページのUI専用のためimportせず、既存のtitle/description重複と同じ方針で値を複製）。
+const TOPICS = ['ideco', 'withdrawal'];
+
 export default function IdecoWithdrawalPage() {
-  return <IdecoWithdrawalTool />;
+  const relatedArticles = getRelatedPostsForTopics(TOPICS).map((p) => ({ title: p.title, href: `/blog/${p.slug}` }));
+  return <IdecoWithdrawalTool relatedArticles={relatedArticles} />;
 }

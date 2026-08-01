@@ -5,6 +5,9 @@ slug: "nisa-monthly-investment"
 category: "シミュレーター活用"
 description: "新NISAで毎月いくら積み立てればいいか、目標資産から逆算する方法を解説。積立額逆算ツールとモンテカルロ法での検証結果もあわせて紹介します。"
 eyecatch: "/images/blog/nisa-monthly-investment-eyecatch.png"
+tags: ["NISA", "積立シミュレーション", "逆算"]
+primaryTopic: "nisa"
+topics: ["nisa"]
 ---
 
 [PR] 本記事にはアフィリエイト広告を含みます。紹介する内容は、シミュレーターの計算前提や比較検討の一例であり、特定の商品・サービスを推奨するものではありません。

@@ -18,7 +18,7 @@ const DEFAULT_VALUES: FireAgeFormValues = {
   ratePct: 5,
 };
 
-export default function FireAgeTool() {
+export default function FireAgeTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   const [values, setValues] = useState<FireAgeFormValues>(DEFAULT_VALUES);
 
   const result = useMemo(
@@ -71,7 +71,7 @@ export default function FireAgeTool() {
         monthlyContribution={values.monthlyContribution}
       />
 
-      <FireAgeCta />
+      <FireAgeCta relatedArticles={relatedArticles} />
     </div>
   );
 }
