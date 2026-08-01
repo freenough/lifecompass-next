@@ -1,8 +1,12 @@
 import Link from 'next/link';
+import { SITE_URL } from '@/lib/siteConfig';
 
 export const metadata = {
   title: '計算ロジック・前提 | FREENOUGH 資産シミュレーター',
   description: 'FREENOUGH 資産シミュレーターの計算モデル・前提条件・税金の扱いを解説します。',
+  alternates: {
+    canonical: `${SITE_URL}/methodology`,
+  },
 };
 
 export default function MethodologyPage() {

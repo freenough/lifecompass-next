@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
+import { SITE_URL } from '@/lib/siteConfig';
 
 export const metadata: Metadata = {
   title: 'ツール | FREENOUGH 資産シミュレーター',
   description: 'シミュレーターの前に、気になる数字だけサクッと試せます。詳しい分析は本格シミュレーターへ。',
+  alternates: {
+    canonical: `${SITE_URL}/tools`,
+  },
 };
 
 type ToolGroup = 'accumulate' | 'receive' | 'optimize';

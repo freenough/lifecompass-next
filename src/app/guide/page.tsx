@@ -1,8 +1,12 @@
 import Link from 'next/link';
+import { SITE_URL } from '@/lib/siteConfig';
 
 export const metadata = {
   title: '使い方ガイド | FREENOUGH 資産シミュレーター',
   description: 'FREENOUGH 資産シミュレーターの入力項目・タイムライン登録・結果の読み方を解説します。',
+  alternates: {
+    canonical: `${SITE_URL}/guide`,
+  },
 };
 
 export default function GuidePage() {

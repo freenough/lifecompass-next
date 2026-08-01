@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/siteConfig';
 import {
   IconChartBar,
   IconBuildingBank,
@@ -20,6 +22,12 @@ import type { Icon } from '@tabler/icons-react';
 import { getFeaturedPosts } from '@/lib/blog';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: SITE_URL,
+  },
+};
 
 const features: { title: string; body: string; Icon: Icon }[] = [
   {

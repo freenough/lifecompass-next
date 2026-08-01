@@ -1,5 +1,10 @@
+import { SITE_URL } from '@/lib/siteConfig';
+
 export const metadata = {
   title: '広告・アフィリエイトに関する開示 | FREENOUGH 資産シミュレーター',
+  alternates: {
+    canonical: `${SITE_URL}/disclosure`,
+  },
 };
 
 export default function DisclosurePage() {

@@ -1,5 +1,10 @@
+import { SITE_URL } from '@/lib/siteConfig';
+
 export const metadata = {
   title: '運営者情報 | FREENOUGH 資産シミュレーター',
+  alternates: {
+    canonical: `${SITE_URL}/about`,
+  },
 };
 
 export default function AboutPage() {

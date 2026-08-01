@@ -1,5 +1,10 @@
+import { SITE_URL } from '@/lib/siteConfig';
+
 export const metadata = {
   title: '免責事項 | FREENOUGH 資産シミュレーター',
+  alternates: {
+    canonical: `${SITE_URL}/disclaimer`,
+  },
 };
 
 export default function DisclaimerPage() {

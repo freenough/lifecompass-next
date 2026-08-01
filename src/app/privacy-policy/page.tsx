@@ -1,5 +1,10 @@
+import { SITE_URL } from '@/lib/siteConfig';
+
 export const metadata = {
   title: 'プライバシーポリシー | FREENOUGH 資産シミュレーター',
+  alternates: {
+    canonical: `${SITE_URL}/privacy-policy`,
+  },
 };
 
 export default function PrivacyPolicyPage() {
