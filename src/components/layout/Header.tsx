@@ -8,8 +8,9 @@ import { withBasePath } from '@/lib/siteConfig';
 
 const NAV_ITEMS: { label: string; href: string; external?: boolean }[] = [
   { label: 'シミュレーター', href: '/app' },
-  { label: 'ブログ', href: '/blog' },
   { label: 'ツール', href: '/tools' },
+  { label: 'ブログ', href: '/blog' },
+  { label: '使い方ガイド', href: '/guide' },
   { label: 'Note', href: 'https://note.com/freenough', external: true },
 ];
 
@@ -54,7 +55,7 @@ export default function Header() {
       {/* モバイルメニュー展開部（ヘッダー下にドロップダウン、ページ本体は押し下げない） */}
       <div
         className={`lg:hidden absolute inset-x-0 top-full overflow-hidden border-b border-slate-200 bg-white transition-[max-height] duration-[220ms] ease-[cubic-bezier(.4,0,.2,1)] ${
-          open ? 'max-h-60' : 'max-h-0'
+          open ? 'max-h-72' : 'max-h-0'
         }`}
       >
         <nav className="flex flex-col px-4 py-1">
