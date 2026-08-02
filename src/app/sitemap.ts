@@ -20,6 +20,7 @@ const STATIC_PATHS = [
   '/tools/retirement-tax',
   '/tools/ideco-withdrawal',
   '/tools/education-cost',
+  '/concerns',
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

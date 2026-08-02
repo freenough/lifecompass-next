@@ -20,6 +20,7 @@ import {
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import { getFeaturedPosts } from '@/lib/blog';
+import ConcernBlockLP from '@/components/concerns/ConcernBlockLP';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
 
@@ -183,8 +184,11 @@ export default function HomePage() {
       {/* AD_SLOT_A: 差別化〜キャラクター間 */}
       {/* <AdSlot slotId="slot-a" className="mx-auto max-w-5xl px-6" /> */}
 
+      {/* ③.7 悩み×解決 */}
+      <ConcernBlockLP />
+
       {/* ③.5 FIREガイド */}
-      <section className="bg-slate-50 py-12">
+      <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-slate-900">FIREガイド</h2>
@@ -235,7 +239,7 @@ export default function HomePage() {
       </section>
 
       {/* ③.6 かんたん計算ツール */}
-      <section className="py-12">
+      <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-slate-900">かんたん計算ツール</h2>
@@ -267,7 +271,7 @@ export default function HomePage() {
       </section>
 
       {/* ④ あなたはどのタイプ？ */}
-      <section className="bg-slate-50 py-12">
+      <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
             あなたはどのタイプ？
@@ -337,7 +341,7 @@ export default function HomePage() {
       </section>
 
       {/* ⑤ 使い方（3ステップ） */}
-      <section className="py-20">
+      <section className="bg-slate-50 py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
@@ -359,7 +363,7 @@ export default function HomePage() {
           bodyがflex flex-colのため、main/footer間のmarginは通常のブロック要素と違い
           相殺されず、Footerのmt-16がそのまま本セクション背景色の外側の白い隙間になっていた。
           Footer.tsx側は変更対象外のため、直前要素のマージンで打ち消す形で対応している。 */}
-      <section className="bg-slate-50 py-20 -mb-16">
+      <section className="py-20 -mb-16">
         <div className="mx-auto max-w-xl px-6 text-center">
           <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
             まず、自分の数字を入れてみる。
