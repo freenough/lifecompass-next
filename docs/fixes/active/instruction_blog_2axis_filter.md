@@ -58,7 +58,7 @@ investigation結果を踏まえ、以下を実装する。フィルタ機能は�
   - この2つの `useState` パターンは、`Header.tsx` のモバイルメニュー用 `useState` と同様の書き方に揃える(このリポジトリにURLクエリパラメータ駆動のフィルタ前例が無いため、useState方式で統一する)
   - フィルタUIは2段のボタン行:
     1. `すべて` / `FIRE基礎知識` / `シミュレーター活用`(`category` を選択)
-    2. `すべて` / `貯める` / `判断する` / `受け取る` / `取り崩す`(`stage` を選択、ラベルは `concerns.ts` の `STAGE_LABELS` をそのまま再利用)
+    2. `すべて` / `貯める` / `リタイアする` / `受け取る` / `取り崩す`(`stage` を選択、ラベルは `concerns.ts` の `STAGE_LABELS` をそのまま再利用。`STAGE_LABELS`側は`id: 'deciding'`の表示名を「リタイアする」に変更済みであること前提)
   - 絞り込みロジック(AND、両方独立):
     ```
     posts.filter(p =>

@@ -2,7 +2,7 @@ export type ConcernStage = 'saving' | 'deciding' | 'receiving' | 'drawdown';
 
 export const STAGE_LABELS: Record<ConcernStage, string> = {
   saving: '貯める',
-  deciding: '判断する',
+  deciding: 'リタイアする',
   receiving: '受け取る',
   drawdown: '取り崩す',
 };
