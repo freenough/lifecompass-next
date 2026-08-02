@@ -9,6 +9,7 @@ import { withBasePath } from '@/lib/siteConfig';
 const NAV_ITEMS: { label: string; href: string; external?: boolean }[] = [
   { label: 'シミュレーター', href: '/app' },
   { label: 'ツール', href: '/tools' },
+  { label: 'お悩み', href: '/concerns' },
   { label: 'ブログ', href: '/blog' },
   { label: '使い方ガイド', href: '/guide' },
   { label: 'Note', href: 'https://note.com/freenough', external: true },

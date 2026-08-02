@@ -8,12 +8,14 @@ export default function Footer() {
         <nav className="flex flex-wrap justify-center gap-4">
           <a href="https://www.freenough.com/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700">Freenoughについて</a>
           <Link href="/app"            className="hover:text-slate-700">シミュレーター</Link>
-          <Link href="/blog"           className="hover:text-slate-700">ブログ</Link>
           <Link href="/tools"          className="hover:text-slate-700">ツール</Link>
-          <Link href="/disclosure"     className="hover:text-slate-700">広告開示</Link>
-          <Link href="/privacy-policy" className="hover:text-slate-700">プライバシーポリシー</Link>
+          <Link href="/concerns"       className="hover:text-slate-700">お悩み</Link>
+          <Link href="/blog"           className="hover:text-slate-700">ブログ</Link>
           <Link href="/guide"          className="hover:text-slate-700">使い方ガイド</Link>
           <Link href="/methodology"    className="hover:text-slate-700">計算ロジック</Link>
+          <a href="https://note.com/freenough" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700">Note</a>
+          <Link href="/disclosure"     className="hover:text-slate-700">広告開示</Link>
+          <Link href="/privacy-policy" className="hover:text-slate-700">プライバシーポリシー</Link>
           <Link href="/disclaimer"     className="hover:text-slate-700">免責事項</Link>
           <Link href="/about"          className="hover:text-slate-700">運営者情報</Link>
         </nav>
