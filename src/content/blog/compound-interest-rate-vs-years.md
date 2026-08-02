@@ -4,7 +4,7 @@ date: "2026-08-01"
 slug: "compound-interest-rate-vs-years"
 category: "シミュレーター活用"
 description: "毎月3万円の積立でも、運用年数と利回りの組み合わせ次第で最終資産は大きく変わります。資産シミュレーターの計算エンジンを使い、20年・30年・40年、利回り3〜7%の9パターンを実際に試算しました。"
-tags: ["複利計算", "利回り", "積立シミュレーション"]
+stages: ["saving"]
 featured: false
 eyecatch: "/images/blog/compound-interest-rate-vs-years-eyecatch.png"
 primaryTopic: "compound_interest"

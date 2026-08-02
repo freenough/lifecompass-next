@@ -6,7 +6,7 @@ category: "シミュレーター活用"
 description: "インフレ率が1%違うだけで、FIRE後の資産寿命はどれだけ変わるのでしょうか。FREENOUGH 資産シミュレーターでインフレ率0〜3.5%を試算し、資産が尽きる年齢への影響を実際のデータで検証します。"
 eyecatch: "/images/blog/eyecatch-fire-inflation-sensitivity.png"
 excerpt: "インフレ率0〜3.5%をシミュレーションで検証"
-tags: ["インフレ率", "資産寿命"]
+stages: ["drawdown"]
 featured: false
 priority: 6
 readingTime: 2

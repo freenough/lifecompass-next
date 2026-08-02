@@ -5,7 +5,7 @@ slug: "pension-timing"
 category: "シミュレーター活用"
 description: "年金の繰り上げ・繰り下げ受給、どちらが得かを損益分岐年齢で試算。さらに「繰り上げ分を運用に回すと得か」という論点も、資産シミュレーターで実際に検証しました。"
 eyecatch: "/images/blog/pension-timing-eyecatch.png"
-tags: ["年金", "繰り上げ受給", "繰り下げ受給"]
+stages: ["receiving"]
 primaryTopic: "pension"
 topics: ["pension"]
 ---

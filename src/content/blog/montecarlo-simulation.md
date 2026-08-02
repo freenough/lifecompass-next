@@ -6,7 +6,7 @@ category: "FIRE基礎知識"
 description: "モンテカルロシミュレーションの仕組みを解説。田中さんのケースで固定利回り計算と1,000通りの試算を比較すると、同じ「平均4%」の計画でも約4人に1人が資産枯渇するという結果になりました。破綻確率・p10/中央値/p90の読み方も解説します。"
 eyecatch: "/images/blog/eyecatch-montecarlo.png"
 excerpt: "1,000通りの試行が意味すること"
-tags: ["モンテカルロシミュレーション", "破綻確率"]
+stages: ["saving"]
 featured: true
 priority: 3
 readingTime: 3

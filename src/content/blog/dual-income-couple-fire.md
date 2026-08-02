@@ -6,7 +6,7 @@ category: "シミュレーター活用"
 description: "共働き夫婦のFIRE計画を資産シミュレーターで検証。夫婦どちらがいつ退職するかによって、資産と破綻確率がどう変わるかを1,000通りのシミュレーションで確認しました。"
 eyecatch: "/images/blog/eyecatch-dual-income-couple.png"
 excerpt: "退職タイミングの違いを試算で比較"
-tags: ["共働き夫婦", "退職タイミング"]
+stages: ["deciding"]
 featured: false
 readingTime: 2
 primaryTopic: "dual_income"

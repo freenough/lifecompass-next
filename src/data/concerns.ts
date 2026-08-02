@@ -1,5 +1,14 @@
 export type ConcernStage = 'saving' | 'deciding' | 'receiving' | 'drawdown';
 
+export const STAGE_LABELS: Record<ConcernStage, string> = {
+  saving: '貯める',
+  deciding: '判断する',
+  receiving: '受け取る',
+  drawdown: '取り崩す',
+};
+
+export const STAGE_ORDER: ConcernStage[] = ['saving', 'deciding', 'receiving', 'drawdown'];
+
 export type ConcernCTAType = 'lightTool' | 'fullSimulator';
 
 export interface Concern {

@@ -6,7 +6,7 @@ category: "シミュレーター活用"
 description: "55歳で早期退職すると、年金がもらえる65歳まで10年の\"空白期間\"がある。完全退職とセミリタイア、資産はどれだけ変わるのか。佐々木さんのケースをFREENOUGH 資産シミュレーターで検証し、収入を得る期間による差も比較しました。"
 eyecatch: "/images/blog/semi-retirement-blank-period.png"
 excerpt: "退職〜年金開始までの空白期間、収入をどう確保するか検証"
-tags: ["セミリタイア", "早期退職", "年金"]
+stages: ["deciding", "drawdown"]
 featured: false
 readingTime: 5
 primaryTopic: "pension"

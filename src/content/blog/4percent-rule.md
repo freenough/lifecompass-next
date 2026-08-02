@@ -6,7 +6,7 @@ category: "FIRE基礎知識"
 description: "4%ルールを1,000通りのモンテカルロシミュレーションで検証。日本の税制・年金・退職金を踏まえると、平均値では枯渇しない計画でも約4人に1人が資産枯渇するという結果になりました。"
 eyecatch: "/images/blog/eyecatch-4percent-rule.png"
 excerpt: "日本の税制・インフレを踏まえた検証"
-tags: ["4%ルール", "取り崩し戦略"]
+stages: ["saving", "drawdown"]
 featured: true
 priority: 1
 readingTime: 3

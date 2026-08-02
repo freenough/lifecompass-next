@@ -4,7 +4,7 @@ date: "2026-07-31"
 slug: "education-cost-fire-simulation"
 category: "シミュレーター活用"
 description: "教育費は進路パターンでどれだけ資産形成に影響するのか。教育費シミュレーターと資産シミュレーターを使い、公立中心・私立中心・大学のみ私立の3パターンで、将来の資産額と破綻確率を実際に試算しました。"
-tags: ["教育費", "私立公立", "子育て世帯"]
+stages: ["saving", "drawdown"]
 featured: false
 eyecatch: "/images/blog/education-cost-fire-simulation-eyecatch.png"
 primaryTopic: "education_cost"

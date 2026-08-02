@@ -6,7 +6,7 @@ category: "シミュレーター活用"
 description: "NISA・特定口座・現金、FIRE後はどこから取り崩すべき?FREENOUGH 資産シミュレーターで「比例取崩・現金優先・課税優先」の3戦略を同一条件で試算し、破綻確率と資産寿命の違いを実際の数値で比較しました。"
 eyecatch: "/images/blog/eyecatch-withdrawal-strategy.png"
 excerpt: "3つの取り崩し順を同条件で実証比較"
-tags: ["取り崩し戦略", "NISA", "モンテカルロ"]
+stages: ["drawdown"]
 featured: false
 readingTime: 6
 primaryTopic: "withdrawal"

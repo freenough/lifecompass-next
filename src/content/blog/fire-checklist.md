@@ -6,7 +6,7 @@ category: "FIRE基礎知識"
 description: "FIRE計画が崩れるのは計算ミスより「見落とし」が原因になりやすい。市場変動・退職年齢・インフレなど7項目をチェックリスト形式で整理し、FREENOUGH 資産シミュレーターで実際に試算した結果とともに解説します。"
 eyecatch: "/images/blog/eyecatch-fire-checklist.png"
 excerpt: "シミュレーション前に確認したい7つのポイント"
-tags: ["FIRE計画", "チェックリスト", "見落とし"]
+stages: ["saving"]
 featured: true
 priority: 4
 readingTime: 6

@@ -5,7 +5,7 @@ slug: "nisa-achievement-age"
 category: "シミュレーター活用"
 description: "毎月の積立額は決まったけれど、目標資産に届くのは何歳なのか。目標資産到達年齢シミュレーターとモンテカルロ法で、到達年齢とそのブレ幅を実際に検証します。"
 eyecatch: "/images/blog/nisa-achievement-age-eyecatch.png"
-tags: ["NISA", "積立シミュレーション", "達成年齢"]
+stages: ["saving"]
 primaryTopic: "nisa"
 topics: ["nisa", "fire_age"]
 ---

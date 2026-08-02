@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/siteConfig';
-import { CONCERNS, type ConcernStage } from '@/data/concerns';
+import { CONCERNS, STAGE_LABELS, STAGE_ORDER } from '@/data/concerns';
 import ConcernCard from '@/components/concerns/ConcernCard';
 
 export const metadata: Metadata = {
@@ -10,15 +10,6 @@ export const metadata: Metadata = {
     canonical: `${SITE_URL}/concerns`,
   },
 };
-
-const STAGE_LABELS: Record<ConcernStage, string> = {
-  saving: '貯める',
-  deciding: '判断する',
-  receiving: '受け取る',
-  drawdown: '取り崩す',
-};
-
-const STAGE_ORDER: ConcernStage[] = ['saving', 'deciding', 'receiving', 'drawdown'];
 
 export default function ConcernsPage() {
   return (

@@ -10,6 +10,7 @@ import type { Handler, Handlers } from 'mdast-util-to-hast';
 import type { Element } from 'hast';
 import { BASE_PATH, SITE_URL, withBasePath } from '@/lib/siteConfig';
 import { getAffiliateLink } from '@/lib/affiliateLinks';
+import type { ConcernStage } from '@/data/concerns';
 
 const POSTS_DIR = path.join(process.cwd(), 'src/content/blog');
 
@@ -153,13 +154,14 @@ export interface BlogPostMeta {
   // LP「FIREガイド」セクション用（既存のdescriptionは長文でblog一覧・記事ヘッダー用途のため、
   // 短い一言説明として別フィールドにする）
   excerpt?: string;
-  tags?: string[];
   featured?: boolean;
   priority?: number;
   readingTime?: number;
   // 関連コンテンツのマッチング用タクソノミー（getRelatedPosts()・getRelatedPostsForTopics()参照）
   primaryTopic: string;
   topics: string[];
+  // ブログ一覧の2軸フィルタ用ステージ軸（悩みブロックのConcernStageをそのまま再利用、1記事に複数可）
+  stages: ConcernStage[];
 }
 
 export interface BlogPost extends BlogPostMeta {
@@ -181,12 +183,12 @@ export function getAllPosts(): BlogPostMeta[] {
       description: data.description ?? '',
       eyecatch:    withBasePath(data.eyecatch),
       excerpt:     data.excerpt,
-      tags:        data.tags,
       featured:    data.featured,
       priority:    data.priority,
       readingTime: data.readingTime,
       primaryTopic: data.primaryTopic ?? '',
       topics:      data.topics ?? [],
+      stages:      data.stages ?? [],
     } as BlogPostMeta;
   });
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -221,12 +223,12 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     description: data.description ?? '',
     eyecatch:    withBasePath(data.eyecatch),
     excerpt:     data.excerpt,
-    tags:        data.tags,
     featured:    data.featured,
     priority:    data.priority,
     readingTime: data.readingTime,
     primaryTopic: data.primaryTopic ?? '',
     topics:      data.topics ?? [],
+    stages:      data.stages ?? [],
     content:     applyBasePathToHtml(processed.toString()),
   };
 }

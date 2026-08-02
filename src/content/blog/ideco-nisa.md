@@ -6,7 +6,7 @@ category: "FIRE基礎知識"
 description: "NISAとiDeCo、どちらを優先すべきか。役割の違いと落とし穴を整理したうえで、FREENOUGH 資産シミュレーターで田中さんのケースを実際に試算。iDeCoの受取方法(一時金・年金)によって手取り額に213万円の差が出た結果を検証します。"
 eyecatch: "/images/blog/eyecatch-ideco-nisa.png"
 excerpt: "制度の違いと使い分けの考え方"
-tags: ["NISA", "iDeCo"]
+stages: ["saving"]
 featured: true
 priority: 2
 readingTime: 3
