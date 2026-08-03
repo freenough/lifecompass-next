@@ -3,76 +3,89 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { IconCheck } from '@tabler/icons-react';
 import type { BlogPostMeta } from '@/lib/blog';
+import { TOPIC_GROUPS, getDisplayGroupsForPost } from '@/lib/blogTopics';
 import { STAGE_LABELS, STAGE_ORDER, type ConcernStage } from '@/data/concerns';
-
-const CATEGORY_OPTIONS = ['FIRE基礎知識', 'シミュレーター活用'] as const;
 
 function FilterButton({
   active,
   onClick,
   children,
+  showCheck,
 }: {
   active: boolean;
   onClick: () => void;
   children: ReactNode;
+  showCheck?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+      className={`inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
         active
           ? 'bg-accent text-white border-accent'
           : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
       }`}
     >
+      {showCheck && active && <IconCheck size={14} stroke={2.5} />}
       {children}
     </button>
   );
 }
 
 export default function BlogListClient({ posts }: { posts: BlogPostMeta[] }) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedStage, setSelectedStage] = useState<ConcernStage | 'all'>('all');
+
+  const toggleTopic = (label: string) => {
+    setSelectedTopics((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    );
+  };
 
   const filteredPosts = posts.filter(
     (post) =>
-      (selectedCategory === 'all' || post.category === selectedCategory) &&
+      (selectedTopics.length === 0 || getDisplayGroupsForPost(post).some((g) => selectedTopics.includes(g))) &&
       (selectedStage === 'all' || post.stages.includes(selectedStage))
   );
 
   const resetFilters = () => {
-    setSelectedCategory('all');
+    setSelectedTopics([]);
     setSelectedStage('all');
   };
 
   return (
     <div>
       <div className="mb-8 flex flex-col gap-3">
-        <div className="flex flex-wrap gap-2">
-          <FilterButton active={selectedCategory === 'all'} onClick={() => setSelectedCategory('all')}>
-            すべて
-          </FilterButton>
-          {CATEGORY_OPTIONS.map((category) => (
-            <FilterButton
-              key={category}
-              active={selectedCategory === category}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </FilterButton>
-          ))}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-xs text-slate-400">テーマで絞り込む(複数選択可)</p>
+          <div className="flex flex-wrap gap-2">
+            {TOPIC_GROUPS.map((group) => (
+              <FilterButton
+                key={group.label}
+                active={selectedTopics.includes(group.label)}
+                onClick={() => toggleTopic(group.label)}
+                showCheck
+              >
+                {group.label}
+              </FilterButton>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <FilterButton active={selectedStage === 'all'} onClick={() => setSelectedStage('all')}>
-            すべて
-          </FilterButton>
-          {STAGE_ORDER.map((stage) => (
-            <FilterButton key={stage} active={selectedStage === stage} onClick={() => setSelectedStage(stage)}>
-              {STAGE_LABELS[stage]}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-xs text-slate-400">ステージで絞り込む</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterButton active={selectedStage === 'all'} onClick={() => setSelectedStage('all')}>
+              すべて
             </FilterButton>
-          ))}
+            {STAGE_ORDER.map((stage) => (
+              <FilterButton key={stage} active={selectedStage === stage} onClick={() => setSelectedStage(stage)}>
+                {STAGE_LABELS[stage]}
+              </FilterButton>
+            ))}
+          </div>
         </div>
       </div>
 

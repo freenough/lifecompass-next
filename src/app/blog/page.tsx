@@ -17,7 +17,7 @@ export default function BlogPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold text-[#0F2A4A] mb-2">ブログ</h1>
-      <p className="text-slate-500 mb-10">FIREと資産形成の情報を発信しています。</p>
+      <p className="text-slate-500 mb-10">制度の解説だけでなく、独自シミュレーターでの試算結果もあわせて紹介しています。</p>
 
       {posts.length === 0 ? (
         <p className="text-slate-400">記事はまだありません。</p>
