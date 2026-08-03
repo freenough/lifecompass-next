@@ -10,6 +10,7 @@ import type { Handler, Handlers } from 'mdast-util-to-hast';
 import type { Element } from 'hast';
 import { BASE_PATH, SITE_URL, withBasePath } from '@/lib/siteConfig';
 import { getAffiliateLink } from '@/lib/affiliateLinks';
+import { BLOG_DESCRIPTION } from '@/lib/siteCopy';
 import type { ConcernStage } from '@/data/concerns';
 
 const POSTS_DIR = path.join(process.cwd(), 'src/content/blog');
@@ -291,7 +292,7 @@ export function buildRssFeed(posts: BlogPostMeta[], siteUrl: string): string {
   <channel>
     <title>FREENOUGH 資産シミュレーター ブログ</title>
     <link>${siteUrl}/blog</link>
-    <description>FIREと資産形成の情報を発信</description>
+    <description>${BLOG_DESCRIPTION}</description>
     <language>ja</language>
     ${items}
   </channel>

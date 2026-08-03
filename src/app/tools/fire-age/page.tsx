@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import FireAgeTool from '@/components/tools/FireAgeTool';
 import { SITE_URL } from '@/lib/siteConfig';
 import { getRelatedPostsForTopics } from '@/lib/blog';
+import { TOOL_MAP } from '@/lib/toolMetadata';
 
 export const metadata: Metadata = {
   title: '目標資産到達年齢シミュレーター | FREENOUGH 資産シミュレーター',
@@ -11,11 +12,9 @@ export const metadata: Metadata = {
   },
 };
 
-// TOOLS配列（src/app/tools/page.tsx）のfire-ageエントリと同じtopicsを使う
-// （TOOLS配列自体は一覧ページのUI専用のためimportせず、既存のtitle/description重複と同じ方針で値を複製）。
-const TOPICS = ['fire_age'];
+const topics = TOOL_MAP['fire-age']?.topics ?? [];
 
 export default function FireAgePage() {
-  const relatedArticles = getRelatedPostsForTopics(TOPICS).map((p) => ({ title: p.title, href: `/blog/${p.slug}` }));
+  const relatedArticles = getRelatedPostsForTopics(topics).map((p) => ({ title: p.title, href: `/blog/${p.slug}` }));
   return <FireAgeTool relatedArticles={relatedArticles} />;
 }
