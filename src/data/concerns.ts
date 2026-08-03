@@ -122,6 +122,7 @@ export const CONCERNS: Concern[] = [
     ctaType: 'lightTool',
     ctaLabel: '60秒で試算する',
     ctaUrl: '/tools/retirement-tax?utm_source=concerns&utm_medium=concern_card&utm_campaign=retirement_tax',
+    articleUrl: '/blog/retirement-tax-net-amount',
     featured: false,
   },
   {
