@@ -156,6 +156,41 @@ console.log('='.repeat(90));
 }
 
 console.log('\n' + '='.repeat(90));
+console.log('【idecoOnly*(iDeCo単体・比例配分方式)】主比較カード再設計(案A・2026-08-03)の回帰確認');
+console.log('='.repeat(90));
+{
+  // 一時金パターン(ratio=100)は公的年金の寄与がゼロのはず(idecoAnnual=0のため)
+  check('一時金パターン idecoOnlyNetAmount = lumpSum.netAmount(公的年金の寄与ゼロ)', lump.idecoOnlyNetAmount, lump.lumpSum.netAmount);
+  check('一時金パターン idecoOnlyTax = lumpSum.incomeTax + lumpSum.residentTax.total', lump.idecoOnlyTax, lump.lumpSum.incomeTax + lump.lumpSum.residentTax.total);
+}
+{
+  // 今回の不具合そのものの回帰確認:annuityYearsを10→20に変えても、
+  // 一時金パターンのidecoOnlyNetAmountは変化しないはず(旧netAmountは変化していた=既存テスト参照)
+  const input20y = { ...baseInput, annuityYears: 20 };
+  const lump20y = calcLumpSumPattern(input20y);
+  check('一時金パターン idecoOnlyNetAmount はannuityYears 10→20で不変(修正の核心)', lump20y.idecoOnlyNetAmount, lump.idecoOnlyNetAmount);
+}
+{
+  // 公的年金が0円のとき、iDeCo単体と合算値は一致するはず(按分の分母がiDeCoのみになるため)
+  const inputNoPublicPension = { ...baseInput, publicPensionAnnual: 0 };
+  const pensionNoPublic = calcPensionPattern(inputNoPublicPension);
+  check('公的年金0円のとき、年金パターンのidecoOnlyNetAmount = netAmount', pensionNoPublic.idecoOnlyNetAmount, pensionNoPublic.netAmount);
+  check('公的年金0円のとき、年金パターンのidecoOnlyTax = totalTax', pensionNoPublic.idecoOnlyTax, pensionNoPublic.totalTax);
+}
+{
+  // iDeCo残高・公的年金ともに0円の境界ケース:0除算にならず、実効税率はnull(「—」表示用)
+  const inputAllZero = { ...baseInput, idecoBalance: 0, publicPensionAnnual: 0 };
+  const pensionAllZero = calcPensionPattern(inputAllZero);
+  check('iDeCo・公的年金ともに0円のとき idecoOnlyNetAmount = 0', pensionAllZero.idecoOnlyNetAmount, 0);
+  check('iDeCo・公的年金ともに0円のとき idecoOnlyEffectiveTaxRate = null(0除算回避)', pensionAllZero.idecoOnlyEffectiveTaxRate, null);
+}
+{
+  // 併用パターンの境界一致性(既存のnetAmount境界一致性テストと同じ考え方をidecoOnly*にも適用)
+  check('併用100% idecoOnlyNetAmount = 一時金パターン idecoOnlyNetAmount', mixed100.idecoOnlyNetAmount, lump.idecoOnlyNetAmount);
+  check('併用0% idecoOnlyNetAmount = 年金パターン idecoOnlyNetAmount', mixed0.idecoOnlyNetAmount, pension.idecoOnlyNetAmount);
+}
+
+console.log('\n' + '='.repeat(90));
 console.log('【calcComprehensiveIncomeTax】基礎控除の段階・住民税基礎控除の別枠確認');
 console.log('='.repeat(90));
 {

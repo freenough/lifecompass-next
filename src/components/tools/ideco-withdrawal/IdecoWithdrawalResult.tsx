@@ -16,7 +16,8 @@ function fmt(v: number): string {
   return v.toLocaleString('ja-JP');
 }
 
-function fmtPct(v: number): string {
+function fmtPct(v: number | null): string {
+  if (v === null) return '—';
   return `${(v * 100).toFixed(1)}%`;
 }
 
@@ -45,14 +46,17 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
   };
 
   const order: ReceiveMethod[] = ['lump', 'pension', 'mixed'];
-  const best = order.reduce((a, b) => (results[b].netAmount > results[a].netAmount ? b : a));
+  const best = order.reduce((a, b) => (results[b].idecoOnlyNetAmount > results[a].idecoOnlyNetAmount ? b : a));
   const selected = results[values.receiveMethod];
   const selectedLabel = METHOD_LABEL[values.receiveMethod];
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
       <p className="text-sm font-medium text-slate-500">
-        {values.annuityYears}年間で比較した手取り総額(概算)
+        iDeCo/DC受取額(手取り)の比較(概算)
+      </p>
+      <p className="text-xs text-slate-400 -mt-0.5">
+        一時金は一括受取額、年金・併用は{values.annuityYears}年間の受給合計です。
       </p>
 
       <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
@@ -72,13 +76,20 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
                 {isBest && <span className="text-[10px] font-bold text-accent">最大</span>}
               </p>
               <p className="mt-1 text-lg sm:text-xl font-bold text-slate-800 leading-tight">
-                {fmt(toManYen(r.netAmount))}<span className="text-xs font-medium ml-0.5">万円</span>
+                {fmt(toManYen(r.idecoOnlyNetAmount))}<span className="text-xs font-medium ml-0.5">万円</span>
               </p>
-              <p className="mt-1 text-xs text-slate-500">税額 {fmt(toManYen(r.totalTax))}万円</p>
-              <p className="text-xs text-slate-500">実効税率 {fmtPct(r.effectiveTaxRate)}</p>
+              <p className="mt-1 text-xs text-slate-500">税額 {fmt(toManYen(r.idecoOnlyTax))}万円</p>
+              <p className="text-xs text-slate-500">実効税率 {fmtPct(r.idecoOnlyEffectiveTaxRate)}</p>
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2">
+        <p className="text-xs text-slate-500">
+          参考:公的年金 年間{fmt(values.publicPensionAnnualManYen)}万円(税引前)
+        </p>
+        <p className="text-[11px] text-slate-400">※上記の比較には含まれていません</p>
       </div>
 
       <p className="mt-3 text-sm text-slate-600 leading-relaxed">
@@ -104,7 +115,7 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
                 <span className="text-slate-500">所得税+住民税</span>
                 <span className="font-medium">{fmt(toManYen(selected.lumpSum.incomeTax + selected.lumpSum.residentTax.total))}万円</span>
               </div>
-              <div className="flex justify-between py-1 border-t border-slate-100">
+              <div className="flex justify-between py-1.5 px-2 -mx-2 rounded bg-blue-50">
                 <span className="text-slate-500">一時金分の手取り</span>
                 <span className="font-semibold">{fmt(toManYen(selected.lumpSum.netAmount))}万円</span>
               </div>
@@ -112,41 +123,46 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
           </div>
         ) : null}
 
-        <div>
-          <p className="text-xs font-medium text-slate-500 mb-1">
-            年金分(総合課税、{values.annuityYears}年間・1年あたり)
-          </p>
-          <div className="text-sm text-slate-700">
-            <div className="flex justify-between py-1 border-t border-slate-100">
-              <span className="text-slate-500">公的年金等控除</span>
-              <span className="font-medium">{fmt(toManYen(selected.pension.deduction))}万円</span>
-            </div>
-            <div className="flex justify-between py-1 border-t border-slate-100">
-              <span className="text-slate-500">雑所得(公的年金+DC年金)</span>
-              <span className="font-medium">{fmt(toManYen(selected.pension.taxableIncome))}万円</span>
-            </div>
-            <div className="flex justify-between py-1 border-t border-slate-100">
-              <span className="text-slate-500">所得税の基礎控除</span>
-              <span className="font-medium">{fmt(toManYen(selected.comprehensive.basicDeduction))}万円</span>
-            </div>
-            <div className="flex justify-between py-1 border-t border-slate-100">
-              <span className="text-slate-500">所得税+復興特別所得税</span>
-              <span className="font-medium">{fmt(toManYen(selected.comprehensive.incomeTax + selected.comprehensive.reconstructionTax))}万円</span>
-            </div>
-            <div className="flex justify-between py-1 border-t border-slate-100">
-              <span className="text-slate-500">住民税</span>
-              <span className="font-medium">{fmt(toManYen(selected.comprehensive.residentTax.total))}万円</span>
-            </div>
-            <div className="flex justify-between py-1 border-t border-slate-100">
-              <span className="text-slate-500">年金分の手取り(1年あたり)</span>
-              <span className="font-semibold">{fmt(toManYen(selected.pensionNetPerYear))}万円</span>
+        {values.receiveMethod !== 'lump' && (
+          <div>
+            <p className="text-xs font-medium text-slate-500 mb-1">
+              年金分(総合課税:公的年金+iDeCo年金を合算して計算・1年あたり)
+            </p>
+            <div className="text-sm text-slate-700">
+              <div className="flex justify-between py-1 border-t border-slate-100">
+                <span className="text-slate-500">公的年金等控除</span>
+                <span className="font-medium">{fmt(toManYen(selected.pension.deduction))}万円</span>
+              </div>
+              <div className="flex justify-between py-1 border-t border-slate-100">
+                <span className="text-slate-500">雑所得(公的年金+DC年金)</span>
+                <span className="font-medium">{fmt(toManYen(selected.pension.taxableIncome))}万円</span>
+              </div>
+              <div className="flex justify-between py-1 border-t border-slate-100">
+                <span className="text-slate-500">所得税の基礎控除</span>
+                <span className="font-medium">{fmt(toManYen(selected.comprehensive.basicDeduction))}万円</span>
+              </div>
+              <div className="flex justify-between py-1 border-t border-slate-100">
+                <span className="text-slate-500">所得税+復興特別所得税</span>
+                <span className="font-medium">{fmt(toManYen(selected.comprehensive.incomeTax + selected.comprehensive.reconstructionTax))}万円</span>
+              </div>
+              <div className="flex justify-between py-1 border-t border-slate-100">
+                <span className="text-slate-500">住民税</span>
+                <span className="font-medium">{fmt(toManYen(selected.comprehensive.residentTax.total))}万円</span>
+              </div>
+              <p className="text-[11px] text-slate-400 border-t border-slate-200 pt-1.5 mt-1">
+                ↓ 上記の合算税額を、iDeCoと公的年金のグロス金額比で按分
+              </p>
+              <div className="flex justify-between py-1.5 px-2 -mx-2 rounded bg-blue-50">
+                <span className="text-slate-500">iDeCo年金分の手取り(1年あたり)</span>
+                <span className="font-semibold">{fmt(toManYen(selected.idecoOnlyNetPerYear))}万円</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="flex justify-between py-2 border-t border-slate-300 mt-2">
-          <span className="font-semibold text-slate-700">{selectedLabel}パターンの手取り総額({values.annuityYears}年間)</span>
-          <span className="font-bold text-accent">{fmt(toManYen(selected.netAmount))}万円</span>
+        <div className="flex justify-between py-2 px-2 -mx-2 mt-2 rounded bg-blue-50">
+          <span className="font-semibold text-slate-700">{selectedLabel}パターンの手取り総額(iDeCo単体・{values.annuityYears}年間)</span>
+          <span className="font-bold text-accent">{fmt(toManYen(selected.idecoOnlyNetAmount))}万円</span>
         </div>
       </div>
 
@@ -157,6 +173,12 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
           本ツールは特定の受け取り方を比較検討するための単発計算のため、より精緻な計算を行っています。また、差分方式による
           経路依存性を避け、各受取方法(一時金・年金・併用)について、指定いただいた受給期間全体で受け取れる手取り総額を
           直接計算しています。
+        </p>
+        <p>
+          <strong>iDeCo単体の年金・併用パターンの手取り額について</strong><br />
+          年金・併用パターンでは、iDeCo年金と公的年金を合算した金額に公的年金等控除・所得税・住民税を一括で計算しています。
+          上記カードのiDeCo単体の手取り額は、この合算税額をiDeCoと公的年金のグロス金額比で按分した概算値です(差分計算では
+          ありません)。実際の按分結果は、税額計算上の仮定によって多少変動する可能性があります。
         </p>
         <p>ただし、以下は反映していません:</p>
         <ul className="list-disc pl-5 space-y-1">

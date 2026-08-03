@@ -266,6 +266,28 @@ export interface WithdrawalPatternResult {
   pensionGrossPerYear: number;
   /** 年金分の手取り(1年あたり、円) = pensionGrossPerYear - comprehensive.totalTax */
   pensionNetPerYear: number;
+  /**
+   * iDeCo/DC単体(公的年金を含まない)のグロス受取総額(円)。
+   * = 一時金分(会社の退職金含む) + iDeCo年金分のannuityYears年分合計。
+   * 主比較カード表示用(retirement-tax再設計・案A、2026-08-03)。
+   */
+  idecoOnlyGrossIncome: number;
+  /**
+   * iDeCo/DC単体の税額合計(円)。年金分の税額は、公的年金等控除後の合算税額
+   * (comprehensive.totalTax)を年金分グロス金額比で按分した概算値(比例配分方式。
+   * 差分方式は不採用。calcMixedPattern()の設計方針コメント参照）。
+   */
+  idecoOnlyTax: number;
+  /** iDeCo/DC単体の手取り総額(円)。主比較カードのメイン表示値。 */
+  idecoOnlyNetAmount: number;
+  /** iDeCo/DC単体の実効税率(idecoOnlyTax / idecoOnlyGrossIncome)。グロスが0円のときはnull（「—」表示用）。 */
+  idecoOnlyEffectiveTaxRate: number | null;
+  /**
+   * iDeCo/DC年金分の手取り(1年あたり、円、按分後・公的年金を含まない)。
+   * = idecoAnnual(iDeCo年金分のグロス年額) - idecoTaxPerYear(比例配分後の税額)。
+   * 内訳表示の「iDeCo年金分の手取り(1年あたり)」用(2026-08-03、内訳とカードの整合性修正)。
+   */
+  idecoOnlyNetPerYear: number;
 }
 
 /**
@@ -313,6 +335,20 @@ export function calcMixedPattern(
   const netAmount = lumpSum.netAmount + pensionNetTotal;
   const effectiveTaxRate = grossIncome > 0 ? totalTax / grossIncome : 0;
 
+  // iDeCo/DC単体(公的年金を含まない)の按分計算 — 比例配分方式(グロス金額比で合算税額を按分)。
+  // idecoAnnual・publicPensionAnnualの比で按分するため、ratio=100(一時金パターン)では
+  // idecoAnnual=0となり、iDeCo起因分が自動的に0になる(一時金分＝lumpSumのみが残る)。
+  const idecoShareOfGross = idecoAnnual + input.publicPensionAnnual > 0
+    ? idecoAnnual / (idecoAnnual + input.publicPensionAnnual)
+    : 0;
+  const idecoTaxPerYear = comprehensive.totalTax * idecoShareOfGross;
+  const idecoNetPerYear = idecoAnnual - idecoTaxPerYear;
+
+  const idecoOnlyGrossIncome = lumpSumPortion + input.severance + idecoAnnual * input.annuityYears;
+  const idecoOnlyTax = lumpSum.incomeTax + lumpSum.residentTax.total + idecoTaxPerYear * input.annuityYears;
+  const idecoOnlyNetAmount = lumpSum.netAmount + idecoNetPerYear * input.annuityYears;
+  const idecoOnlyEffectiveTaxRate = idecoOnlyGrossIncome > 0 ? idecoOnlyTax / idecoOnlyGrossIncome : null;
+
   return {
     grossIncome,
     totalTax,
@@ -324,6 +360,11 @@ export function calcMixedPattern(
     annuityYears: input.annuityYears,
     pensionGrossPerYear,
     pensionNetPerYear,
+    idecoOnlyGrossIncome,
+    idecoOnlyTax,
+    idecoOnlyNetPerYear: idecoNetPerYear,
+    idecoOnlyNetAmount,
+    idecoOnlyEffectiveTaxRate,
   };
 }
 
