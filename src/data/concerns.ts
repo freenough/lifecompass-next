@@ -133,6 +133,7 @@ export const CONCERNS: Concern[] = [
     ctaType: 'lightTool',
     ctaLabel: '60秒で試算する',
     ctaUrl: '/tools/ideco-withdrawal?utm_source=concerns&utm_medium=concern_card&utm_campaign=ideco_withdrawal',
+    articleUrl: '/blog/ideco-withdrawal',
     featured: false,
   },
   {
