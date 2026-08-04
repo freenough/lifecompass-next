@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { IconMenu2, IconX } from '@tabler/icons-react';
+import { IconMenu2, IconX, IconSearch } from '@tabler/icons-react';
 import { withBasePath } from '@/lib/siteConfig';
+import SearchModal from '@/components/search/SearchModal';
 
 const NAV_ITEMS: { label: string; href: string; external?: boolean }[] = [
   { label: 'シミュレーター', href: '/app' },
@@ -17,6 +18,8 @@ const NAV_ITEMS: { label: string; href: string; external?: boolean }[] = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  // ハンバーガーメニューのopenとは独立して管理する(implementation_site_search.md 4節)
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <>
@@ -27,30 +30,45 @@ export default function Header() {
           資産シミュレーター
         </Link>
 
-        {/* PC幅（lg:以上）は従来通り横並びナビ */}
-        <nav className="hidden lg:flex gap-6 text-sm text-slate-600">
-          {NAV_ITEMS.map((item) =>
-            item.external ? (
-              <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">
-                {item.label}
-              </a>
-            ) : (
-              <Link key={item.label} href={item.href} className="hover:text-slate-900 transition-colors">
-                {item.label}
-              </Link>
-            )
-          )}
-        </nav>
+        <div className="flex items-center gap-2">
+          {/* PC幅（lg:以上）は従来通り横並びナビ */}
+          <nav className="hidden lg:flex gap-6 text-sm text-slate-600 mr-2">
+            {NAV_ITEMS.map((item) =>
+              item.external ? (
+                <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">
+                  {item.label}
+                </a>
+              ) : (
+                <Link key={item.label} href={item.href} className="hover:text-slate-900 transition-colors">
+                  {item.label}
+                </Link>
+              )
+            )}
+          </nav>
 
-        {/* モバイル幅（lg:未満）はハンバーガーアイコン */}
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="lg:hidden text-slate-600 hover:text-slate-900 transition-colors"
-          aria-label={open ? 'メニューを閉じる' : 'メニューを開く'}
-          aria-expanded={open}
-        >
-          {open ? <IconX size={24} /> : <IconMenu2 size={24} />}
-        </button>
+          {/* 検索ボタン（PC/モバイル共通）。開いている間はホバーとは別のactive配色を維持する */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            aria-label="検索"
+            className={`rounded-lg border p-1.5 transition-colors ${
+              searchOpen
+                ? 'bg-[#E6F1FB] border-[#92BCF0] text-[#0C447C]'
+                : 'border-transparent text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <IconSearch size={20} />
+          </button>
+
+          {/* モバイル幅（lg:未満）はハンバーガーアイコン */}
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="lg:hidden text-slate-600 hover:text-slate-900 transition-colors"
+            aria-label={open ? 'メニューを閉じる' : 'メニューを開く'}
+            aria-expanded={open}
+          >
+            {open ? <IconX size={24} /> : <IconMenu2 size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* モバイルメニュー展開部（ヘッダー下にドロップダウン、ページ本体は押し下げない） */}
@@ -96,6 +114,8 @@ export default function Header() {
         aria-hidden="true"
       />
     )}
+
+    <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }
