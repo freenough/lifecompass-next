@@ -5,6 +5,7 @@ import { useSimulatorStore } from '@/store/simulatorStore';
 import type { LifeEvent, IncomeSubtype, ExpenseSubtype } from '@/lib/types';
 import { UNIT_WIDTH_CLASS } from '@/components/simulator/formLayout';
 import InfoTooltip from '@/components/simulator/InfoTooltip';
+import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 
 const INCOME_SUBTYPES: { value: IncomeSubtype; label: string }[] = [
   { value: 'reemploy',    label: '再雇用' },
@@ -63,6 +64,11 @@ interface FormState {
 }
 
 const DEFAULT_MORTGAGE = { principal: 3000, rate: 1.0, termYears: 30 }
+
+// EventForm・NumberField共通のスタイル（EventForm内ローカル定数だったものをモジュールスコープへ
+// 昇格。NumberFieldからも参照するため）
+const inputCls  = 'text-xs border border-slate-300 rounded px-1 py-1 text-right bg-white';
+const selectCls = 'text-xs border border-slate-300 rounded px-1 py-1 bg-white text-left';
 
 // These subtypes take effect from a given age onward — no "years" field needed
 const POINT_CHANGE_SUBTYPES = new Set([
@@ -257,6 +263,65 @@ interface EventFormProps {
   spRetAge?: number;
 }
 
+interface NumberFieldProps {
+  label: React.ReactNode;
+  value: number;
+  onValueChange: (v: number) => void;
+  suffix: string;
+  step?: number;
+  min?: number;
+  max?: number;
+  className?: string;
+  /** suffixの後ろに追加で表示する要素（開始年齢欄のInfoTooltip等）。連動ロジックは持たない疎結合な受け皿。 */
+  after?: React.ReactNode;
+}
+
+/**
+ * ラベル+数値入力+単位をまとめた行コンポーネント。前0バグ修正
+ * （SimulatorForm.tsx の Field と同じ onChange/onFocus/onClick/onBlur の4段構え、
+ * src/lib/numberInput.ts の stripLeadingZero/clearZeroOrSelect）をそのまま踏襲する。
+ * 住宅ローンの連動計算（principal/rate/termYears→years/amountの再計算）は関知せず、
+ * パース済みの数値をonValueChangeで返すだけの疎結合な作り（呼び出し元がupdateMortgage()
+ * 経由か単純setForm()かを選ぶ）。
+ */
+function NumberField({ label, value, onValueChange, suffix, step = 1, min, max, className = 'w-24', after }: NumberFieldProps) {
+  const isIntegerStep = Number.isInteger(step);
+  return (
+    <div className="flex gap-2 items-center justify-between">
+      <label className="text-xs text-slate-500 w-16 shrink-0 leading-tight">{label}</label>
+      <div className="flex gap-1 items-center">
+        <input
+          type="number"
+          value={value}
+          step={step}
+          min={min}
+          max={max}
+          onChange={e => {
+            const cleaned = stripLeadingZero(e.target.value);
+            if (cleaned !== e.target.value) e.target.value = cleaned;
+            const raw = e.target.valueAsNumber;
+            if (isNaN(raw)) { onValueChange(0); return; }
+            const next = isIntegerStep ? Math.round(raw) : raw;
+            onValueChange(next);
+            if (isIntegerStep && raw !== next) e.target.value = String(next);
+          }}
+          onBlur={e => {
+            const raw = e.target.valueAsNumber;
+            const safe = isNaN(raw) ? (value || 0) : (isIntegerStep ? Math.round(raw) : raw);
+            if (safe !== value) onValueChange(safe);
+            e.target.value = String(safe);
+          }}
+          onFocus={e => clearZeroOrSelect(e.currentTarget)}
+          onClick={e => clearZeroOrSelect(e.currentTarget)}
+          className={`${className} ${inputCls}`}
+        />
+        <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400 whitespace-nowrap`}>{suffix}</span>
+        {after}
+      </div>
+    </div>
+  );
+}
+
 function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRetAge }: EventFormProps) {
   const isMortgage    = form.subtype === 'mortgage';
   const isPointChange = POINT_CHANGE_SUBTYPES.has(form.subtype);
@@ -286,9 +351,6 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
   const annual  = isMortgage ? calcMortgage(form.principal, form.rate, form.termYears) : 0;
   const monthly = isMortgage ? calcMortgageMonthly(form.principal, form.rate, form.termYears) : 0;
   const total   = isMortgage ? Math.round(annual * form.termYears) : 0;
-
-  const inputCls  = 'text-xs border border-slate-300 rounded px-1 py-1 text-right bg-white';
-  const selectCls = 'text-xs border border-slate-300 rounded px-1 py-1 bg-white text-left';
 
   return (
     <div className="mt-2 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -339,62 +401,41 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
 
       {/* 開始年齢（共通）。他行とのクラスタ総幅一致のため内側gapはgap-1に統一（配偶者の場合の
           ツールチップ?ボタンは例外として幅計算に含めない）。 */}
-      <div className="flex gap-2 items-center justify-between">
-        <label className="text-xs text-slate-500 w-16 shrink-0">開始年齢</label>
-        <div className="flex gap-1 items-center">
-          <input
-            type="number"
-            value={form.age}
-            onChange={e => setForm(f => ({ ...f, age: +e.target.value }))}
-            className={`w-24 ${inputCls}`}
-          />
-          <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>歳</span>
-          {isSpouseEvent && <InfoTooltip text="配偶者の年齢で入力してください" />}
-        </div>
-      </div>
+      <NumberField
+        label="開始年齢"
+        value={form.age}
+        onValueChange={v => setForm(f => ({ ...f, age: v }))}
+        suffix="歳"
+        after={isSpouseEvent && <InfoTooltip text="配偶者の年齢で入力してください" />}
+      />
 
       {isMortgage ? (
         <>
           {/* 住宅ローン専用フィールド */}
-          <div className="flex gap-2 items-center justify-between">
-            <label className="text-xs text-slate-500 w-16 shrink-0">借入額</label>
-            <div className="flex gap-1 items-center">
-              <input
-                type="number"
-                value={form.principal}
-                onChange={e => updateMortgage({ principal: +e.target.value })}
-                min={0}
-                className={`w-24 ${inputCls}`}
-              />
-              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>万円</span>
-            </div>
-          </div>
-          <div className="flex gap-2 items-center justify-between">
-            <label className="text-xs text-slate-500 w-16 shrink-0">金利</label>
-            <div className="flex gap-1 items-center">
-              <input
-                type="number"
-                value={form.rate}
-                onChange={e => updateMortgage({ rate: +e.target.value })}
-                min={0} max={10} step={0.1}
-                className={`w-24 ${inputCls}`}
-              />
-              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400 whitespace-nowrap`}>% / 年</span>
-            </div>
-          </div>
-          <div className="flex gap-2 items-center justify-between">
-            <label className="text-xs text-slate-500 w-16 shrink-0">返済年数</label>
-            <div className="flex gap-1 items-center">
-              <input
-                type="number"
-                value={form.termYears}
-                onChange={e => updateMortgage({ termYears: +e.target.value })}
-                min={1} max={50}
-                className={`w-24 ${inputCls}`}
-              />
-              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>年</span>
-            </div>
-          </div>
+          <NumberField
+            label="借入額"
+            value={form.principal}
+            onValueChange={v => updateMortgage({ principal: v })}
+            suffix="万円"
+            min={0}
+          />
+          <NumberField
+            label="金利"
+            value={form.rate}
+            onValueChange={v => updateMortgage({ rate: v })}
+            suffix="% / 年"
+            step={0.1}
+            min={0}
+            max={10}
+          />
+          <NumberField
+            label="返済年数"
+            value={form.termYears}
+            onValueChange={v => updateMortgage({ termYears: v })}
+            suffix="年"
+            min={1}
+            max={50}
+          />
 
           {/* リアルタイム試算 */}
           {form.principal > 0 && form.termYears > 0 && (
@@ -416,34 +457,20 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
         <>
           {/* 通常イベントの期間（変更系は非表示） */}
           {!isPointChange && (
-            <div className="flex gap-2 items-center justify-between">
-              <label className="text-xs text-slate-500 w-16 shrink-0">期間</label>
-              <div className="flex gap-1 items-center">
-                <input
-                  type="number"
-                  value={form.years}
-                  onChange={e => setForm(f => ({ ...f, years: +e.target.value }))}
-                  min={1}
-                  className={`w-24 ${inputCls}`}
-                />
-                <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400`}>年</span>
-              </div>
-            </div>
+            <NumberField
+              label="期間"
+              value={form.years}
+              onValueChange={v => setForm(f => ({ ...f, years: v }))}
+              suffix="年"
+              min={1}
+            />
           )}
-          <div className="flex gap-2 items-center justify-between">
-            <label className="text-xs text-slate-500 w-16 shrink-0 leading-tight">
-              {isPointChange ? '変更後' : '金額'}
-            </label>
-            <div className="flex gap-1 items-center">
-              <input
-                type="number"
-                value={form.amount}
-                onChange={e => setForm(f => ({ ...f, amount: +e.target.value }))}
-                className={`w-24 ${inputCls}`}
-              />
-              <span className={`${UNIT_WIDTH_CLASS} shrink-0 text-left text-xs text-slate-400 whitespace-nowrap`}>万円{isPointChange ? '' : '/年'}</span>
-            </div>
-          </div>
+          <NumberField
+            label={isPointChange ? '変更後' : '金額'}
+            value={form.amount}
+            onValueChange={v => setForm(f => ({ ...f, amount: v }))}
+            suffix={`万円${isPointChange ? '' : '/年'}`}
+          />
           {isPointChange && CHANGE_AMT_LABEL[form.subtype] && (
             <p className="text-[10px] text-slate-400 -mt-1 leading-relaxed">
               {CHANGE_AMT_LABEL[form.subtype]}
