@@ -19,6 +19,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { label: '年金・老後の資産計画', topics: ['pension', 'withdrawal', 'dual_income'] },
   { label: '教育費', topics: ['education_cost'] },
   { label: 'シミュレーションの考え方', topics: ['montecarlo', 'fire_basics', 'inflation', 'fire_age'] },
+  { label: '住宅・ローン', topics: ['housing_loan'] },
 ];
 
 const TOPIC_TO_GROUP_LABEL: Record<string, string> = TOPIC_GROUPS.reduce((acc, group) => {

@@ -1,0 +1,148 @@
+{
+  "id": 1785889057309,
+  "name": "住宅ローン記事2",
+  "savedAt": "2026-08-05T03:56:48.325Z",
+  "version": 3,
+  "params": {
+    "curAge": 35,
+    "lifeEx": 90,
+    "baseInc": 610,
+    "baseExp": 240,
+    "inflR": 2,
+    "mcStd": 16,
+    "mcStdR": 8,
+    "rWNisa": 7,
+    "rRNisa": 4,
+    "rWIdeco": 7,
+    "rRIdeco": 4,
+    "rWTax": 7,
+    "rRTax": 4,
+    "rateSameAsWorking": false,
+    "sigmaSameAsWorking": false,
+    "pfManualFlags": {
+      "rWNisa": true,
+      "rWIdeco": true,
+      "rWTax": true,
+      "rRNisa": true,
+      "rRIdeco": true,
+      "rRTax": true,
+      "mcStd": true,
+      "mcStdR": true
+    },
+    "retAge": 55,
+    "penAge": 65,
+    "penAmtVal": 160,
+    "bNisa": 300,
+    "cNisa": 66,
+    "cNisaTo": 55,
+    "bIdeco": 0,
+    "cIdeco": 0,
+    "cIdecoTo": 55,
+    "idecoYrs": 13,
+    "sevYrs": 13,
+    "idecoReceiveType": "pension",
+    "idecoReceiveYears": 15,
+    "idecoSplitRatio": 50,
+    "idecoStartAge": 65,
+    "bTax": 500,
+    "cTax": 0,
+    "cTaxTo": 55,
+    "bCash": 200,
+    "penAmt": 160,
+    "spInc": 0,
+    "spRetAge": 0,
+    "spPenAge": 65,
+    "spPenAmt": 80,
+    "spCurAge": 33,
+    "spNisaBal": 0,
+    "spNisaCon": 0,
+    "spNisaTo": 60,
+    "spIdecoBal": 0,
+    "spIdecoCon": 0,
+    "spIdecoTo": 60,
+    "spTaxBal": 0,
+    "spTaxCon": 0,
+    "spTaxTo": 60,
+    "spSevYrs": 0,
+    "spIdecoYrs": 0,
+    "spIdecoReceiveType": "lump",
+    "spIdecoReceiveYears": 10,
+    "spIdecoSplitRatio": 50,
+    "spIdecoStartAge": 60,
+    "spCashBal": 0
+  },
+  "portfolio": {
+    "current": {
+      "nisa": [],
+      "ideco": [],
+      "tax": [],
+      "spNisa": [],
+      "spIdeco": [],
+      "spTax": []
+    },
+    "working": {
+      "nisa": [],
+      "ideco": [],
+      "tax": []
+    },
+    "retirement": {
+      "nisa": [],
+      "ideco": [],
+      "tax": [],
+      "sameAsWorking": true
+    }
+  },
+  "events": [
+    {
+      "category": "income",
+      "subtype": "severance",
+      "name": "",
+      "age": 55,
+      "years": 1,
+      "amount": 1500
+    },
+    {
+      "category": "expense",
+      "subtype": "mortgage",
+      "name": "",
+      "age": 35,
+      "years": 20,
+      "amount": 303.53,
+      "principal": 5500,
+      "rate": 1,
+      "termYears": 20
+    },
+    {
+      "category": "income",
+      "subtype": "inc_change",
+      "name": "",
+      "age": 45,
+      "years": 1,
+      "amount": 800
+    },
+    {
+      "category": "expense",
+      "subtype": "tax_con_change",
+      "name": "",
+      "age": 46,
+      "years": 1,
+      "amount": 190
+    }
+  ],
+  "ui": {
+    "cmpMode": "strategy",
+    "activeStrategies": [
+      "proportional"
+    ],
+    "activeScenarios": [
+      "base"
+    ],
+    "currentMode": "fixed",
+    "balSync": {
+      "nisa": false,
+      "ideco": false,
+      "tax": false,
+      "cash": false
+    }
+  }
+}
