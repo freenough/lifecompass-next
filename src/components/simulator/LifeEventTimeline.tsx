@@ -6,7 +6,7 @@ import type { LifeEvent, IncomeSubtype, ExpenseSubtype } from '@/lib/types';
 import { UNIT_WIDTH_CLASS } from '@/components/simulator/formLayout';
 import InfoTooltip from '@/components/simulator/InfoTooltip';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
-import { calcMortgage, calcMortgageMonthly } from '@/lib/helpers';
+import { calcMortgage, calcMortgageMonthly, calcMortgageBalance, calcMortgageTermFromPayment } from '@/lib/helpers';
 
 const INCOME_SUBTYPES: { value: IncomeSubtype; label: string }[] = [
   { value: 'reemploy',    label: '再雇用' },
@@ -46,9 +46,33 @@ interface FormState {
   principal: number;
   rate: number;
   termYears: number;
+  // 繰上返済(単発)専用フィールド
+  prepayEnabled: boolean;
+  prepayAge: number;
+  prepayAmount: number;
+  prepayType: 'shorten' | 'reduce';
 }
 
 const DEFAULT_MORTGAGE = { principal: 3000, rate: 1.0, termYears: 30 }
+const DEFAULT_PREPAY = { prepayEnabled: false, prepayAge: 0, prepayAmount: 0, prepayType: 'shorten' as const };
+
+// 繰上返済セクションの入力バリデーション。prepayEnabled=false時は常にエラーなし
+// （formToEvent側でprepay系フィールドをundefinedにするため、値そのものは検証不要）。
+function getPrepayErrors(f: FormState): { age?: string; amount?: string } {
+  if (!f.prepayEnabled) return {};
+  const errors: { age?: string; amount?: string } = {};
+  const minAge = f.age + 1;
+  const maxAge = f.age + f.termYears - 1;
+  if (!(f.prepayAge > f.age && f.prepayAge < f.age + f.termYears)) {
+    errors.age = `繰上返済年齢は${minAge}〜${maxAge}歳の範囲で入力してください`;
+  }
+  if (!(f.prepayAmount > 0)) {
+    errors.amount = '繰上返済額は0より大きい値を入力してください';
+  } else if (f.prepayAmount > f.principal) {
+    errors.amount = '繰上返済額は借入額を超えないようにしてください';
+  }
+  return errors;
+}
 
 // EventForm・NumberField共通のスタイル（EventForm内ローカル定数だったものをモジュールスコープへ
 // 昇格。NumberFieldからも参照するため）
@@ -78,6 +102,7 @@ function blankForm(retAge: number): FormState {
     category: 'income', subtype: 'reemploy', name: '', age: retAge, years: 1, amount: 0,
     owner: 'self',
     ...DEFAULT_MORTGAGE,
+    ...DEFAULT_PREPAY,
   };
 }
 
@@ -87,12 +112,21 @@ function eventToForm(ev: LifeEvent): FormState {
     age: ev.age, years: ev.years, amount: ev.amount,
     owner: ev.owner ?? 'self',
     ...DEFAULT_MORTGAGE,
+    ...DEFAULT_PREPAY,
   };
   if (ev.category === 'expense' && ev.subtype === 'mortgage') {
     const principal = ev.principal ?? DEFAULT_MORTGAGE.principal;
     const rate      = ev.rate      ?? DEFAULT_MORTGAGE.rate;
     const termYears = ev.termYears ?? DEFAULT_MORTGAGE.termYears;
-    return { ...base, principal, rate, termYears };
+    // 繰上返済フィールドを持たない既存イベントはprepayEnabled=false・関連欄は空(0)のまま
+    const prepayEnabled = ev.prepayAge != null && ev.prepayAmount != null && ev.prepayAmount > 0;
+    return {
+      ...base, principal, rate, termYears,
+      prepayEnabled,
+      prepayAge: ev.prepayAge ?? 0,
+      prepayAmount: ev.prepayAmount ?? 0,
+      prepayType: ev.prepayType ?? DEFAULT_PREPAY.prepayType,
+    };
   }
   return base;
 }
@@ -100,6 +134,9 @@ function eventToForm(ev: LifeEvent): FormState {
 function formToEvent(f: FormState): LifeEvent {
   const owner = OWNER_SUBTYPES.has(f.subtype) && f.owner === 'spouse' ? 'spouse' : undefined;
   if (f.category === 'expense' && f.subtype === 'mortgage') {
+    // チェックOFF、または範囲外入力時はprepay系フィールドを全てundefinedにする
+    // （simulate.ts側のhasPrepayガードが確実にfalseになるようにするため）。
+    const prepayValid = f.prepayEnabled && Object.keys(getPrepayErrors(f)).length === 0;
     return {
       category: 'expense',
       subtype: 'mortgage' as ExpenseSubtype,
@@ -110,6 +147,7 @@ function formToEvent(f: FormState): LifeEvent {
       principal: f.principal,
       rate: f.rate,
       termYears: f.termYears,
+      ...(prepayValid ? { prepayAge: f.prepayAge, prepayAmount: f.prepayAmount, prepayType: f.prepayType } : {}),
     };
   }
   const isChange = POINT_CHANGE_SUBTYPES.has(f.subtype);
@@ -327,7 +365,7 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
       const p = form.principal || DEFAULT_MORTGAGE.principal;
       const r = form.rate      || DEFAULT_MORTGAGE.rate;
       const t = form.termYears || DEFAULT_MORTGAGE.termYears;
-      setForm(f => ({ ...f, subtype, principal: p, rate: r, termYears: t, years: t, amount: calcMortgage(p, r, t) }));
+      setForm(f => ({ ...f, subtype, principal: p, rate: r, termYears: t, years: t, amount: calcMortgage(p, r, t), ...DEFAULT_PREPAY }));
     } else {
       setForm(f => ({ ...f, subtype }));
     }
@@ -336,6 +374,33 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
   const annual  = isMortgage ? calcMortgage(form.principal, form.rate, form.termYears) : 0;
   const monthly = isMortgage ? calcMortgageMonthly(form.principal, form.rate, form.termYears) : 0;
   const total   = isMortgage ? Math.round(annual * form.termYears) : 0;
+
+  // 繰上返済(単発)：入力バリデーション + 試算表示用の派生値
+  const prepayErrors = isMortgage ? getPrepayErrors(form) : {};
+  const prepayHasError = !!(prepayErrors.age || prepayErrors.amount);
+  const prepayReady = isMortgage && form.prepayEnabled && !prepayHasError;
+
+  let prepayNewAnnual = 0, prepayNewMonthly = 0;
+  let prepayNewTermYears: number | null = null;
+  let prepayOriginalPayoffAge = 0, prepayNewPayoffAge = 0, prepayShortenedYears = 0;
+  if (prepayReady) {
+    const elapsed = form.prepayAge - form.age;
+    const balance = calcMortgageBalance(form.principal, form.rate, form.termYears, elapsed);
+    const newPrincipal = Math.max(0, balance - form.prepayAmount);
+    if (form.prepayType === 'shorten') {
+      const originalMonthly = calcMortgageMonthly(form.principal, form.rate, form.termYears);
+      prepayNewTermYears = calcMortgageTermFromPayment(newPrincipal, form.rate, originalMonthly);
+      prepayOriginalPayoffAge = form.age + form.termYears;
+      if (prepayNewTermYears != null) {
+        prepayNewPayoffAge = form.prepayAge + prepayNewTermYears;
+        prepayShortenedYears = Math.max(0, Math.round(prepayOriginalPayoffAge - prepayNewPayoffAge));
+      }
+    } else {
+      const remainingYears = form.termYears - elapsed;
+      prepayNewAnnual  = calcMortgage(newPrincipal, form.rate, remainingYears);
+      prepayNewMonthly = calcMortgageMonthly(newPrincipal, form.rate, remainingYears);
+    }
+  }
 
   return (
     <div className="mt-2 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -434,8 +499,84 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
             </div>
           )}
 
+          {/* 繰上返済(単発) */}
+          <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.prepayEnabled}
+              onChange={e => {
+                const checked = e.target.checked;
+                setForm(f => ({
+                  ...f,
+                  prepayEnabled: checked,
+                  // 初回ONで未入力(0)のときだけ、有効範囲内の目安値を補ってあげる
+                  prepayAge: checked && f.prepayAge === 0 ? f.age + Math.max(1, Math.floor(f.termYears / 2)) : f.prepayAge,
+                }));
+              }}
+            />
+            繰上返済を設定する
+          </label>
+
+          {form.prepayEnabled && (
+            <div className="flex flex-col gap-2 pl-2 border-l-2 border-blue-100">
+              <NumberField
+                label="繰上返済年齢"
+                value={form.prepayAge}
+                onValueChange={v => setForm(f => ({ ...f, prepayAge: v }))}
+                suffix="歳"
+                min={form.age + 1}
+                max={form.age + form.termYears - 1}
+              />
+              {prepayErrors.age && <p className="text-[10px] text-red-500 -mt-1">{prepayErrors.age}</p>}
+              <NumberField
+                label="繰上返済額"
+                value={form.prepayAmount}
+                onValueChange={v => setForm(f => ({ ...f, prepayAmount: v }))}
+                suffix="万円"
+                min={0}
+                max={form.principal}
+              />
+              {prepayErrors.amount && <p className="text-[10px] text-red-500 -mt-1">{prepayErrors.amount}</p>}
+              <div className="flex gap-2 items-center justify-between">
+                <span className="text-xs text-slate-500 w-16 shrink-0">方式</span>
+                <select
+                  value={form.prepayType}
+                  onChange={e => setForm(f => ({ ...f, prepayType: e.target.value as 'shorten' | 'reduce' }))}
+                  className={`flex-1 ${selectCls}`}
+                >
+                  <option value="shorten">期間短縮型</option>
+                  <option value="reduce">返済額軽減型</option>
+                </select>
+              </div>
+
+              {prepayReady && (
+                <div className="rounded-lg bg-green-50 border border-green-100 px-3 py-2 text-xs">
+                  <p className="font-medium text-green-700 mb-1">
+                    繰上返済後（{form.prepayAge}歳・{form.prepayAmount.toLocaleString()}万円・{form.prepayType === 'shorten' ? '期間短縮型' : '返済額軽減型'}）
+                  </p>
+                  {form.prepayType === 'shorten' ? (
+                    prepayNewTermYears == null ? (
+                      <p className="text-slate-600">
+                        この条件では期間短縮の効果がありません。返済額軽減型への切り替え、または繰上返済額の見直しをご検討ください。
+                      </p>
+                    ) : (
+                      <p className="text-slate-600">
+                        完済年齢: <strong>{prepayOriginalPayoffAge}歳</strong> → <strong>{Math.round(prepayNewPayoffAge)}歳</strong>（{prepayShortenedYears}年短縮）
+                      </p>
+                    )
+                  ) : (
+                    <div className="flex gap-4 text-slate-600 flex-wrap">
+                      <span>月次 <strong>{monthly.toLocaleString()}万円 → {prepayNewMonthly.toLocaleString()}万円</strong></span>
+                      <span>年次 <strong>{(Math.round(annual * 10) / 10).toLocaleString()}万円 → {(Math.round(prepayNewAnnual * 10) / 10).toLocaleString()}万円</strong></span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <p className="text-[10px] text-slate-400 leading-relaxed">
-            元利均等返済のみ対応。繰上返済・ボーナス払いは非対応。返済額は名目固定額です。金利変動リスクは別途イベントで登録してください。
+            元利均等返済のみ対応。繰上返済(単発)に対応。ボーナス払いは非対応。返済額は名目固定額です。金利変動リスクは別途イベントで登録してください。
           </p>
         </>
       ) : (
@@ -466,7 +607,11 @@ function EventForm({ form, setForm, setCategory, onSave, onCancel, isEdit, spRet
 
       {/* 保存・キャンセル */}
       <div className="flex gap-2 mt-1">
-        <button onClick={onSave} className="flex-1 rounded bg-slate-800 py-1 text-xs text-white hover:bg-slate-700">
+        <button
+          onClick={onSave}
+          disabled={isMortgage && prepayHasError}
+          className={`flex-1 rounded py-1 text-xs text-white ${isMortgage && prepayHasError ? 'bg-slate-300 cursor-not-allowed' : 'bg-slate-800 hover:bg-slate-700'}`}
+        >
           {isEdit ? '更新' : '追加'}
         </button>
         <button onClick={onCancel} className="flex-1 rounded border border-slate-300 py-1 text-xs text-slate-600 hover:bg-slate-50">
