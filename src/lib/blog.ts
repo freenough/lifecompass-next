@@ -137,12 +137,16 @@ function remarkImageCaption() {
  * - ルート相対の画像パス（例: src="/images/..."）にbasePathを付与
  * - 記事内CTAリンクの.vercel.app直リンクを正規ドメイン（SITE_URL）に統一
  * - CTAリンクの旧ルート名(/simulator)を現行ルート名(/app)に統一
+ * - ルート相対の内部リンク（例: href="/blog/xxx"）にbasePathを付与。href="/asset-simulator/..."
+ *   （執筆時点で手動prefix済み）・href="http(s)://..."（外部・絶対URL）・href="//..."
+ *   （プロトコル相対）はいずれも対象外（二重付与・誤変換を避けるため）
  */
 function applyBasePathToHtml(html: string): string {
   return html
     .replace(/src="\/images\//g, `src="${BASE_PATH}/images/`)
     .replace(/https:\/\/freenough-lifecompass\.vercel\.app\//g, `${SITE_URL}/`)
-    .split(`${SITE_URL}/simulator`).join(`${SITE_URL}/app`);
+    .split(`${SITE_URL}/simulator`).join(`${SITE_URL}/app`)
+    .replace(/href="\/(?!\/|asset-simulator\b)/g, `href="${BASE_PATH}/`);
 }
 
 export interface BlogPostMeta {
