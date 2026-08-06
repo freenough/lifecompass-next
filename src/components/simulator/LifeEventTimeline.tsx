@@ -6,6 +6,7 @@ import type { LifeEvent, IncomeSubtype, ExpenseSubtype } from '@/lib/types';
 import { UNIT_WIDTH_CLASS } from '@/components/simulator/formLayout';
 import InfoTooltip from '@/components/simulator/InfoTooltip';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
+import { calcMortgage, calcMortgageMonthly } from '@/lib/helpers';
 
 const INCOME_SUBTYPES: { value: IncomeSubtype; label: string }[] = [
   { value: 'reemploy',    label: '再雇用' },
@@ -32,22 +33,6 @@ const EXPENSE_SUBTYPES: { value: ExpenseSubtype; label: string }[] = [
 const SUBTYPE_LABEL = Object.fromEntries(
   [...INCOME_SUBTYPES, ...EXPENSE_SUBTYPES].map(s => [s.value, s.label])
 );
-
-// 旧HTML calcMortgage() と完全一致（元利均等返済・年間返済額を返す）
-function calcMortgage(principal: number, rate: number, termYears: number): number {
-  const r = rate / 100 / 12;
-  const n = termYears * 12;
-  if (r === 0) return termYears > 0 ? Math.round(principal / termYears) : 0;
-  const monthly = principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
-  return Math.round(monthly * 12 * 100) / 100;
-}
-
-function calcMortgageMonthly(principal: number, rate: number, termYears: number): number {
-  const r = rate / 100 / 12;
-  const n = termYears * 12;
-  if (r === 0) return termYears > 0 ? Math.round(principal / termYears / 12 * 10) / 10 : 0;
-  return Math.round(principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) * 10) / 10;
-}
 
 interface FormState {
   category: 'income' | 'expense';

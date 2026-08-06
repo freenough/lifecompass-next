@@ -108,6 +108,10 @@ export interface ExpenseEvent extends BaseLifeEvent {
   principal?: number;
   rate?: number;
   termYears?: number;
+  // 繰上返済（単発・住宅ローンのみ）。未指定時は従来どおり繰上返済なしとして扱う。
+  prepayAge?: number;
+  prepayAmount?: number;
+  prepayType?: 'shorten' | 'reduce'; // 期間短縮型 / 返済額軽減型
 }
 
 export type LifeEvent = IncomeEvent | ExpenseEvent;

@@ -8,6 +8,7 @@ require('ts-node').register({
   transpileOnly: true,
 });
 const { simulate, runMC } = require('../src/lib');
+const { calcMortgageTermFromPayment } = require('../src/lib/helpers');
 
 // ---- ユーティリティ ----
 function pad(s, n) { return String(s).padStart(n); }
@@ -601,6 +602,76 @@ for (const ex of SASAKI_EXPECTED) {
 console.log('-'.repeat(100));
 console.log(`合計（総資産一致基準）: ${sPass} PASS / ${sFail} FAIL`);
 console.log('  ※収入表示 = snap.income + snap.severanceNet（HTML CSV形式）');
+
+// ================================================================
+// 繰上返済(単発)：simulate()のmortgageブロック回帰確認
+// 元本4100万・金利1%・termYears30年・開始30歳（後方互換：prepay系フィールド未指定時は
+// 従来と完全に同一の年次expenseになること）＋ 返済額軽減型/期間短縮型それぞれ最低1パターン。
+// reference/simulation_fixtures.md「繰上返済（単発）フィクスチャ」と対応。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【繰上返済(単発)】simulate()のmortgageブロック回帰確認（本番calcMortgage系関数経由）');
+console.log('='.repeat(100));
+
+function buildPrepayParams() {
+  return {
+    curAge: 30, lifeEx: 65,
+    baseInc: 1000, baseExp: 0, inflR: 0,
+    retAge: 99, penAge: 99, penAmt: 0,
+    mcStd: 10, mcStdR: 10, hasIdeco: false,
+    idecoYrs: 1, idecoReceiveType: 'lump', idecoReceiveYears: 10, idecoStartAge: 60, sevYrs: 1,
+    acct: {
+      nisa:  { bal: 0, con: 0, toAge: 99, rW: 0, rR: 0 },
+      ideco: { bal: 0, con: 0, toAge: 60, rW: 0, rR: 0 },
+      tax:   { bal: 0, con: 0, toAge: 60, rW: 0, rR: 0, costBasis: 0 },
+      cash:  { bal: 1000000 },
+    },
+    spouse: null,
+  };
+}
+const MORTGAGE_BASE = { category: 'expense', subtype: 'mortgage', name: '住宅ローン', age: 30, years: 30, amount: 0, principal: 4100, rate: 1, termYears: 30 };
+
+const PREPAY_CASES = [
+  {
+    label: '後方互換（prepay系フィールド未指定）',
+    event: { ...MORTGAGE_BASE },
+    expected: [[30,158],[36,158],[37,158],[45,158],[59,158],[60,0],[61,0]],
+  },
+  {
+    label: '返済額軽減型（37歳・500万円繰上）',
+    event: { ...MORTGAGE_BASE, prepayAge: 37, prepayAmount: 500, prepayType: 'reduce' },
+    expected: [[30,158],[36,158],[37,134],[38,134],[59,134],[60,0],[61,0]],
+  },
+  {
+    label: '期間短縮型（37歳・500万円繰上）',
+    event: { ...MORTGAGE_BASE, prepayAge: 37, prepayAmount: 500, prepayType: 'shorten' },
+    expected: [[30,158],[45,158],[55,158],[56,158],[57,0],[58,0]],
+  },
+];
+
+let mPass = 0, mFail = 0;
+for (const c of PREPAY_CASES) {
+  const p = buildPrepayParams();
+  const snaps = simulate(p, [c.event], 'proportional');
+  console.log(`\n-- ${c.label} --`);
+  for (const [age, expExp] of c.expected) {
+    const snap = snaps.find(s => s.age === age);
+    const ok = snap && snap.expense === expExp;
+    if (ok) mPass++; else mFail++;
+    console.log(`  age${age}: 期待expense=${expExp} 実際expense=${snap ? snap.expense : 'なし'} ${ok ? 'PASS' : 'FAIL'}`);
+  }
+}
+
+// バリデーション：月々返済額が利息のみ返済額を下回る場合はnull（解なし）を返すこと
+const noSolution = calcMortgageTermFromPayment(1000, 15, 10); // 利息のみ=1000*15%/12=12.5万 > 返済額10万
+{
+  const ok = noSolution === null;
+  if (ok) mPass++; else mFail++;
+  console.log(`\n  [バリデーション] calcMortgageTermFromPayment(principal=1000,rate=15%,monthlyPayment=10) = ${noSolution} (期待: null) ${ok ? 'PASS' : 'FAIL'}`);
+}
+
+console.log('-'.repeat(100));
+console.log(`合計: ${mPass} PASS / ${mFail} FAIL`);
 
 // ================================================================
 // 年金 繰上げ・繰下げ比較シミュレーター（pensionCore.ts）

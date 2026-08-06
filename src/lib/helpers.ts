@@ -9,6 +9,48 @@ export function calcMortgage(principal: number, rate: number, termYears: number)
   return Math.round(monthly * 12 * 100) / 100;
 }
 
+// 旧HTML calcMortgage()と同一の元利均等返済モデルの月額版（LifeEventTimeline.tsxのローカル重複を統合）。
+export function calcMortgageMonthly(principal: number, rate: number, termYears: number): number {
+  const r = rate / 100 / 12;
+  const n = termYears * 12;
+  if (r === 0) return termYears > 0 ? Math.round(principal / termYears / 12 * 10) / 10 : 0;
+  return Math.round(principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) * 10) / 10;
+}
+
+// 繰上返済(単発)の共通前提：経過年数時点での残高（未返済元本）をクローズドフォームで求める。
+// calcMortgage()と同じ元利均等返済モデル（月次複利）を前提とする。
+export function calcMortgageBalance(
+  principal: number, rate: number, termYears: number, elapsedYears: number
+): number {
+  if (!principal || !termYears) return 0;
+  const clampedElapsed = Math.max(0, Math.min(termYears, elapsedYears));
+  const r = rate / 100 / 12;
+  if (r <= 0) {
+    return Math.round(principal * (1 - clampedElapsed / termYears) * 100) / 100;
+  }
+  const n = termYears * 12;
+  const k = clampedElapsed * 12;
+  const monthly = principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+  const balance = principal * Math.pow(1 + r, k) - monthly * (Math.pow(1 + r, k) - 1) / r;
+  return Math.round(Math.max(0, balance) * 100) / 100;
+}
+
+// 期間短縮型の逆算：残高・金利・月々返済額(固定)から、完済までの残存期間(年)を求める。
+// calcMortgage()の逆方向（返済額→期間）。月々返済額が利息のみ返済額以下で残高が減らない
+// （解が存在しない）場合はnullを返す。呼び出し元は「期間短縮効果なし」等でハンドリングすること。
+export function calcMortgageTermFromPayment(
+  principal: number, rate: number, monthlyPayment: number
+): number | null {
+  if (!principal || principal <= 0) return 0;
+  if (!monthlyPayment || monthlyPayment <= 0) return null;
+  const r = rate / 100 / 12;
+  if (r <= 0) return Math.round((principal / monthlyPayment / 12) * 100) / 100;
+  const interestOnly = principal * r;
+  if (monthlyPayment <= interestOnly) return null;
+  const n = -Math.log(1 - (principal * r) / monthlyPayment) / Math.log(1 + r);
+  return Math.round((n / 12) * 100) / 100;
+}
+
 export function randNorm(mean: number, std: number): number {
   let u = 0, v = 0;
   while (u === 0) u = Math.random();

@@ -1,5 +1,5 @@
 import type { SimParams, LifeEvent, YearSnap, WithdrawalStrategy, IdecoStatus } from './types';
-import { withdraw, retirementTaxCalc, calcPensionTaxDiff, calcMortgage } from './helpers';
+import { withdraw, retirementTaxCalc, calcPensionTaxDiff, calcMortgage, calcMortgageMonthly, calcMortgageBalance, calcMortgageTermFromPayment } from './helpers';
 
 const INC_TYPES: Record<string, { kind: string }> = {
   reemploy:    { kind: 'period' },
@@ -175,9 +175,43 @@ export function simulate(
           if ((ev.owner ?? 'self') === 'spouse') spouseRetIncome += ev.amount; else ownRetIncome += ev.amount;
         }
       } else {
-        const expEv = ev as { subtype: string; principal?: number; rate?: number; termYears?: number; age: number; years: number; amount: number };
-        if (ev.subtype === 'mortgage' && age >= evAge && age < evAge + ev.years) {
-          extraExp += calcMortgage(expEv.principal ?? 0, expEv.rate ?? 0, expEv.termYears ?? 0);
+        const expEv = ev as {
+          subtype: string; principal?: number; rate?: number; termYears?: number; age: number; years: number; amount: number;
+          prepayAge?: number; prepayAmount?: number; prepayType?: 'shorten' | 'reduce';
+        };
+        if (ev.subtype === 'mortgage') {
+          const principal = expEv.principal ?? 0;
+          const rate = expEv.rate ?? 0;
+          const termYears = expEv.termYears ?? 0;
+          let payment = calcMortgage(principal, rate, termYears);
+          let endAge = evAge + ev.years;
+          // 繰上返済(単発)：prepayAge/prepayAmount未指定時は従来と完全に同一の計算（後方互換）。
+          const hasPrepay =
+            expEv.prepayAmount != null && expEv.prepayAmount > 0 &&
+            expEv.prepayAge != null && expEv.prepayAge >= evAge && expEv.prepayAge < endAge;
+          if (hasPrepay) {
+            const elapsed = expEv.prepayAge! - evAge;
+            const balance = calcMortgageBalance(principal, rate, termYears, elapsed);
+            const newPrincipal = Math.max(0, balance - expEv.prepayAmount!);
+            if (expEv.prepayType === 'shorten') {
+              // 期間短縮型：月々返済額は変えず、残存期間を逆算する。解が存在しない場合は
+              // 期間短縮効果なし（従来スケジュールのまま）として扱う。
+              const monthlyPayment = calcMortgageMonthly(principal, rate, termYears);
+              const newTermYears = calcMortgageTermFromPayment(newPrincipal, rate, monthlyPayment);
+              if (newTermYears != null) {
+                endAge = expEv.prepayAge! + newTermYears;
+              }
+            } else {
+              // 返済額軽減型（デフォルト）：残存期間はそのまま、返済額のみ再計算する。
+              const remainingYears = termYears - elapsed;
+              if (age >= expEv.prepayAge!) {
+                payment = calcMortgage(newPrincipal, rate, remainingYears);
+              }
+            }
+          }
+          if (age >= evAge && age < endAge) {
+            extraExp += payment;
+          }
         } else if (kind === 'lump' && age === evAge) {
           extraExp += ev.amount;
         } else if (kind === 'period' && age >= evAge && age < evAge + ev.years) {
