@@ -158,4 +158,15 @@ export const CONCERNS: Concern[] = [
     articleUrl: '/blog/fire-inflation-sensitivity',
     featured: false,
   },
+  {
+    id: 'housing-loan-fire',
+    stage: 'deciding',
+    question: '住宅ローンを残したままFIREして大丈夫?',
+    outcome: '賃貸継続・ローンを残す・完済してからFIREの3パターンで、資産の減り方の違いを比較できます',
+    ctaType: 'fullSimulator',
+    ctaLabel: '詳しく試算する',
+    ctaUrl: '/app?utm_source=concerns&utm_medium=concern_card&utm_campaign=housing_loan_fire',
+    articleUrl: '/blog/housing-loan-fire',
+    featured: false,
+  },
 ];
