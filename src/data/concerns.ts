@@ -169,4 +169,15 @@ export const CONCERNS: Concern[] = [
     articleUrl: '/blog/housing-loan-fire',
     featured: false,
   },
+  {
+    id: 'prepay-vs-invest',
+    stage: 'saving',
+    question: '繰上返済と投資、どちらが得?',
+    outcome: '同じ金額を繰上返済した場合と投資に回した場合の効果を、金利条件を入力して比較できます',
+    ctaType: 'lightTool',
+    ctaLabel: '60秒で試算する',
+    ctaUrl: '/tools/prepay-vs-invest?utm_source=concerns&utm_medium=concern_card&utm_campaign=prepay_vs_invest',
+    articleUrl: '/blog/mortgage-prepay-vs-invest',
+    featured: false,
+  },
 ];
