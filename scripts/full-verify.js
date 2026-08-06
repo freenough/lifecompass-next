@@ -638,14 +638,32 @@ const PREPAY_CASES = [
     expected: [[30,158],[36,158],[37,158],[45,158],[59,158],[60,0],[61,0]],
   },
   {
+    // 37歳(prepayAge)は繰上返済額500万円の一括支出込みでexpense=134+500=634
     label: '返済額軽減型（37歳・500万円繰上）',
     event: { ...MORTGAGE_BASE, prepayAge: 37, prepayAmount: 500, prepayType: 'reduce' },
-    expected: [[30,158],[36,158],[37,134],[38,134],[59,134],[60,0],[61,0]],
+    expected: [[30,158],[36,158],[37,634],[38,134],[59,134],[60,0],[61,0]],
   },
   {
+    // 37歳(prepayAge)は繰上返済額500万円の一括支出込みでexpense=158+500=658
+    // 完済境界年(endAge=56.08→boundaryAge=56)は按分計上：158.25×0.08≈13万円（従来はここが158のままだった）
     label: '期間短縮型（37歳・500万円繰上）',
     event: { ...MORTGAGE_BASE, prepayAge: 37, prepayAmount: 500, prepayType: 'shorten' },
-    expected: [[30,158],[45,158],[55,158],[56,158],[57,0],[58,0]],
+    expected: [[30,158],[36,158],[37,658],[38,158],[45,158],[55,158],[56,13],[57,0],[58,0]],
+  },
+  {
+    // 按分ケース：fraction=0.25がちょうどになるパラメータ(32歳・330万円)。
+    // endAge=57.25→boundaryAge=57、境界年expense=158.25×0.25≈40万円
+    label: '期間短縮型・按分fraction=0.25（32歳・330万円繰上）',
+    event: { ...MORTGAGE_BASE, prepayAge: 32, prepayAmount: 330, prepayType: 'shorten' },
+    expected: [[30,158],[31,158],[32,488],[33,158],[56,158],[57,40],[58,0],[59,0]],
+  },
+  {
+    // 重複ケース：繰上返済年(prepayAge=31)と完済境界年(boundaryAge)が同一年になるケース。
+    // newTermYears=0.19（endAge=31.19→boundaryAge=31=prepayAge）。この年のexpenseには
+    // 一括支出(3952万円)と按分後の返済額(158.25×0.19≈30万円)の両方が計上されるべき。
+    label: '期間短縮型・繰上返済年と完済境界年が同一（31歳・3952万円繰上）',
+    event: { ...MORTGAGE_BASE, prepayAge: 31, prepayAmount: 3952, prepayType: 'shorten' },
+    expected: [[30,158],[31,3982],[32,0],[33,0]],
   },
 ];
 

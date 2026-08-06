@@ -190,6 +190,12 @@ export function simulate(
             expEv.prepayAmount != null && expEv.prepayAmount > 0 &&
             expEv.prepayAge != null && expEv.prepayAge >= evAge && expEv.prepayAge < endAge;
           if (hasPrepay) {
+            // 繰上返済額そのもの（手元資金からの一括支出）を、繰上返済年に一時支出として計上する。
+            // 将来の返済負担軽減という「メリット」と対になる「コスト」であり、両方を反映しないと
+            // 手元資金の使い道のトレードオフが正しく比較できない。
+            if (age === expEv.prepayAge) {
+              extraExp += expEv.prepayAmount!;
+            }
             const elapsed = expEv.prepayAge! - evAge;
             const balance = calcMortgageBalance(principal, rate, termYears, elapsed);
             const newPrincipal = Math.max(0, balance - expEv.prepayAmount!);
@@ -209,8 +215,15 @@ export function simulate(
               }
             }
           }
-          if (age >= evAge && age < endAge) {
+          // 完済境界年の按分：endAgeが小数(期間短縮型)の場合、整数年齢の年次ループでも
+          // 端数比率分だけ返済額を計上する。endAgeが整数(繰上返済なし・返済額軽減型)の場合は
+          // fraction=0となり、従来通り境界年の追加計上なし（後方互換）。
+          const boundaryAge = Math.floor(endAge);
+          const fraction = endAge - boundaryAge;
+          if (age >= evAge && age < boundaryAge) {
             extraExp += payment;
+          } else if (age === boundaryAge && fraction > 0) {
+            extraExp += payment * fraction;
           }
         } else if (kind === 'lump' && age === evAge) {
           extraExp += ev.amount;
