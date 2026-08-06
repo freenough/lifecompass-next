@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { calcRetirementIncomeTax, calcRetirementDeduction, type RetirementPayType } from '@/lib/tax/retirement';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 interface RetirementTaxResultProps {
   incomeManYen: number;
@@ -40,12 +41,14 @@ export default function RetirementTaxResult({
   const residentTaxManYen = toManYen(result.residentTax.total);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-      <p className="text-sm font-medium text-slate-500">手取り額</p>
-      <p className="mt-1 text-4xl sm:text-5xl font-bold text-accent leading-none [text-wrap:balance]">
-        {fmt(netManYen)}
-        <span className="ml-1 text-xl sm:text-2xl font-bold">万円</span>
-      </p>
+    <ToolCard variant="result">
+      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+        <p className="text-sm font-medium text-slate-500">手取り額</p>
+        <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
+          {fmt(netManYen)}
+          <span className="ml-1 text-xl sm:text-2xl font-bold">万円</span>
+        </p>
+      </div>
 
       <div className="mt-4 border-t border-slate-100 pt-4 text-sm text-slate-700">
         <div className="flex justify-between py-1.5">
@@ -112,6 +115,6 @@ export default function RetirementTaxResult({
           </div>
         )}
       </div>
-    </div>
+    </ToolCard>
   );
 }

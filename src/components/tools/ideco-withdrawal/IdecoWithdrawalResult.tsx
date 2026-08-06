@@ -3,6 +3,7 @@
 import { calcLumpSumPattern, calcPensionPattern, calcMixedPattern, type WithdrawalPatternResult } from '@/lib/tax/ideco';
 import type { IdecoWithdrawalFormValues, ReceiveMethod } from './IdecoWithdrawalForm';
 import DetailsAccordion from '@/components/tools/DetailsAccordion';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 interface IdecoWithdrawalResultProps {
   values: IdecoWithdrawalFormValues;
@@ -51,7 +52,7 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
   const selectedLabel = METHOD_LABEL[values.receiveMethod];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+    <ToolCard variant="result">
       <p className="text-sm font-medium text-slate-500">
         iDeCo/DC受取額(手取り)の比較(概算)
       </p>
@@ -75,7 +76,7 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
                 {METHOD_LABEL[key]}
                 {isBest && <span className="text-[10px] font-bold text-accent">最大</span>}
               </p>
-              <p className="mt-1 text-lg sm:text-xl font-bold text-slate-800 leading-tight">
+              <p className="mt-1 text-xl sm:text-2xl font-bold text-slate-800 leading-tight">
                 {fmt(toManYen(r.idecoOnlyNetAmount))}<span className="text-xs font-medium ml-0.5">万円</span>
               </p>
               <p className="mt-1 text-xs text-slate-500">税額 {fmt(toManYen(r.idecoOnlyTax))}万円</p>
@@ -201,6 +202,6 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
           毎年同額の名目値として計算しています。実際の受取額は物価変動により変わる可能性があります。
         </p>
       </DetailsAccordion>
-    </div>
+    </ToolCard>
   );
 }

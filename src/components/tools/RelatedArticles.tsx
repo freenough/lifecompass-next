@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { IconBook2 } from '@tabler/icons-react';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 interface RelatedArticle {
   title: string;
@@ -14,7 +15,7 @@ interface RelatedArticle {
 export default function RelatedArticles({ articles }: { articles: RelatedArticle[] }) {
   if (articles.length === 0) return null;
   return (
-    <div className="w-full rounded-xl border border-slate-200 bg-white px-5 py-4">
+    <ToolCard variant="result" className="w-full">
       <p className="text-xs text-slate-400 text-center mb-3">あわせて読みたい</p>
       <div className="flex flex-col gap-2 sm:gap-2.5">
         {articles.map((article) => (
@@ -31,6 +32,6 @@ export default function RelatedArticles({ articles }: { articles: RelatedArticle
           </Link>
         ))}
       </div>
-    </div>
+    </ToolCard>
   );
 }

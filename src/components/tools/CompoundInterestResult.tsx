@@ -1,3 +1,5 @@
+import ToolCard from '@/components/tools/ui/ToolCard';
+
 interface CompoundInterestResultProps {
   years: number;
   futureValue: number;
@@ -13,12 +15,14 @@ export default function CompoundInterestResult({ years, futureValue, principal }
   const gain = futureValue - principal;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-      <p className="text-sm font-medium text-slate-500">{years}年後の資産(概算)</p>
-      <p className="mt-1 text-4xl sm:text-5xl font-bold text-accent leading-none [text-wrap:balance]">
-        {fmt(futureValue)}
-        <span className="ml-1 text-xl sm:text-2xl font-bold">万円</span>
-      </p>
+    <ToolCard variant="result">
+      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+        <p className="text-sm font-medium text-slate-500">{years}年後の資産(概算)</p>
+        <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
+          {fmt(futureValue)}
+          <span className="ml-1 text-xl sm:text-2xl font-bold">万円</span>
+        </p>
+      </div>
       <p className="mt-3 text-sm text-slate-600 leading-relaxed">
         {years}年後、資産は{fmt(futureValue)}万円になります
       </p>
@@ -42,6 +46,6 @@ export default function CompoundInterestResult({ years, futureValue, principal }
         <p>本ツールはインフレ(物価上昇)を考慮しません。入力した利回りをそのまま複利計算するだけの試算です。入力する利回りが名目か実質かによって、将来の金額の意味合いが変わります。</p>
         <p>将来の運用成果を保証するものではありません。</p>
       </div>
-    </div>
+    </ToolCard>
   );
 }

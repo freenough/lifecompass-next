@@ -1,4 +1,5 @@
 import { calcFutureValue } from '@/lib/financeCore';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 const RATES = [3, 5, 7];
 
@@ -20,7 +21,7 @@ export default function CompoundInterestSensitivityTable({
   const rates = RATES.includes(ratePct) ? RATES : [...RATES, ratePct].sort((a, b) => a - b);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+    <ToolCard variant="table">
       <p className="px-4 pt-4 text-xs font-medium text-slate-500">利回り別の将来評価額</p>
       <table className="w-full mt-2 text-sm">
         <thead>
@@ -34,7 +35,7 @@ export default function CompoundInterestSensitivityTable({
             const isUserInput = rate === ratePct;
             const value = calcFutureValue(currentAssets, monthlyContribution, years, rate);
             return (
-              <tr key={rate} className={isUserInput ? 'bg-bg-sub' : undefined}>
+              <tr key={rate} className={`border-b border-slate-100 last:border-0 ${isUserInput ? 'bg-bg-sub' : ''}`}>
                 <td className="px-4 py-2 text-slate-700">
                   年率{rate}%{isUserInput && <span className="ml-1 text-[11px] text-accent">(入力値)</span>}
                 </td>
@@ -46,6 +47,6 @@ export default function CompoundInterestSensitivityTable({
           })}
         </tbody>
       </table>
-    </div>
+    </ToolCard>
   );
 }

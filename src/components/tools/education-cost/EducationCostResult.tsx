@@ -3,6 +3,7 @@
 import { calcTotalEducationCost, calcPeakYear, type ChildInput } from '@/lib/educationCostCalc';
 import EducationCostChart from './EducationCostChart';
 import DetailsAccordion from '@/components/tools/DetailsAccordion';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 interface EducationCostResultProps {
   kids: ChildInput[];
@@ -16,7 +17,7 @@ export default function EducationCostResult({ kids }: EducationCostResultProps) 
   const count = kids.length;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+    <ToolCard variant="result">
       <p className="text-sm font-medium text-slate-500">現在{count}人分で計算中</p>
 
       {count === 0 ? (
@@ -26,7 +27,7 @@ export default function EducationCostResult({ kids }: EducationCostResultProps) 
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-accent bg-blue-50 p-3">
               <p className="text-xs font-medium text-slate-500">教育費総額</p>
-              <p className="mt-1 text-lg sm:text-xl font-bold text-slate-800 leading-tight">
+              <p className="mt-1 text-2xl sm:text-3xl font-bold text-slate-800 leading-tight">
                 {fmtMan(calcTotalEducationCost(kids))}<span className="text-xs font-medium ml-0.5">万円</span>
               </p>
             </div>
@@ -35,7 +36,7 @@ export default function EducationCostResult({ kids }: EducationCostResultProps) 
               return (
                 <div className="rounded-lg border border-slate-200 p-3">
                   <p className="text-xs font-medium text-slate-500">ピーク時の年間負担額({peak.yearOffset}年後)</p>
-                  <p className="mt-1 text-lg sm:text-xl font-bold text-slate-800 leading-tight">
+                  <p className="mt-1 text-2xl sm:text-3xl font-bold text-slate-800 leading-tight">
                     {fmtMan(peak.amount)}<span className="text-xs font-medium ml-0.5">万円</span>
                   </p>
                 </div>
@@ -81,6 +82,6 @@ export default function EducationCostResult({ kids }: EducationCostResultProps) 
           </DetailsAccordion>
         </>
       )}
-    </div>
+    </ToolCard>
   );
 }

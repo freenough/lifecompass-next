@@ -1,4 +1,4 @@
-import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool, IconScale } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export type ToolGroup = 'accumulate' | 'receive' | 'optimize';
@@ -74,6 +74,16 @@ export const TOOLS: ToolItem[] = [
     group: 'receive',
     primaryTopic: 'ideco',
     topics: ['ideco', 'withdrawal'],
+  },
+  {
+    slug: 'prepay-vs-invest',
+    title: '繰上返済 vs 投資 比較シミュレーター',
+    description: '住宅ローンの繰上返済と投資、どちらが適しているかの判断材料を比較します',
+    href: '/tools/prepay-vs-invest',
+    Icon: IconScale,
+    group: 'optimize',
+    primaryTopic: 'housing_loan',
+    topics: ['housing_loan'],
   },
   {
     slug: 'education-cost',

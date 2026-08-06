@@ -1,4 +1,5 @@
 import { calcRequiredMonthlyContribution } from '@/lib/financeCore';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 const BASE_RATES = [3, 5, 7];
 
@@ -20,7 +21,7 @@ export default function SensitivityTable({ currentAssets, targetAssets, years, r
     : [...BASE_RATES, ratePct].sort((a, b) => a - b);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+    <ToolCard variant="table">
       <p className="px-4 pt-4 text-xs font-medium text-slate-500">利回り別の必要積立額</p>
       <table className="w-full mt-2 text-sm">
         <thead>
@@ -35,7 +36,7 @@ export default function SensitivityTable({ currentAssets, targetAssets, years, r
             const value = calcRequiredMonthlyContribution(currentAssets, targetAssets, years, rate);
             const display = value === null ? '—' : value === 0 ? '積立不要' : `${fmtMonthly(value)}万円`;
             return (
-              <tr key={rate} className={isUserInput ? 'bg-bg-sub' : undefined}>
+              <tr key={rate} className={`border-b border-slate-100 last:border-0 ${isUserInput ? 'bg-bg-sub' : ''}`}>
                 <td className="px-4 py-2 text-slate-700">
                   年率{rate}%{isUserInput && <span className="ml-1 text-[11px] text-accent">(入力値)</span>}
                 </td>
@@ -47,6 +48,6 @@ export default function SensitivityTable({ currentAssets, targetAssets, years, r
           })}
         </tbody>
       </table>
-    </div>
+    </ToolCard>
   );
 }

@@ -1,4 +1,5 @@
 import { calcAchievementAge } from '@/lib/financeCore';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 const RATES = [3, 5, 7];
 
@@ -13,7 +14,7 @@ export default function FireAgeSensitivityTable({
   curAge, currentAssets, targetAssets, monthlyContribution,
 }: FireAgeSensitivityTableProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+    <ToolCard variant="table">
       <p className="px-4 pt-4 text-xs font-medium text-slate-500">利回り別の到達年齢</p>
       <table className="w-full mt-2 text-sm">
         <thead>
@@ -37,7 +38,7 @@ export default function FireAgeSensitivityTable({
               yearsDisplay = `${achievedAge - curAge}年`;
             }
             return (
-              <tr key={rate}>
+              <tr key={rate} className="border-b border-slate-100 last:border-0">
                 <td className="px-4 py-2 text-slate-700">年率{rate}%</td>
                 <td className="px-4 py-2 text-right font-semibold text-slate-700">{ageDisplay}</td>
                 <td className="px-4 py-2 text-right text-slate-500">{yearsDisplay}</td>
@@ -46,6 +47,6 @@ export default function FireAgeSensitivityTable({
           })}
         </tbody>
       </table>
-    </div>
+    </ToolCard>
   );
 }

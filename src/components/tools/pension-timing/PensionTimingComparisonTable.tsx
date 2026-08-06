@@ -1,4 +1,5 @@
 import { calcPensionAmountAtAge, calcCumulativeAmount } from '@/lib/pensionCore';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 const BASE_AGES = [60, 65, 75];
 
@@ -23,7 +24,7 @@ export default function PensionTimingComparisonTable({
     : [...BASE_AGES, targetAge].sort((a, b) => a - b);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+    <ToolCard variant="table">
       <p className="px-4 pt-4 text-xs font-medium text-slate-500">受給開始年齢別の比較</p>
       <table className="w-full mt-2 text-sm">
         <thead>
@@ -39,7 +40,7 @@ export default function PensionTimingComparisonTable({
             const { totalAmount } = calcPensionAmountAtAge(basicAmount, employeesAmount, age, isNewRate);
             const cumulative = calcCumulativeAmount(basicAmount, employeesAmount, age, isNewRate, compareEndAge);
             return (
-              <tr key={age} className={isSelected ? 'bg-bg-sub' : undefined}>
+              <tr key={age} className={`border-b border-slate-100 last:border-0 ${isSelected ? 'bg-bg-sub' : ''}`}>
                 <td className="px-4 py-2 text-slate-700">
                   {age}歳{isSelected && <span className="ml-1 text-[11px] text-accent">(選択中)</span>}
                 </td>
@@ -54,6 +55,6 @@ export default function PensionTimingComparisonTable({
           })}
         </tbody>
       </table>
-    </div>
+    </ToolCard>
   );
 }

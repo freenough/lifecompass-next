@@ -1,4 +1,5 @@
 import { calcPensionAmountAtAge, calcBreakEvenAge, REFERENCE_AGE } from '@/lib/pensionCore';
+import ToolCard from '@/components/tools/ui/ToolCard';
 
 interface PensionTimingResultProps {
   basicAmount: number;
@@ -30,12 +31,14 @@ export default function PensionTimingResult({
   const diffPct = (selected.rate - 1) * 100;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-      <p className="text-sm font-medium text-slate-500">{targetAge}歳受給での年額(概算)</p>
-      <p className="mt-1 text-4xl sm:text-5xl font-bold text-accent leading-none [text-wrap:balance]">
-        {selected.totalAmount.toLocaleString('ja-JP')}
-        <span className="ml-1 text-xl sm:text-2xl font-bold">万円/年</span>
-      </p>
+    <ToolCard variant="result">
+      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+        <p className="text-sm font-medium text-slate-500">{targetAge}歳受給での年額(概算)</p>
+        <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
+          {selected.totalAmount.toLocaleString('ja-JP')}
+          <span className="ml-1 text-xl sm:text-2xl font-bold">万円/年</span>
+        </p>
+      </div>
       <p className="mt-3 text-sm text-slate-600 leading-relaxed">
         {targetAge}歳から受給すると、年額は{selected.totalAmount.toLocaleString('ja-JP')}万円になります(65歳受給比{ratioPct.toFixed(1)}%)
       </p>
@@ -75,6 +78,6 @@ export default function PensionTimingResult({
         <p>繰上げ受給は取消できません。障害年金の請求に制限が生じる場合があるなど重要な制約があるため、実際の判断は年金事務所にご確認ください。</p>
         <p>本ツールはインフレ(物価上昇)を考慮しません。入力した利回りをそのまま複利計算するだけの試算です。入力する利回りが名目か実質かによって、将来の金額の意味合いが変わります。</p>
       </div>
-    </div>
+    </ToolCard>
   );
 }

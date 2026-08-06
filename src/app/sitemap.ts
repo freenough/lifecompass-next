@@ -24,6 +24,7 @@ export const STATIC_PATHS: { path: string; title: string }[] = [
   { path: '/tools/retirement-tax', title: '' },
   { path: '/tools/ideco-withdrawal', title: '' },
   { path: '/tools/education-cost', title: '' },
+  { path: '/tools/prepay-vs-invest', title: '' },
   { path: '/concerns', title: 'お悩み一覧' },
 ];
 

@@ -1,3 +1,5 @@
+import ToolCard from '@/components/tools/ui/ToolCard';
+
 interface FireAgeResultProps {
   curAge: number;
   result: number | null;
@@ -6,7 +8,7 @@ interface FireAgeResultProps {
 export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
   if (result === null) {
     return (
-      <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+      <div className="rounded-xl bg-warn-bg p-4 text-sm text-warn-text">
         現在の条件では目標資産への到達は見込めません。積立額を増やす、目標資産を見直す、運用期間を延ばす、などをご検討ください。
       </div>
     );
@@ -14,11 +16,11 @@ export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
 
   if (result === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+      <ToolCard variant="result">
         <p className="text-xl font-bold text-green-700 leading-tight">
           すでに目標資産に到達しています。
         </p>
-      </div>
+      </ToolCard>
     );
   }
 
@@ -28,12 +30,14 @@ export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
   const yearsFromNow = achievedAge - curAge;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-      <p className="text-sm font-medium text-slate-500">目標資産到達年齢</p>
-      <p className="mt-1 text-4xl sm:text-5xl font-bold text-accent leading-none [text-wrap:balance]">
-        {achievedAge}
-        <span className="ml-1 text-xl sm:text-2xl font-bold">歳</span>
-      </p>
+    <ToolCard variant="result">
+      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+        <p className="text-sm font-medium text-slate-500">目標資産到達年齢</p>
+        <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
+          {achievedAge}
+          <span className="ml-1 text-xl sm:text-2xl font-bold">歳</span>
+        </p>
+      </div>
       <p className="mt-3 text-sm text-slate-600 leading-relaxed">
         目標資産に到達するのは{achievedAge}歳です(現在から約{yearsFromNow}年後)
       </p>
@@ -45,6 +49,6 @@ export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
         <p>本ツールはインフレ(物価上昇)を考慮しません。入力した利回りをそのまま複利計算するだけの試算です。入力する利回りが名目か実質かによって、将来の金額の意味合いが変わります。</p>
         <p>より詳しい条件で試算したい場合は、資産シミュレーターをご利用ください。</p>
       </div>
-    </div>
+    </ToolCard>
   );
 }
