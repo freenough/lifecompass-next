@@ -246,11 +246,14 @@ export function calcAggregatedSigma(acctRows: AssetRow[][], acctBals: number[]):
 }
 
 /**
- * 全口座集計のμ・σの重み付けに使う「各口座の実際の残高（＋積立期の場合は積立額）」を算出する。
+ * 全口座集計のμ・σの重み付けに使う「各口座の現在残高」を算出する。
  * ①現在のPFに金額入力があればそれを優先し、なければparamsのbNisa/bIdeco/bTaxを使う
  * （updatePortfolio/copyCurrentToWorkingの残高同期と同じ優先順位）。
- * 資産配分（PF欄）の入力有無とは無関係に、残高・積立額が0円の口座は重み0になる。
+ * 資産配分（PF欄）の入力有無とは無関係に、残高が0円の口座は重み0になる。
  * μ・σどちらの集計もこの同じ重みを参照する（整合性のため）。
+ * 積立期・取崩期（phase）で計算式を分ける理由はない――将来の積立額や運用成長を
+ * 先読みしない、あくまで「今の残高構成」を映す表示専用の簡易値であるため、
+ * phase引数は型シグネチャ互換のために残しているが、現在は結果に影響しない。
  */
 export function getAggregateWeights(profile: ProfileV3, phase: 'working' | 'retirement'): [number, number, number] {
   const p = profile.params;
@@ -262,9 +265,6 @@ export function getAggregateWeights(profile: ProfileV3, phase: 'working' | 'reti
   const bNisa  = totalCur > 0 ? bNisaCur  : p.bNisa;
   const bIdeco = totalCur > 0 ? bIdecoCur : p.bIdeco;
   const bTax   = totalCur > 0 ? bTaxCur   : p.bTax;
-  if (phase === 'working') {
-    return [bNisa + (p.cNisa ?? 0), bIdeco + (p.cIdeco ?? 0), bTax + (p.cTax ?? 0)];
-  }
   return [bNisa, bIdeco, bTax];
 }
 
