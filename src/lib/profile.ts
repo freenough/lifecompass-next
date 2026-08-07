@@ -2,6 +2,24 @@ import type { SimParams } from './types';
 import { calcIdecoEligibleAge } from './helpers';
 
 // ---- Asset class definitions (LTCMA 2026) ----
+//
+// 出典：JPモルガン・アセット・マネジメント「2026 Long-Term Capital Market
+// Assumptions」円ベースマトリクス（データは2025年9月30日時点）。
+// μは同資料の「算術平均」列の値を採用している。simulate.ts は各年の期待
+// リターンを単純比率（残高 += 残高 × rate/100）で加算する設計のため、複利
+// 成長率である幾何平均ではなく、算術平均が実装と整合する。
+// 名目値（インフレ調整前）として扱っており、インフレの影響は生活費側
+// （SimParams.inflR）にのみ反映される設計（資産側では別途調整しない）。
+// 以下3項目はLTCMA資料に対応項目がない、または一致する項目が特定できな
+// かったため、別根拠を採用している：
+//   - 先進国債券：LTCMA「先進国国債（為替ヘッジなし）」の値を採用
+//     （先進国債券インデックスファンドの一般的な連動対象と整合）
+//   - 先進国REIT：LTCMA「グローバルREIT除く米国（為替ヘッジなし）」の値を採用
+//   - 日本REIT：LTCMA非対象資産のため暫定値。μは東証REIT指数の過去実績
+//     （約23年間・年率約7%）を踏まえた保守的な想定（要再検証）。σは日本株
+//     σ（17.10%）に、米国・先進国のREIT/株式ボラティリティ比率
+//     （平均約0.945）を乗じた推定値
+// LTCMAは毎年12月頃に改訂されるため、この前提値は年次更新が必要。
 
 export interface AssetRow {
   assetClass: string;
@@ -10,16 +28,16 @@ export interface AssetRow {
 }
 
 export const ASSET_CLASSES: { key: string; mu: number; sigma: number; group: string }[] = [
-  { key: '全世界株',    mu: 7.0, sigma: 16.0, group: 'stock'    },
-  { key: '先進国株',    mu: 6.5, sigma: 16.0, group: 'stock'    },
-  { key: '新興国株',    mu: 8.0, sigma: 21.0, group: 'stock'    },
-  { key: '日本株',      mu: 6.0, sigma: 17.0, group: 'stock'    },
-  { key: '先進国債券',  mu: 4.0, sigma: 10.0, group: 'bond'     },
-  { key: '日本債券',    mu: 1.0, sigma:  3.0, group: 'bond'     },
-  { key: '先進国REIT',  mu: 7.0, sigma: 18.0, group: 'reit_dev' },
-  { key: '日本REIT',    mu: 4.0, sigma: 15.0, group: 'reit_jp'  },
-  { key: 'ゴールド',    mu: 5.0, sigma: 17.0, group: 'gold'     },
-  { key: '短期債・MMF', mu: 1.5, sigma:  2.0, group: 'cash'     },
+  { key: '全世界株',    mu: 6.83, sigma: 18.89, group: 'stock'    },
+  { key: '先進国株',    mu: 6.75, sigma: 19.01, group: 'stock'    },
+  { key: '新興国株',    mu: 8.09, sigma: 21.58, group: 'stock'    },
+  { key: '日本株',      mu: 8.33, sigma: 17.10, group: 'stock'    },
+  { key: '先進国債券',  mu: 2.70, sigma:  6.38, group: 'bond'     },
+  { key: '日本債券',    mu: 2.14, sigma:  2.79, group: 'bond'     },
+  { key: '先進国REIT',  mu: 7.46, sigma: 18.49, group: 'reit_dev' },
+  { key: '日本REIT',    mu: 4.5,  sigma: 16.2,  group: 'reit_jp'  },
+  { key: 'ゴールド',    mu: 4.80, sigma: 15.29, group: 'gold'     },
+  { key: '短期債・MMF', mu: 2.41, sigma:  1.54, group: 'cash'     },
 ];
 
 const ASSET_MU:    Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.mu]));
