@@ -84,7 +84,7 @@ export function analyze(snaps: YearSnap[], p: SimParams): AnalysisResult {
   const spIdecoTotalNetWithdrawal = Math.max(0, spIdecoTotalGross - spIdecoTotalTax);
 
   return {
-    last: snaps[snaps.length - 1].totalAssets,
+    last: snaps.length > 0 ? snaps[snaps.length - 1].totalAssets : 0,
     pV, pA, dA, fA, minRatio, minRatioAge, assetLife, withdrawalRate, breakEven, penAgeAssets,
     idecoLumpNet, idecoLumpTax, idecoTotalTax, idecoTotalNetWithdrawal, idecoStartBalance, severanceNetKPI,
     spIdecoLumpNet, spIdecoTotalTax, spIdecoTotalNetWithdrawal, spSeveranceNetKPI, spRetirementTaxKPI,

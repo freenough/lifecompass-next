@@ -476,9 +476,19 @@ export function profileToSimParams(profile: ProfileV3): SimParams {
     (p.spNisaBal  ?? 0) > 0 || (p.spIdecoBal ?? 0) > 0 || (p.spTaxBal ?? 0) > 0 ||
     (p.spCashBal  ?? 0) > 0;
 
+  // lifeExはcurAgeより大きくなければならない。両者とも数値入力欄で個別に編集されるため、
+  // 入力途中の一時的な状態（例:lifeEx欄をBackspaceで消して1桁目だけ打った瞬間、curAgeより
+  // 小さい値になる）で curAge > lifeEx が成立しうる。この場合simulate()の年次ループが1回も
+  // 回らずsnapsが空配列になり、analyze()が`snaps[snaps.length-1]`で例外を投げてstore側の
+  // 状態更新ごと失敗する（investigation_lifeEx_input_bug.mdで実測確認済み）。既存の
+  // `p.lifeEx || 90`（0のときのフォールバック）と同じ考え方で、curAge以下になる場合も
+  // フォールバックする（profile.params.lifeEx自体は変更せず、入力欄への表示・入力は
+  // 妨げない。あくまでsimulate()に渡す直前の防御的な補正）。
+  const safeLifeEx = (p.lifeEx && p.lifeEx > p.curAge) ? p.lifeEx : Math.max(p.curAge + 1, 90);
+
   return {
     curAge:   p.curAge,
-    lifeEx:   p.lifeEx || 90,
+    lifeEx:   safeLifeEx,
     baseInc:  p.baseInc,
     baseExp:  p.baseExp,
     inflR:    p.inflR ?? 2,
