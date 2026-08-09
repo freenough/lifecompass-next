@@ -87,7 +87,7 @@ iDeCoの所得控除で浮いた税金をそのまま翌年のNISA積立に回�
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
 
-→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/simulator?utm_source=blog&utm_medium=referral&utm_campaign=ideco_nisa&utm_content=mid_cta)
+→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=ideco_nisa&utm_content=mid_cta)
 
 ---
 
@@ -184,7 +184,7 @@ iDeCo手取り(年金受取15年): 1,707万円
 
 「一時金が有利」と思っていても、実際に入力してみると年金受取の方が手取りが多いケースもあります。まずは5分で、自分のケースを確認してみてください。
 
-→ [資産シミュレーターで比較する](https://freenough-lifecompass.vercel.app/simulator?utm_source=blog&utm_medium=referral&utm_campaign=ideco_nisa&utm_content=bottom_cta)
+→ [資産シミュレーターで比較する](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=ideco_nisa&utm_content=bottom_cta)
 
 ---
 

@@ -132,7 +132,7 @@ FIRE計画は、立てた瞬間の前提条件に基づいた「一つの未来�
 - NISA・iDeCo・退職金・年金など日本の制度に対応
 - 固定計算とモンテカルロ法(1,000試行)の両方をワンクリックで確認可能
 
-→ [自分の資産で試算してみる](https://freenough-lifecompass.vercel.app/simulator?utm_source=blog&utm_medium=referral&utm_campaign=fire_checklist&utm_content=bottom_cta)
+→ [自分の資産で試算してみる](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=fire_checklist&utm_content=bottom_cta)
 
 ---
 

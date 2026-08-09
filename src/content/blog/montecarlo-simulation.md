@@ -67,7 +67,7 @@ FIRE・資産形成の文脈では、毎年の運用リターンをランダム�
 
 ここまで読んで「自分の計画は市場変動にどれくらい耐えられるのか」と思った方は、一度試算してみてください。
 
-→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/simulator?utm_source=blog&utm_medium=referral&utm_campaign=montecarlo&utm_content=mid_cta)
+→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=montecarlo&utm_content=mid_cta)
 
 ---
 
@@ -162,7 +162,7 @@ FIRE計画を立てる際は、平均値だけでなく、悪いシナリオ(p10
 
 「平均リターンなら大丈夫」と思っていても、モンテカルロ試算をしてみると印象が変わることがあります。まずは5分で、自分の計画が市場変動にどれくらい耐えられるか確認してみてください。
 
-→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/simulator?utm_source=blog&utm_medium=referral&utm_campaign=montecarlo&utm_content=bottom_cta)
+→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=montecarlo&utm_content=bottom_cta)
 
 ---
 
