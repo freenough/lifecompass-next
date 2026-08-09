@@ -22,7 +22,7 @@ date: "2026-08-08"
 
 平均利回りが同じでも、リターンの良い年・悪い年が「どの順番で来るか」によって、最終的な資産額が変わってしまう現象を「シークエンス・オブ・リターンズ・リスク(Sequence of Returns Risk)」と呼びます。資産を積み立てている間はこの影響は小さいのですが、取り崩している間は、最初の数年に悪い年が集中すると、その後どれだけ市場が回復しても取り返しがつかなくなることがあります。いわゆる4%ルールなど、一定の取り崩し率を前提とした資産計画でも、このリターンの順番は無視できません。
 
-まずは、60秒だけ使って、ご自身の想定利回りとリスクを[資産シミュレーター](https://freenough.com/asset-simulator?utm_source=blog&utm_medium=referral&utm_campaign=sequence_of_returns_risk_blog)で確認してみてください。
+まずは、60秒だけ使って、ご自身の想定利回りとリスクを[資産シミュレーター](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=sequence_of_returns_risk_blog)で確認してみてください。
 
 ## 資産シミュレーターで検証する
 
@@ -85,7 +85,7 @@ B・Cで固定した下落幅は、過去の大規模な金融危機を想起さ
 
 ## 自分の場合はどうなるか確認する
 
-今回の検証はあくまで単純化したモデルです。実際の老後生活では、公的年金、現金・債券などの安全資産、住宅費、医療費、税・社会保険料などによって結果は大きく変わります。ご自身の資産配分・取り崩し額・年金額を反映した試算は、[FREENOUGHの資産シミュレーター](https://freenough.com/asset-simulator?utm_source=blog&utm_medium=referral&utm_campaign=sequence_of_returns_risk_blog)で確認できます。入力したデータは保存されず、3分程度で試算できます。
+今回の検証はあくまで単純化したモデルです。実際の老後生活では、公的年金、現金・債券などの安全資産、住宅費、医療費、税・社会保険料などによって結果は大きく変わります。ご自身の資産配分・取り崩し額・年金額を反映した試算は、[FREENOUGHの資産シミュレーター](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=sequence_of_returns_risk_blog)で確認できます。入力したデータは保存されず、3分程度で試算できます。
 
 ## よくある質問
 

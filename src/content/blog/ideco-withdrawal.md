@@ -44,7 +44,7 @@ iDeCoで積み立てた資産は、60歳以降に次の3つの方法で受け取
 
 ## 小さなCTA
 
-自分の残高・受給期間だとどうなるか、まずは60秒で試算してみてください。 →[iDeCo受取シミュレーター](https://freenough.com/asset-simulator/tools/ideco-withdrawal?utm_source=blog&utm_medium=referral&utm_campaign=ideco_withdrawal_blog)
+自分の残高・受給期間だとどうなるか、まずは60秒で試算してみてください。 →[iDeCo受取シミュレーター](/asset-simulator/tools/ideco-withdrawal?utm_source=blog&utm_medium=referral&utm_campaign=ideco_withdrawal_blog)
 
 ## 試算してみる:モデルケースで比較
 
@@ -85,7 +85,7 @@ iDeCoで積み立てた資産は、60歳以降に次の3つの方法で受け取
 
 資産シミュレーターの「iDeCo受取シミュレーター」では、自分の残高や受給期間を入力して、一時金・年金・併用それぞれの手取り額を試算できます。入力データはブラウザ上で計算され、保存されません。30秒ほどで、自分の条件に置き換えて確認できます。
 
-→[iDeCo受取シミュレーターで試算する](https://freenough.com/asset-simulator/tools/ideco-withdrawal?utm_source=blog&utm_medium=referral&utm_campaign=ideco_withdrawal_blog)
+→[iDeCo受取シミュレーターで試算する](/asset-simulator/tools/ideco-withdrawal?utm_source=blog&utm_medium=referral&utm_campaign=ideco_withdrawal_blog)
 
 ## よくある質問
 

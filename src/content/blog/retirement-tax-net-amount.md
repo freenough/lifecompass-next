@@ -54,7 +54,7 @@ topics: ["retirement_tax"]
 
 iDeCo(個人型確定拠出年金)を一時金として受け取る場合も、この退職所得控除の枠組みが使われます。退職金とiDeCoを同じ年に受け取ると、控除の計算に使う年数は、両方の年数を足し合わせるのではなく、長いほうの年数に調整される仕組みになっています。単純に「別々に控除が使える」わけではない点には注意が必要です。iDeCoの受け取り方(一時金・年金・併用)による手取りの違いについては、別記事で詳しく試算する予定です。
 
-まずは60秒で、自分の退職金の手取り額だけ確認してみてください。[退職金手取り計算ツール](https://freenough.com/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)
+まずは60秒で、自分の退職金の手取り額だけ確認してみてください。[退職金手取り計算ツール](/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)
 
 ## 勤続年数によって手取りはどれくらい変わる?
 
@@ -85,7 +85,7 @@ iDeCo(個人型確定拠出年金)を一時金として受け取る場合も、�
 
 ここまでの試算は、退職金3,000万円という一つの例に基づくものです。実際の退職金額・勤続年数は人によって違うため、自分の数字で試算してみることをおすすめします。
 
-[退職金手取り計算ツール](https://freenough.com/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)では、退職金額と勤続年数を入力するだけで、控除額から手取り額まで自動で計算できます。入力したデータが外部に送信されることはなく、1分程度で結果を確認できます。
+[退職金手取り計算ツール](/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)では、退職金額と勤続年数を入力するだけで、控除額から手取り額まで自動で計算できます。入力したデータが外部に送信されることはなく、1分程度で結果を確認できます。
 
 ## よくある質問
 
@@ -119,4 +119,4 @@ iDeCo(個人型確定拠出年金)を一時金として受け取る場合も、�
 - 手取り額は退職金額だけでなく、勤続年数によっても大きく変わる
 - 自分の条件での金額は、退職金手取り計算ツールで確認できる
 
-退職金以外にも、iDeCoやNISAを含めた資産全体の見通しを確認したい場合は、[資産シミュレーター](https://freenough.com/asset-simulator?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)で試算してみてください。
+退職金以外にも、iDeCoやNISAを含めた資産全体の見通しを確認したい場合は、[資産シミュレーター](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)で試算してみてください。

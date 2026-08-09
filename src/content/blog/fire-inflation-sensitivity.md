@@ -66,7 +66,7 @@ topics: ["inflation"]
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
 
-[資産シミュレーターで試算する →](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=fire-inflation-sensitivity&utm_content=mid)
+[資産シミュレーターで試算する →](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=fire-inflation-sensitivity&utm_content=mid)
 
 ### 感度分析で連続的に見る
 
@@ -88,7 +88,7 @@ topics: ["inflation"]
 
 インフレ率はシミュレーターの入力項目の一つとして、自由に変更できます。感度分析パネルを開けば、現在の設定からインフレ率を上下に動かしたときの影響を、グラフで確認できます。年間生活費や退職年齢など、他の条件を入力したうえで、ぜひ一度試算してみてください。データは保存されず、3分程度で結果を確認できます。
 
-[▶ 無料FIREシミュレーターで試してみる](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=fire-inflation-sensitivity&utm_content=bottom)
+[▶ 無料FIREシミュレーターで試してみる](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=fire-inflation-sensitivity&utm_content=bottom)
 
 ## よくある質問
 

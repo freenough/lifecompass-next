@@ -27,7 +27,7 @@ date: "2026-08-05"
 
 一方で、今の日本は歴史的に見れば低金利の状態が続いてきました。投資の期待リターンがローン金利を上回る環境では、「早く返す」ことが本当に最適な選択なのか、資産シミュレーターで確かめてみることにしました。
 
-まずは60秒で、ご自身の資産推移がどうなるか[FREENOUGH 資産シミュレーター](https://www.freenough.com/asset-simulator?utm_source=blog&utm_medium=referral&utm_campaign=housing_loan_blog)で試算してみてください。
+まずは60秒で、ご自身の資産推移がどうなるか[FREENOUGH 資産シミュレーター](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=housing_loan_blog)で試算してみてください。
 
 ## 3パターンで実際にシミュレーションしてみた
 
@@ -68,7 +68,7 @@ date: "2026-08-05"
 
 ## 自分の場合はどうなるか確認する
 
-住宅ローンの金利・借入額・返済期間はご家庭によって大きく異なります。ローンの有無や返済ペースを変えると資産推移がどう変わるか、[FREENOUGH 資産シミュレーター](https://www.freenough.com/asset-simulator?utm_source=blog&utm_medium=referral&utm_campaign=housing_loan_blog)で3分ほどで試算できます。データは保存されず、その場で結果を確認できます。
+住宅ローンの金利・借入額・返済期間はご家庭によって大きく異なります。ローンの有無や返済ペースを変えると資産推移がどう変わるか、[FREENOUGH 資産シミュレーター](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=housing_loan_blog)で3分ほどで試算できます。データは保存されず、その場で結果を確認できます。
 
 ## よくある質問
 

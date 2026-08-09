@@ -46,7 +46,7 @@ FIRE後、生活費は保有資産を取り崩しながら賄うことになり�
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
 
-→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=withdrawal_strategy&utm_content=mid_cta)
+→ [資産シミュレーターで試算する](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=withdrawal_strategy&utm_content=mid_cta)
 
 ---
 
@@ -120,7 +120,7 @@ FIRE後、生活費は保有資産を取り崩しながら賄うことになり�
 - データはブラウザ内で処理され、保存されません
 - NISA・iDeCo・特定口座・現金の残高を入力するだけで比較可能
 
-→ [自分の資産で試算してみる](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=withdrawal_strategy&utm_content=bottom_cta)
+→ [自分の資産で試算してみる](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=withdrawal_strategy&utm_content=bottom_cta)
 
 ---
 

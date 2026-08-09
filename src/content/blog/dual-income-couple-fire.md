@@ -49,7 +49,7 @@ NISA口座は夫婦それぞれで開設する必要があるため、金融機�
 
 ここまで読んで「うちの場合、どちらが何歳まで働くと安全なんだろう」と思った方は、一度試算してみてください。
 
-→ [資産シミュレーターで試算する](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=dual_income_couple&utm_content=mid_cta)
+→ [資産シミュレーターで試算する](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=dual_income_couple&utm_content=mid_cta)
 
 ---
 
@@ -110,7 +110,7 @@ NISA口座は夫婦それぞれで開設する必要があるため、金融機�
 - データはブラウザ内で処理され、保存されません
 - 配偶者の年収・口座残高・退職年齢を個別に入力可能
 
-→ [自分たちの資産で試算してみる](https://freenough-lifecompass.vercel.app/app?utm_source=blog&utm_medium=referral&utm_campaign=dual_income_couple&utm_content=bottom_cta)
+→ [自分たちの資産で試算してみる](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=dual_income_couple&utm_content=bottom_cta)
 
 ---
 

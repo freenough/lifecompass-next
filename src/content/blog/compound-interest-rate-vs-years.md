@@ -43,7 +43,7 @@ topics: ["compound_interest"]
 
 まずは60秒で、ご自身の条件(積立額・利回り・年数)を入力して将来資産を確認してみてください。この記事の試算と同じ計算エンジンを使っています。
 
-[複利計算ツールで試算する →](https://freenough.com/asset-simulator/tools/compound?utm_source=blog&utm_medium=referral&utm_campaign=compound_interest_years_blog)
+[複利計算ツールで試算する →](/asset-simulator/tools/compound?utm_source=blog&utm_medium=referral&utm_campaign=compound_interest_years_blog)
 
 ## シミュレーションで検証する
 
@@ -126,7 +126,7 @@ topics: ["compound_interest"]
 
 複利計算ツールでは、現在の資産額・毎月の積立額・想定利回り・運用年数を入力するだけで、ご自身の条件での将来資産をすぐに確認できます。この記事の試算とまったく同じ計算式を使っているため、条件を変えるだけでご自身の場合の結果がすぐにわかります。入力したデータが保存されることはなく、3分程度で試算が完了します。
 
-[複利計算ツールで試算する →](https://freenough.com/asset-simulator/tools/compound?utm_source=blog&utm_medium=referral&utm_campaign=compound_interest_years_blog)
+[複利計算ツールで試算する →](/asset-simulator/tools/compound?utm_source=blog&utm_medium=referral&utm_campaign=compound_interest_years_blog)
 
 より詳しく、税制(NISA・iDeCo)や退職金・年金まで含めた本格的な試算をしたい場合は、資産シミュレーターもあわせてご活用ください。
 
