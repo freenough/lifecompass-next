@@ -19,7 +19,8 @@ import { calcIdecoEligibleAge } from './helpers';
 //     （約23年間・年率約7%）を踏まえた保守的な想定（要再検証）。σは日本株
 //     σ（17.10%）に、米国・先進国のREIT/株式ボラティリティ比率
 //     （平均約0.945）を乗じた推定値
-// LTCMAは毎年12月頃に改訂されるため、この前提値は年次更新が必要。
+// LTCMAは毎年10月中旬〜下旬に改訂されるため、この前提値は年次更新が必要。
+// 詳細は reference/asset-classes-ltcma.md を参照。
 
 export interface AssetRow {
   assetClass: string;
