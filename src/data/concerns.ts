@@ -137,6 +137,17 @@ export const CONCERNS: Concern[] = [
     featured: false,
   },
   {
+    id: 'retirement-ideco-timing',
+    stage: 'receiving',
+    question: '退職金とiDeCo、いつ受け取るのが得?',
+    outcome: '重複排除ルール(19年・10年ルール)を踏まえた、受給タイミングごとの手取り額の違いを試算できます',
+    ctaType: 'lightTool',
+    ctaLabel: '60秒で試算する',
+    ctaUrl: '/tools/retirement-ideco-timing?utm_source=concerns&utm_medium=concern_card&utm_campaign=retirement_ideco_timing',
+    articleUrl: '/blog/retirement-ideco-timing',
+    featured: false,
+  },
+  {
     id: 'education-cost',
     stage: 'drawdown',
     question: '教育費があると何歳まで働く必要がある?',

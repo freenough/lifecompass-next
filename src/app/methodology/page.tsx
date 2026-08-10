@@ -132,6 +132,21 @@ export default function MethodologyPage() {
               配偶者の退職金・iDeCo一時金についても、本人と同様に退職所得控除等を適用した手取り額を自動計算します。
             </p>
           </div>
+          <div>
+            <h3 className="font-medium text-slate-700 mb-1">退職金×iDeCoを近い時期に受け取る場合（重複排除ルール）</h3>
+            <p>
+              退職金とiDeCo一時金を近い時期に受け取ると、退職所得控除の枠が重複して二重に使われることを防ぐため、
+              税制上「重複排除ルール」（19年ルール・10年ルール）が適用される場合があります。対象になる場合、
+              先に受け取った方の税額は確定済みで変更されず、後に受け取った方だけ、実際に勤続期間・加入期間が
+              重なっている部分に応じて控除額が減額されます。また、「先に受け取った方の収入額が、その退職所得控除額に
+              満たない場合」には、「みなし勤続期間」の特例（所得税法施行令第70条第2項）により、重複期間の
+              判定が調整されます。
+              本体シミュレーター・退職金手取り計算・iDeCo/DC出口戦略ツールはこの重複排除ルールを
+              反映していません（下記②参照）。受給タイミングによる手取りの違いを正確に試算したい場合は、
+              <Link href="/tools/retirement-ideco-timing" className="hover:underline">退職金×iDeCo 受給タイミング比較ツール</Link>
+              をご利用ください。
+            </p>
+          </div>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2">
             <h3 className="font-medium text-slate-700 mb-2">計算上の留意事項</h3>
             <ul className="space-y-3 text-slate-600 text-xs leading-relaxed list-none">
@@ -150,6 +165,9 @@ export default function MethodologyPage() {
                   本シミュレーターでは、退職金およびiDeCo一時金は、それぞれ独立して退職所得控除を計算します。
                   実際の税制に存在する退職所得控除の重複調整（19年ルール・10年ルール）は実装していません。
                   そのため、対象となるケースでは実際より税負担が軽く表示される場合があります。
+                  重複排除ルールを反映した正確な試算をしたい場合は、
+                  <Link href="/tools/retirement-ideco-timing" className="hover:underline">退職金×iDeCo 受給タイミング比較</Link>
+                  をご利用ください。
                 </p>
               </li>
               <li>

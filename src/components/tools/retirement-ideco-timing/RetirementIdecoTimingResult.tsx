@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { calcRetirementIdecoTiming, type ReceiveOrder, type AppliedRule } from '@/lib/tax/retirementIdecoTiming';
 import type { RetirementIdecoTimingFormValues } from './RetirementIdecoTimingForm';
 import DetailsAccordion from '@/components/tools/DetailsAccordion';
@@ -146,7 +147,9 @@ export default function RetirementIdecoTimingResult({ values }: RetirementIdecoT
             <div className="flex justify-between py-1 border-t border-slate-100">
               <span className="text-slate-500">控除額</span>
               <span className="font-medium">
-                通常{fmt(toManYen(result.adjustment.secondFullDeduction))}万円 → 重複調整後{fmt(toManYen(result.adjustment.secondAdjustedDeduction))}万円
+                {result.adjustment.hasOverlap
+                  ? `通常${fmt(toManYen(result.adjustment.secondFullDeduction))}万円 → 重複調整後${fmt(toManYen(result.adjustment.secondAdjustedDeduction))}万円`
+                  : `${fmt(toManYen(result.adjustment.secondAdjustedDeduction))}万円(重複がなかったため、控除額の調整はありません)`}
               </span>
             </div>
             <div className="flex justify-between py-1 border-t border-slate-100">
@@ -197,6 +200,11 @@ export default function RetirementIdecoTimingResult({ values }: RetirementIdecoT
           後に受け取った方の控除額のみを、重複期間を勤続年数とみなして計算した金額だけ減額します(所得税法施行令第70条第1項第2号)。
           さらに、先に受け取った方の収入額が自身の退職所得控除額に満たない場合は、「みなし勤続期間の特例」(同条第2項)により、
           重複期間の計算に使う先に受け取った方の期間がより短く調整されます。
+        </p>
+        <p>
+          本ツールは退職金・iDeCoの<strong>一時金</strong>受給を対象としています。退職所得は分離課税のため、
+          公的年金など他の所得とは合算されません。iDeCoを年金形式で受け取る場合の試算は、
+          <Link href="/tools/ideco-withdrawal" className="hover:underline">iDeCo受取シミュレーター</Link>をご利用ください。
         </p>
         <p>以下は対象外です:</p>
         <ul className="list-disc pl-5 space-y-1">
