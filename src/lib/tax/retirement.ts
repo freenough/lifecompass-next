@@ -148,7 +148,7 @@ const INCOME_TAX_BRACKETS: Array<{
   { upTo: Infinity, rate: 0.45, deduction: 4_796_000 },
 ];
 
-const RECONSTRUCTION_SURTAX_RATE = 1.021; // 復興特別所得税込み(102.1%)
+export const RECONSTRUCTION_SURTAX_RATE = 1.021; // 復興特別所得税込み(102.1%)
 const MUNICIPAL_TAX_RATE = 0.06; // 市民税(標準税率)
 const PREFECTURAL_TAX_RATE = 0.04; // 県民税(標準税率)
 

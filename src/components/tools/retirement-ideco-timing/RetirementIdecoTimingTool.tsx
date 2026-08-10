@@ -8,9 +8,9 @@ import { trackEvent } from '@/lib/gtag';
 
 const CALCULATE_EVENT_DEBOUNCE_MS = 500;
 
-// D-3(1)の検証表「一部重複」ケース(重複15年・合算勤続年数40年)と同じ値をデフォルトにしておくことで、
-// 初回表示が調整対象(19年ルール)のケースになり、verify-retirement-ideco-timing-tool.jsの
-// 対応テストケースの期待値と直接突き合わせられる。
+// 受給間隔5年(19年ルール・重複排除の対象)のケースをデフォルトにしておくことで、
+// 初回表示から「先に受け取った方は変更なし・後に受け取った方は控除額を減額計算する」という
+// 本ツールの中心的な挙動(duplicate_adjustmentモード)がそのまま確認できる。
 const DEFAULT_VALUES: RetirementIdecoTimingFormValues = {
   retireAge: 60,
   serviceYears: 35,
