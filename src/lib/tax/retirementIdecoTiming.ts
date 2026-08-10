@@ -149,28 +149,43 @@ export interface DuplicateAdjustment {
   firstEffectiveEndAge: number;
   /** 乙(後に受け取った方)の実勤続(加入)開始年齢 */
   secondStartAge: number;
-  /** 重複期間(年) = 甲の実効期間と乙の実期間の積集合 */
+  /** 施行令70条1項2号の「重複している場合」に該当するか。甲の実効期間と乙の実期間が
+   *  接するだけ(開始=終了)の場合はfalse(2026-08-10修正:実質的な重複がないため
+   *  減額規定自体を適用しないケースを区別する) */
+  hasOverlap: boolean;
+  /** 重複期間(年) = 甲の実効期間と乙の実期間の積集合。hasOverlap===falseの場合は0 */
   overlapYears: number;
   /** (イ)乙自身の満額控除額(円、重複調整前) */
   secondFullDeduction: number;
-  /** (ロ)重複期間を勤続年数とみなして計算した控除額(円) */
+  /** (ロ)重複期間を勤続年数とみなして計算した控除額(円)。hasOverlap===falseの場合は0
+   *  (減額規定自体を適用しないため) */
   overlapDeduction: number;
-  /** 乙の控除額 = max(0, (イ) − (ロ))(円) */
+  /** 乙の控除額 = hasOverlapがtrueならmax(0, (イ) − (ロ))、falseなら(イ)のまま(円) */
   secondAdjustedDeduction: number;
 }
 
 /**
- * 重複期間 = max(0, min(乙の受給年齢, 甲の実効期間の終了年齢) − max(乙の実期間開始, 甲の実開始年齢))
- * 乙の控除額 = max(0, 乙自身の満額控除額 − 重複期間分の控除額)
+ * 【2026-08-10修正】「重複が存在するかどうか」の判定(hasOverlap)と、
+ * 「存在する場合の重複期間の長さ」の計算を明確に2段階に分離する。以前は
+ * `max(0, end - start)`で長さの計算とゼロクランプを一体化していたため、
+ * 「期間が接するだけ(overlapStart===overlapEnd)」というケースで重複期間が0年と
+ * 算出され、その0を calcRetirementDeduction(0) に渡した結果、80万円下限が
+ * 誤って適用される(=接しているだけで実質的な重複がないのに、乙の控除額から
+ * 80万円が差し引かれる)というバグがあった。施行令70条1項2号は「勤続期間等の
+ * 一部が...重複している場合」にのみ減額規定を適用する条文のため、重複が
+ * ゼロ(期間が接するだけ)の場合は規定の適用条件を満たさず、(ロ)=0・
+ * 乙の控除額=満額のまま、が正しい。
  *
  * (イ)(ロ)とも既存のcalcRetirementDeduction()(80万円下限込み)をそのまま使う。これは
  * 単純化のための近似ではなく、施行令70条2項の文言「その重複している部分の期間を
  * 法第30条第3項の勤続年数とみなして『同項の規定を適用して』計算した金額」を、
  * 「重複期間を勤続年数とみなして、法30条3項の規定(80万円下限を含む)を丸ごと適用する」
- * 趣旨と解釈した結果の意図的な実装(2026-08-10確定)。したがって(ロ)の計算では、重複期間が
- * 1〜2年ときわめて短い場合でも「40万円×年数」の単純計算にはならず、80万円下限が
- * 正しく適用される(verify-retirement-ideco-timing-tool.jsの「重複期間1年・2年」テストで
- * この挙動を固定化している。将来「バグ」として誤って単純計算に修正しないこと)。
+ * 趣旨と解釈した結果の意図的な実装(2026-08-10確定)。したがって、実際に重複が
+ * 存在する(hasOverlap===true)場合、重複期間が1〜2年ときわめて短くても
+ * 「40万円×年数」の単純計算にはならず、80万円下限が正しく適用される
+ * (verify-retirement-ideco-timing-tool.jsの「重複期間1年・2年」テストで固定化)。
+ * これは「重複が0年(接するだけ)で規定自体を適用しない」ケースとは別の論点であり、
+ * 混同しないこと。
  */
 function calcDuplicateAdjustment(
   firstAge: number,
@@ -186,20 +201,36 @@ function calcDuplicateAdjustment(
     : firstAge;
   const secondStartAge = secondAge - secondServiceYears;
 
-  const overlapYears = Math.max(
-    0,
-    Math.min(firstEffectiveEndAge, secondAge) - Math.max(firstStartAge, secondStartAge)
-  );
+  const overlapStart = Math.max(secondStartAge, firstStartAge);
+  const overlapEnd = Math.min(firstEffectiveEndAge, secondAge);
+
+  // 施行令70条1項2号の「重複している場合」に該当するかどうかの判定。
+  // 期間が接するだけ(開始=終了)の場合はfalseとする。
+  const hasOverlap = overlapStart < overlapEnd;
 
   const secondFullDeduction = calcRetirementDeduction(secondServiceYears, false);
-  const overlapDeduction = calcRetirementDeduction(overlapYears, false);
-  const secondAdjustedDeduction = Math.max(0, secondFullDeduction - overlapDeduction);
+
+  let overlapYears: number;
+  let overlapDeduction: number;
+  let secondAdjustedDeduction: number;
+
+  if (hasOverlap) {
+    overlapYears = overlapEnd - overlapStart;
+    overlapDeduction = calcRetirementDeduction(overlapYears, false);
+    secondAdjustedDeduction = Math.max(0, secondFullDeduction - overlapDeduction);
+  } else {
+    // 重複が存在しないため、減額規定(施行令70条1項2号)を適用しない(乙は満額控除のまま)
+    overlapYears = 0;
+    overlapDeduction = 0;
+    secondAdjustedDeduction = secondFullDeduction;
+  }
 
   return {
     firstStartAge,
     deemed,
     firstEffectiveEndAge,
     secondStartAge,
+    hasOverlap,
     overlapYears,
     secondFullDeduction,
     overlapDeduction,

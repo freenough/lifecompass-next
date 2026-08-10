@@ -13,6 +13,10 @@
  * calcRetirementDeduction(80万円下限込み)をそのまま使う挙動(「40万円×年数」の単純計算
  * ではない)を意図的なものとして固定化するテストを追加した。
  *
+ * 【2026-08-10タスクG追加】重複期間0年(期間が接するだけ)のケースで、減額規定
+ * (施行令70条1項2号)自体を適用しない(hasOverlap=false→乙は満額控除のまま)よう修正し、
+ * 0年・1年・2年・10年を1つの境界値テーブルとして整理した(1年・2年はタスクFのテストを統合)。
+ *
  * src/lib/tax/retirementIdecoTiming.ts(新ツール側)と、
  * src/lib/tax/retirement.ts の calcRetirementDeduction/calcRetirementTaxableIncome/
  * calcRetirementIncomeTax(再利用元・既存実装、無変更)を直接importして使う。
@@ -165,17 +169,50 @@ console.log('甲(先)=iDeCo:収入1,000万円・加入20年・受給60歳 / 乙(
 }
 
 console.log('\n' + '='.repeat(90));
-console.log('【タスクF】重複期間が短いケースでの80万円下限の挙動を固定化');
+console.log('【タスクF/G】重複期間の境界値テーブル(0年・1年・2年・10年)');
 console.log('='.repeat(90));
-console.log('施行令70条2項「その重複している部分の期間を法第30条第3項の勤続年数とみなして');
-console.log('『同項の規定を適用して』計算した金額」は、重複期間を勤続年数とみなして法30条3項の');
-console.log('規定(80万円下限を含む)を丸ごと適用する趣旨と解釈。(ロ)にcalcRetirementDeduction');
-console.log('(80万円下限込み)をそのまま使うのが正しく、「40万円×年数」の単純計算ではない。');
-console.log('この挙動を以下2ケースで固定化する(将来「バグ」として誤って単純計算に修正しないこと)。');
+console.log('hasOverlap(「重複している場合」に該当するかの判定)と、重複期間の実長さの計算は');
+console.log('別ステップに分離している。期間が接するだけ(0年)の場合はhasOverlap=falseとなり、');
+console.log('減額規定(施行令70条1項2号)自体を適用しない(乙は満額控除のまま)。実際に重複が');
+console.log('存在する(1年以上)場合は、calcRetirementDeduction(80万円下限込み)をそのまま使う');
+console.log('(施行令70条2項「同項の規定を適用して」の解釈。40万円×年数の単純計算ではない)。');
 
 {
+  // 重複期間0年(タスクGの核心):B-3相当(退職金60歳1,500万円・iDeCo75歳1,000万円)。
+  // 甲のみなし調整後の実効期間終了(55歳)と乙の実期間開始(55歳)がちょうど一致し、
+  // 期間が接するだけで実質的な重複がない。hasOverlap=falseとなり、減額規定自体を
+  // 適用しない(乙は満額控除800万円のまま)のが正しい(2026-08-10修正前は、この0年を
+  // calcRetirementDeduction(0)に渡してしまい、80万円下限が誤って適用されていた)。
+  const input = {
+    retireAge: 60, serviceYears: 35, retireIncomeManYen: 1500,
+    idecoAge: 75, idecoYears: 20, idecoIncomeManYen: 1000,
+  };
+  const r = calcRetirementIdecoTiming(input);
+  check('甲の実効期間終了(55歳、みなし調整後)', r.adjustment.firstEffectiveEndAge, 55);
+  check('乙の実期間開始(55歳)', r.adjustment.secondStartAge, 55);
+  check('hasOverlap=false(期間が接するだけ)', r.adjustment.hasOverlap, false);
+  check('重複期間(0年)', r.adjustment.overlapYears, 0);
+  check('(ロ)=0円(減額規定を適用しない)', r.adjustment.overlapDeduction, 0);
+  check('乙の控除額=満額のまま(800万円)', toMan(r.adjustment.secondAdjustedDeduction), 800);
+  check('乙の課税退職所得(100万円)', toMan(r.secondResult.taxableIncome), 100);
+  check('合計手取り(約2,484.89万円)', toMan(r.totalNetAmount), 2484.89, 0.05);
+
+  // 修正前の値(誤り、乙控除720万円・合計手取り2,478.85万円)とは一致しないことを確認
+  const oldWrongManYen = 2478.85;
+  const differsFromOldWrong = Math.abs(toMan(r.totalNetAmount) - oldWrongManYen) > 1;
+  if (differsFromOldWrong) { pass++; console.log('[PASS] 修正前の誤った値(2,478.85万円)とは一致しない(修正確認)'); }
+  else { fail++; console.log('[FAIL] 修正前の誤った値(2,478.85万円)に近すぎる(修正されていない疑い)'); }
+
+  // 参考検算:重複が実質ゼロなら、対象内(このケース)と対象外(B-4)はほぼ一致するはず
+  const b4 = calcRetirementIdecoTiming({
+    retireAge: 60, serviceYears: 35, retireIncomeManYen: 1500,
+    idecoAge: 80, idecoYears: 20, idecoIncomeManYen: 1000,
+  });
+  check('B-4(対象外)とほぼ一致する(検算)', toMan(r.totalNetAmount), toMan(b4.totalNetAmount), 0.05);
+}
+{
   // 重複期間1年:naive計算(40万円×1年=40万円)とは異なり、80万円下限が適用されて
-  // (ロ)=80万円になることを確認する(下限が明確に効くケース)。
+  // (ロ)=80万円になることを確認する(下限が明確に効くケース。タスクFより)。
   // 甲=退職金・60歳・勤続30年・収入2000万円(満額控除1500万円以上のためみなし特例は非適用)、
   // 乙=iDeCo・65歳・加入6年(甲の実効期間[30,60]と乙の実期間[59,65]の重複=1年)。
   const input = {
@@ -184,6 +221,7 @@ console.log('この挙動を以下2ケースで固定化する(将来「バグ�
   };
   const r = calcRetirementIdecoTiming(input);
   check('みなし特例は非適用(収入が満額控除以上)', r.adjustment.deemed.applied, false);
+  check('hasOverlap=true', r.adjustment.hasOverlap, true);
   check('重複期間(1年)', r.adjustment.overlapYears, 1);
   check('(ロ)重複期間1年分の控除額(80万円下限が適用される。naive計算の40万円ではない)', toMan(r.adjustment.overlapDeduction), 80);
   check('(イ)乙の満額控除(240万円、6年×40万円)', toMan(r.adjustment.secondFullDeduction), 240);
@@ -191,14 +229,43 @@ console.log('この挙動を以下2ケースで固定化する(将来「バグ�
 }
 {
   // 重複期間2年:40万円×2年=80万円となり、80万円下限と偶然一致する境界ケース
-  // (下限の有無で結果は変わらないが、指示書の「1年・2年程度」の網羅のため含める)。
+  // (下限の有無で結果は変わらないが、指示書の「1年・2年程度」の網羅のため含める。タスクFより)。
   const input = {
     retireAge: 60, serviceYears: 30, retireIncomeManYen: 2000,
     idecoAge: 65, idecoYears: 7, idecoIncomeManYen: 500,
   };
   const r = calcRetirementIdecoTiming(input);
+  check('hasOverlap=true', r.adjustment.hasOverlap, true);
   check('重複期間(2年)', r.adjustment.overlapYears, 2);
   check('(ロ)重複期間2年分の控除額(80万円、40万円×2年と下限が一致する境界ケース)', toMan(r.adjustment.overlapDeduction), 80);
+}
+{
+  // 重複期間10年:下限に触れない通常計算(B-1相当:退職金60歳1,500万円・iDeCo65歳1,000万円)。
+  const input = {
+    retireAge: 60, serviceYears: 35, retireIncomeManYen: 1500,
+    idecoAge: 65, idecoYears: 20, idecoIncomeManYen: 1000,
+  };
+  const r = calcRetirementIdecoTiming(input);
+  check('hasOverlap=true', r.adjustment.hasOverlap, true);
+  check('重複期間(10年)', r.adjustment.overlapYears, 10);
+  check('(ロ)重複期間10年分の控除額(400万円、下限に触れない通常計算)', toMan(r.adjustment.overlapDeduction), 400);
+}
+{
+  // 期間が完全に離れている(接触もしない)ケース:hasOverlapが正しくfalseになることを確認。
+  // 甲=退職金・60歳・勤続10年(実期間[50,60])、乙=iDeCo・75歳・加入5年(実期間[70,75])。
+  // 期間の間に10年の空白があり、境界が接する0年ケースとは異なる「明確な分離」であることを確認する。
+  const input = {
+    retireAge: 60, serviceYears: 10, retireIncomeManYen: 1000,
+    idecoAge: 75, idecoYears: 5, idecoIncomeManYen: 500,
+  };
+  const r = calcRetirementIdecoTiming(input);
+  check('order', r.rule.order, 'retirement_first');
+  check('調整対象(受給間隔15年<=19年)', r.rule.isAdjustmentApplicable, true);
+  check('みなし特例は非適用', r.adjustment.deemed.applied, false);
+  check('hasOverlap=false(完全に離れている)', r.adjustment.hasOverlap, false);
+  check('重複期間(0年)', r.adjustment.overlapYears, 0);
+  check('乙自身の満額控除(200万円、5年×40万円)', toMan(r.adjustment.secondFullDeduction), 200);
+  check('乙の控除額=満額のまま(200万円、減額なし)', toMan(r.adjustment.secondAdjustedDeduction), 200);
 }
 
 console.log('\n' + '='.repeat(90));
