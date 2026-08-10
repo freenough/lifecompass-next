@@ -96,7 +96,7 @@ export function retirementTaxCalc(
   const hasIdeco = idecoBalance > 0;
   const hasSev = severanceAmount > 0;
   // 同一年に両方受け取る場合のみ控除を一本化（max）。別年受取はそれぞれ自分の年数のみを使う。
-  // 近似実装: 税制上の重複期間按分調整（19年/9年ルール）は対象外（methodology参照）。
+  // 近似実装: 税制上の重複期間按分調整（19年/10年ルール）は対象外（methodology参照）。
   // 勤続年数の1年未満の端数は切り上げ（国税庁No.1420）。
   const yrs = Math.max(1, Math.ceil(
     hasIdeco && hasSev ? Math.max(dcYears, sevYears) :

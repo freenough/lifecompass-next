@@ -1,4 +1,4 @@
-import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool, IconScale } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool, IconScale, IconCalendarDollar } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export type ToolGroup = 'accumulate' | 'receive' | 'optimize';
@@ -94,6 +94,16 @@ export const TOOLS: ToolItem[] = [
     group: 'optimize',
     primaryTopic: 'education_cost',
     topics: ['education_cost'],
+  },
+  {
+    slug: 'retirement-ideco-timing',
+    title: '退職金×iDeCo 受給タイミング比較',
+    description: '退職金とiDeCo一時金、受け取る年齢の組み合わせで手取り額がどう変わるかを比較します',
+    href: '/tools/retirement-ideco-timing',
+    Icon: IconCalendarDollar,
+    group: 'receive',
+    primaryTopic: 'retirement_tax',
+    topics: ['retirement_tax', 'ideco'],
   },
 ];
 

@@ -733,3 +733,11 @@ console.log('\n' + '='.repeat(100));
 console.log('【第6弾ツール:iDeCo/DC出口戦略シミュレーター】verify-ideco-withdrawal-tool.js');
 console.log('='.repeat(100));
 require('./verify-ideco-withdrawal-tool.js');
+
+// ================================================================
+// 第9弾ツール(退職金×iDeCo受給タイミング比較) src/lib/tax/retirementIdecoTiming.ts
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【第9弾ツール:退職金×iDeCo受給タイミング比較】verify-retirement-ideco-timing-tool.js');
+console.log('='.repeat(100));
+require('./verify-retirement-ideco-timing-tool.js');
