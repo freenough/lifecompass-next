@@ -741,3 +741,11 @@ console.log('\n' + '='.repeat(100));
 console.log('【第9弾ツール:退職金×iDeCo受給タイミング比較】verify-retirement-ideco-timing-tool.js');
 console.log('='.repeat(100));
 require('./verify-retirement-ideco-timing-tool.js');
+
+// ================================================================
+// 第10弾ツール(退職後の住民税キャッシュフロー試算) src/lib/tax/residentTaxTiming.ts
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【第10弾ツール:退職後の住民税キャッシュフロー試算】verify-resident-tax-timing-tool.js');
+console.log('='.repeat(100));
+require('./verify-resident-tax-timing-tool.js');

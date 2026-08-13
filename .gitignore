@@ -4,3 +4,6 @@ dist/
 *.js.map
 
 .vercel
+
+# 調査・実装作業で生成される大容量の一時データ(スクリプトで再取得可能なもの)
+docs/fixes/**/raw-data/

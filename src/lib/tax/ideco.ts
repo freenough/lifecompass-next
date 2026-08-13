@@ -102,8 +102,12 @@ function calcIncomeTaxBasicDeduction(totalIncome: number): number {
   return 580_000; // 655万円超(2,350万円超の逓減は非対応)
 }
 
-/** 住民税の基礎控除額(原則43万円)。高所得者向けの逓減はv1では非対応(Methodologyに明記)。 */
-const RESIDENT_TAX_BASIC_DEDUCTION = 430_000;
+/**
+ * 住民税の基礎控除額(原則43万円)。高所得者向けの逓減はv1では非対応(Methodologyに明記)。
+ * 第10弾ツール(退職後の住民税キャッシュフロー試算、src/lib/tax/residentTaxTiming.ts)からも
+ * 同一の値を再利用するため export する(定数を重複定義しない)。
+ */
+export const RESIDENT_TAX_BASIC_DEDUCTION = 430_000;
 
 export interface ComprehensiveIncomeTaxResult {
   /** 総所得金額(雑所得+その他所得) */

@@ -1,4 +1,4 @@
-import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool, IconScale, IconCalendarDollar } from '@tabler/icons-react';
+import { IconCalculator, IconHourglass, IconTrendingUp, IconClockDollar, IconReceipt2, IconArrowsSplit, IconSchool, IconScale, IconCalendarDollar, IconCalendarTime } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 export type ToolGroup = 'accumulate' | 'receive' | 'optimize';
@@ -104,6 +104,16 @@ export const TOOLS: ToolItem[] = [
     group: 'receive',
     primaryTopic: 'retirement_tax',
     topics: ['retirement_tax', 'ideco'],
+  },
+  {
+    slug: 'resident-tax-timing',
+    title: '退職後の住民税キャッシュフロー試算',
+    description: '退職月・退職前年の年収から、住民税がいつ・いくら発生するかを試算します',
+    href: '/tools/resident-tax-timing',
+    Icon: IconCalendarTime,
+    group: 'receive',
+    primaryTopic: 'resident_tax_timing',
+    topics: ['resident_tax_timing'],
   },
 ];
 
