@@ -148,6 +148,17 @@ export const CONCERNS: Concern[] = [
     featured: false,
   },
   {
+    id: 'resident-tax-timing',
+    stage: 'receiving',
+    question: '退職後の住民税はいつ・いくらかかる?',
+    outcome: '退職月別に、確保しておきたい現金の目安を試算できます',
+    ctaType: 'lightTool',
+    ctaLabel: '60秒で試算する',
+    ctaUrl: '/tools/resident-tax-timing?utm_source=concerns&utm_medium=concern_card&utm_campaign=resident_tax_timing',
+    articleUrl: '/blog/taishoku-yokunen-juminzei',
+    featured: false,
+  },
+  {
     id: 'education-cost',
     stage: 'drawdown',
     question: '教育費があると何歳まで働く必要がある?',

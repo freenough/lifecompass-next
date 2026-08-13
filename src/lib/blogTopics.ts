@@ -1,5 +1,5 @@
 /**
- * ブログ一覧のフィルタUI表示用に、topics(12種、blog.tsのgetRelatedPosts()・
+ * ブログ一覧のフィルタUI表示用に、topics(14種、blog.tsのgetRelatedPosts()・
  * getRelatedPostsForTopics()が使うスコアリング専用フィールド)を5つの表示グループへ
  * 集約する静的対応表。スコアリング側のtopicsは一切変更しない
  * （investigation_blog_filter_redesign.mdの「第3の選択肢」を採用。frontmatter・
@@ -16,7 +16,7 @@ export interface TopicGroup {
 export const TOPIC_GROUPS: TopicGroup[] = [
   { label: 'NISA・積立投資', topics: ['nisa', 'compound_interest'] },
   { label: 'iDeCo・退職金', topics: ['ideco', 'retirement_tax'] },
-  { label: '年金・老後の資産計画', topics: ['pension', 'withdrawal', 'dual_income'] },
+  { label: '年金・老後の資産計画', topics: ['pension', 'withdrawal', 'dual_income', 'resident_tax_timing'] },
   { label: '教育費', topics: ['education_cost'] },
   { label: 'シミュレーションの考え方', topics: ['montecarlo', 'fire_basics', 'inflation', 'fire_age'] },
   { label: '住宅・ローン', topics: ['housing_loan'] },
