@@ -38,30 +38,62 @@ export const PER_CAPITA_TAX = 5_000;
 // ============================================================
 
 /**
- * 給与所得控除額を計算する(国税庁No.1410、令和7年分以後の速算表)。
- * 令和7年度税制改正(いわゆる「年収の壁」対応)により、最低保障額が55万円→65万円に、
- * その適用上限も収入190万円に引き上げられた(190万円超の各区分の式・金額自体に改正はない)。
+ * 給与所得控除額を計算する。所得税法上の給与所得控除は「その収入を得た年(暦年)」の制度が
+ * 適用されるため、incomeYear(西暦・暦年)によって参照するテーブルを切り替える。
+ *
+ * ## 令和7年分以前(incomeYear <= 2025):65万円ベース(既存)
  * 出典: 国税庁 No.1410 給与所得控除 https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1410.htm
  *       国税庁「令和7年度税制改正による所得税の基礎控除の見直し等について」
  *       https://www.nta.go.jp/users/gensen/2025kiso/index.htm
  *
- * 本来、収入660万円未満の部分は所得税法別表第五(4,000円刻みの区分表)を用いるのが正式ルールだが、
- * 本ツールは実務上広く使われる速算表による近似値を採用する。この近似の誤差は「近似値である」
- * という定性的なものではなく、収入が属する区分ごとに一意に決まる上限を持つ:
- *   190万円超〜360万円以下(30%区分): 最大1,200円(=4,000円×30%)
- *   360万円超〜660万円以下(20%区分): 最大800円(=4,000円×20%)
- *   660万円超〜850万円以下(10%区分): 最大400円(=4,000円×10%)
- *   それ以外の区分(190万円以下・850万円超): 差なし
- * これは、e-Gov法令API v2から取得した所得税法XML(所得税法別表第五)と本速算表を、
- * 190万・300万・360万・400万・500万・600万・660万円の8点で直接照合し、
- * 「別表第五は4,000円区分の下限額で速算式を1回計算し、区分全体に一律適用するステップ関数」
- * であることを確認した上で導出した理論上限(全区分で完全一致・差ゼロを確認済み)。
- * 出典: docs/fixes/active/betsuhyo5-extraction/investigation_report.md(2026-08-13付調査報告書)
- * この上限値は calcSalaryDeductionApproxMaxError() として関数化し、UI側の
- * assumptionNotesにも動的に反映する(全区分を羅列せず、該当区分の上限のみを表示する)。
+ * ## 令和8年分・令和9年分(incomeYear === 2026 または 2027):74万円ベースの時限特例
+ * 出典: 国税庁「令和8年度税制改正(所得税の基礎控除の引上げ等関係)Q&A」(令和8年5月付)
+ *       https://www.nta.go.jp/users/gensen/2026kiso/pdf/0026005-024.pdf (Q3-1①の表)
+ * 上記Q&Aで確認した「その給与に係る給与所得の金額」の表(69万1,000円以上220万円未満の区分):
+ *   69万1,000円以上74万1,000円未満: なし(=0円)
+ *   74万1,000円以上219万1,000円未満: 収入金額-74万円
+ *   219万1,000円以上219万3,000円未満: 145万1,000円(固定)
+ *   219万3,000円以上219万6,000円未満: 145万3,000円(固定)
+ *   219万6,000円以上220万円未満: 145万6,000円(固定)
+ *   220万円以上: 従来の速算表と同一(×30%+8万円等。219万1,000円までの「収入-74万円」は
+ *     deduction=740,000一定と等価であり、69万1,000円未満(Q&Aに記載なし)についても
+ *     deduction≥incomeとなるため所得は0に floor される。219万1,000円〜220万円は、
+ *     「収入-74万円」の連続式(220万円で×30%+8万円と一致=74万円)と実際の速算式との間に
+ *     生じる僅かな差を埋めるための、別表第五と同様のステップ(狭い区分での固定値)。
+ *     このステップ区分だけは近似せず、Q&Aの数値をそのまま実装する。
+ *
+ * ## 令和10年分(2028年)以降(incomeYear >= 2028):**未確定・保守的な近似**
+ * 69万円が恒久的な最低保障額になることは確認済みだが、フラット部分の正確な上限額
+ * (200万円台のどこか)は本セッションで一次情報の裏付けが取れていない
+ * (docs/fixes/active/investigation_kyuyo_koujo_reiwa8_taiou_report.mdの禁止事項により、
+ * 未確認の「204万円」等の数値はコードに書き込まない)。暫定措置として、上限額は
+ * 令和7年度版と同じ190万円のまま据え置く(190万円時点で69万円→650,000円台の速算式へ
+ * 不連続に落ちる近似だが、安全側〈=控除をやや少なめに見積もる〉に倒れる)。
+ * **一次情報が確認でき次第、正確な境界値に修正すること。**
  */
-export function calcSalaryIncomeDeduction(incomeYen: number): number {
-  if (incomeYen <= 1_900_000) return 650_000;
+export function calcSalaryIncomeDeduction(incomeYen: number, incomeYear: number): number {
+  if (incomeYear <= 2025) {
+    if (incomeYen <= 1_900_000) return 650_000;
+    return calcSalaryIncomeDeductionUpperBrackets(incomeYen);
+  }
+  if (incomeYear === 2026 || incomeYear === 2027) {
+    // 74万1,000円未満(69万1,000円以上の「なし」区分含む)は所得0円ちょうど、
+    // すなわち控除額=収入金額そのもの(74万円固定ではない)。74万円固定にすると
+    // 収入74万〜74万999円の間だけ所得が1〜999円の端数で漏れ出てしまうため注意。
+    if (incomeYen < 741_000) return incomeYen;
+    if (incomeYen < 2_191_000) return 740_000;
+    if (incomeYen < 2_193_000) return incomeYen - 1_451_000;
+    if (incomeYen < 2_196_000) return incomeYen - 1_453_000;
+    if (incomeYen < 2_200_000) return incomeYen - 1_456_000;
+    return calcSalaryIncomeDeductionUpperBrackets(incomeYen);
+  }
+  // 令和10年分以降:上限額190万円は未確認のための暫定近似(上記コメント参照)
+  if (incomeYen <= 1_900_000) return 690_000;
+  return calcSalaryIncomeDeductionUpperBrackets(incomeYen);
+}
+
+/** 220万円(または190万円)超〜850万円超の速算表。全時代・全年分で共通(変更なしと確認済み)。 */
+function calcSalaryIncomeDeductionUpperBrackets(incomeYen: number): number {
   if (incomeYen <= 3_600_000) return Math.floor(incomeYen * 0.3 + 80_000 + 1e-6);
   if (incomeYen <= 6_600_000) return Math.floor(incomeYen * 0.2 + 440_000 + 1e-6);
   if (incomeYen <= 8_500_000) return Math.floor(incomeYen * 0.1 + 1_100_000 + 1e-6);
@@ -70,10 +102,13 @@ export function calcSalaryIncomeDeduction(incomeYen: number): number {
 
 /**
  * calcSalaryIncomeDeduction()の速算表近似が生む、所得税法別表第五との誤差の上限(円)。
- * 収入が属する区分によって一意に決まる(ランダムに変動する値ではない)。
- * 出典・根拠は calcSalaryIncomeDeduction() のコメント参照。
+ * **令和7年分(incomeYear<=2025)のみ検証済み**(e-Gov法令API v2で取得した所得税法別表第五との
+ * 8点照合、docs/fixes/active/betsuhyo5-extraction/investigation_report.md参照)。
+ * 令和8年分以降は別表第五との照合を行っていないため、誤差の上限は不明。呼び出し側
+ * (salaryDeductionApproxNote())はnullの場合「誤差未検証」の注記に切り替えること。
  */
-export function calcSalaryDeductionApproxMaxError(incomeYen: number): number {
+export function calcSalaryDeductionApproxMaxError(incomeYen: number, incomeYear: number): number | null {
+  if (incomeYear > 2025) return null;
   if (incomeYen <= 1_900_000) return 0;
   if (incomeYen <= 3_600_000) return 1_200;
   if (incomeYen <= 6_600_000) return 800;
@@ -82,8 +117,8 @@ export function calcSalaryDeductionApproxMaxError(incomeYen: number): number {
 }
 
 /** 年収から給与所得(給与所得控除後・住民税の基礎控除前の金額)を算出する。非課税判定にも使う。 */
-function calcSalaryIncome(incomeYen: number): number {
-  return Math.max(0, incomeYen - calcSalaryIncomeDeduction(incomeYen));
+function calcSalaryIncome(incomeYen: number, incomeYear: number): number {
+  return Math.max(0, incomeYen - calcSalaryIncomeDeduction(incomeYen, incomeYear));
 }
 
 /**
@@ -92,16 +127,20 @@ function calcSalaryIncome(incomeYen: number): number {
  * src/lib/tax/ideco.ts の RESIDENT_TAX_BASIC_DEDUCTION を再利用。新規定数は作らない)を
  * 差し引き「課税所得」、の2段階。ここで得た課税所得を calcResidentTax() にそのまま渡す。
  */
-export function calcTaxableSalaryIncome(incomeYen: number): number {
-  return Math.max(0, calcSalaryIncome(incomeYen) - RESIDENT_TAX_BASIC_DEDUCTION);
+export function calcTaxableSalaryIncome(incomeYen: number, incomeYear: number): number {
+  return Math.max(0, calcSalaryIncome(incomeYen, incomeYear) - RESIDENT_TAX_BASIC_DEDUCTION);
 }
 
 /**
  * 給与所得控除の速算表近似について、収入が属する区分に応じた誤差上限の注記文を返す
- * (差がない区分ではnullを返し、UIに出さない)。
+ * (差がない区分ではnullを返し、UIに出さない)。令和8年分以降は誤差自体が未検証のため、
+ * 具体的な金額を示さず「未検証」の注記に切り替える。
  */
-function salaryDeductionApproxNote(waveLabel: string, incomeYen: number): string | null {
-  const maxError = calcSalaryDeductionApproxMaxError(incomeYen);
+function salaryDeductionApproxNote(waveLabel: string, incomeYen: number, incomeYear: number): string | null {
+  const maxError = calcSalaryDeductionApproxMaxError(incomeYen, incomeYear);
+  if (maxError === null) {
+    return `${waveLabel}の給与所得控除額は、${incomeYear}年分の税制(令和8年度税制改正による特例テーブル)を使用しています。所得税法別表第五との誤差は令和7年分のテーブルのみ検証済みで、この年分については未検証です。`;
+  }
   if (maxError === 0) return null;
   return `${waveLabel}の給与所得控除額は、所得税法別表第五(4,000円刻みの区分表)との間で、収入が属する区分に応じて最大${maxError.toLocaleString("ja-JP")}円程度の差が生じる場合があります(この差は区分ごとに一意に決まるものであり、ランダムに変動するものではありません)。`;
 }
@@ -142,8 +181,8 @@ const NON_TAXABLE_WARNING_SUFFIX =
  * 給与所得(給与所得控除後・住民税の基礎控除前の金額)が非課税限度額を下回るかを判定する。
  * 波1・波2共通で使う(指示書の「二重実装しないこと」要件)。
  */
-function checkNonTaxable(incomeYen: number): NonTaxableWarning {
-  const salaryIncome = calcSalaryIncome(incomeYen);
+function checkNonTaxable(incomeYen: number, incomeYear: number): NonTaxableWarning {
+  const salaryIncome = calcSalaryIncome(incomeYen, incomeYear);
   const mayBeNonTaxable = salaryIncome <= NON_TAXABLE_SALARY_INCOME_THRESHOLD;
   return {
     mayBeNonTaxable,
@@ -154,8 +193,8 @@ function checkNonTaxable(incomeYen: number): NonTaxableWarning {
 }
 
 /** 年収から、その年の住民税年額(所得割+均等割)を算出する内部ヘルパー。 */
-function calcAnnualResidentTax(incomeYen: number): number {
-  const taxableIncome = calcTaxableSalaryIncome(incomeYen);
+function calcAnnualResidentTax(incomeYen: number, incomeYear: number): number {
+  const taxableIncome = calcTaxableSalaryIncome(incomeYen, incomeYear);
   const { total } = calcResidentTax(taxableIncome);
   return total + PER_CAPITA_TAX;
 }
@@ -239,8 +278,13 @@ export type ResidentTaxTimingResult = {
  *   1〜4月退職: 6 - retirementMonth  (退職月を含む。最後の給与処理が間に合わないため)
  *   5月退職:    0                    (最後の1ヶ月分は通常通り天引きされて完了)
  *   6〜12月退職: 17 - retirementMonth (退職月は含まない。退職月分は既に天引き済みのため)
+ *
+ * @param retirementYear 退職年(西暦)。calcResidentTaxTiming()が`new Date().getFullYear()`で
+ *   決定した「今年」をそのまま渡す(本ツールは常に「今」使われる前提)。
+ *   incomeBasisYearLabelが「退職前年」ならretirementYear-1、「前々年」ならretirementYear-2の
+ *   給与所得控除テーブルを参照する。
  */
-function calcCurrentYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[]): CurrentYearTax {
+function calcCurrentYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[], retirementYear: number): CurrentYearTax {
   const { priorYearIncome, retirementMonth, priorYearIncomeTwoYearsAgo, lumpSumPreference = "installment" } = input;
 
   const usesTwoYearsAgo = retirementMonth <= 5;
@@ -249,14 +293,15 @@ function calcCurrentYearTax(input: ResidentTaxTimingInput, assumptionNotes: stri
     ? priorYearIncomeTwoYearsAgo ?? priorYearIncome
     : priorYearIncome;
   const incomeBasisYearLabel: CurrentYearTax["incomeBasisYearLabel"] = usesTwoYearsAgo ? "前々年" : "退職前年";
+  const incomeYear = usesTwoYearsAgo ? retirementYear - 2 : retirementYear - 1;
 
   if (isIncomeBasisEstimated) {
     assumptionNotes.push("前々年の所得が未入力のため、退職前年の年収で代用しています");
   }
 
-  const annualTax = calcAnnualResidentTax(incomeBasisAmount);
-  const nonTaxableWarning = checkNonTaxable(incomeBasisAmount);
-  const deductionNote = salaryDeductionApproxNote("今の住民税の残り", incomeBasisAmount);
+  const annualTax = calcAnnualResidentTax(incomeBasisAmount, incomeYear);
+  const nonTaxableWarning = checkNonTaxable(incomeBasisAmount, incomeYear);
+  const deductionNote = salaryDeductionApproxNote("今の住民税の残り", incomeBasisAmount, incomeYear);
   if (deductionNote) assumptionNotes.push(deductionNote);
 
   let collectionType: CurrentYearTax["collectionType"];
@@ -296,8 +341,11 @@ function calcCurrentYearTax(input: ResidentTaxTimingInput, assumptionNotes: stri
 /**
  * 波2(nextYearTax):退職年の所得を基準にした、翌年6月開始の新規課税。
  * 退職月によらず、常に「退職年の所得」を基準にする(波1のような分岐はない)。
+ *
+ * @param retirementYear 退職年(西暦)。calcResidentTaxTiming()が`new Date().getFullYear()`で
+ *   決定した「今年」をそのまま渡す。この年の給与所得控除テーブルを参照する。
  */
-function calcNextYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[]): NextYearTax {
+function calcNextYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[], retirementYear: number): NextYearTax {
   const { priorYearIncome, retirementMonth, postRetirementIncome, retirementYearIncomeOverride } = input;
 
   const estimatedRetirementYearIncome = (priorYearIncome / 12) * retirementMonth + postRetirementIncome;
@@ -316,14 +364,14 @@ function calcNextYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[
     );
   }
 
-  const deductionNote = salaryDeductionApproxNote("退職翌年の新規課税", retirementYearIncome);
+  const deductionNote = salaryDeductionApproxNote("退職翌年の新規課税", retirementYearIncome, retirementYear);
   if (deductionNote) assumptionNotes.push(deductionNote);
 
-  const incomeTaxDeductionApplied = calcSalaryIncomeDeduction(retirementYearIncome);
-  const taxableIncomeAssumption = calcTaxableSalaryIncome(retirementYearIncome);
+  const incomeTaxDeductionApplied = calcSalaryIncomeDeduction(retirementYearIncome, retirementYear);
+  const taxableIncomeAssumption = calcTaxableSalaryIncome(retirementYearIncome, retirementYear);
   const { total: incomeTaxPart } = calcResidentTax(taxableIncomeAssumption);
   const perCapitaPart = PER_CAPITA_TAX;
-  const nonTaxableWarning = checkNonTaxable(retirementYearIncome);
+  const nonTaxableWarning = checkNonTaxable(retirementYearIncome, retirementYear);
 
   return {
     taxableIncomeAssumption,
@@ -337,9 +385,12 @@ function calcNextYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[
 }
 
 export function calcResidentTaxTiming(input: ResidentTaxTimingInput): ResidentTaxTimingResult {
+  // 本ツールは常に「今」使われる前提のため、実行時点の西暦年を「退職年」とみなす
+  // (指示書で確認済みの設計方針。ユーザーに西暦年の入力は求めない)。
+  const retirementYear = new Date().getFullYear();
   const assumptionNotes: string[] = [];
-  const currentYearTax = calcCurrentYearTax(input, assumptionNotes);
-  const nextYearTax = calcNextYearTax(input, assumptionNotes);
+  const currentYearTax = calcCurrentYearTax(input, assumptionNotes, retirementYear);
+  const nextYearTax = calcNextYearTax(input, assumptionNotes, retirementYear);
 
   return {
     totalCashNeeded: currentYearTax.remainingAmount + nextYearTax.total,

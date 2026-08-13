@@ -11,6 +11,15 @@
  * Decimal演算との差異は生じない(境界値405万円台の給与所得控除の区切りも含めて
  * 別途スポットチェック済み)。
  *
+ * 【重要】calcResidentTaxTiming()はcalcSalaryIncomeDeduction()に渡す所得年(西暦)を
+ * `new Date().getFullYear()`(実行時点の年)から算出する(impl_kyuyo_koujo_reiwa8_9_tokurei.md
+ * の設計方針)。そのため、本スクリプトのMATRIX等でcalcResidentTaxTiming()経由の波2の値を
+ * 検証している箇所は、**実行時点の西暦年に依存する**(2026年8月時点のセッションでは
+ * 退職年=2026年として計算され、令和8年分の特例テーブル〈74万円ベース〉が使われる)。
+ * 2028年以降にこのスクリプトを実行すると、波2は「令和10年分以降」の暫定近似テーブルを
+ * 参照するようになり、一部の期待値が変わる可能性がある(実行時点の年に依存しない
+ * calcSalaryIncomeDeduction()の直接呼び出しテストは影響を受けない)。
+ *
  * 実行: node scripts/verify-resident-tax-timing-tool.js
  */
 
@@ -50,25 +59,70 @@ console.log('='.repeat(90));
 check('PER_CAPITA_TAX(均等割標準額)', PER_CAPITA_TAX, 5_000);
 
 console.log('\n' + '='.repeat(90));
-console.log('【calcSalaryIncomeDeduction】国税庁No.1410 令和7年分以後の速算表・境界値');
+console.log('【calcSalaryIncomeDeduction】令和7年分(incomeYear=2025)の速算表・境界値');
 console.log('='.repeat(90));
 
-check('190万円以下:一律65万円', calcSalaryIncomeDeduction(1_900_000), 650_000);
-check('190万円超360万円以下の下限:×30%+8万円', calcSalaryIncomeDeduction(1_900_001), Math.floor(1_900_001 * 0.3 + 80_000));
-check('360万円ちょうど:×30%+8万円区分に含む', calcSalaryIncomeDeduction(3_600_000), 1_160_000);
-check('360万円超660万円以下の下限:×20%+44万円', calcSalaryIncomeDeduction(3_600_001), Math.floor(3_600_001 * 0.2 + 440_000));
-check('660万円ちょうど:×20%+44万円区分に含む', calcSalaryIncomeDeduction(6_600_000), 1_760_000);
-check('660万円超850万円以下の下限:×10%+110万円', calcSalaryIncomeDeduction(6_600_001), Math.floor(6_600_001 * 0.1 + 1_100_000));
-check('850万円ちょうど:×10%+110万円区分に含む', calcSalaryIncomeDeduction(8_500_000), 1_950_000);
-check('850万円超:195万円上限', calcSalaryIncomeDeduction(8_500_001), 1_950_000);
-check('1,000万円:195万円上限', calcSalaryIncomeDeduction(10_000_000), 1_950_000);
+check('190万円以下:一律65万円', calcSalaryIncomeDeduction(1_900_000, 2025), 650_000);
+check('190万円超360万円以下の下限:×30%+8万円', calcSalaryIncomeDeduction(1_900_001, 2025), Math.floor(1_900_001 * 0.3 + 80_000));
+check('360万円ちょうど:×30%+8万円区分に含む', calcSalaryIncomeDeduction(3_600_000, 2025), 1_160_000);
+check('360万円超660万円以下の下限:×20%+44万円', calcSalaryIncomeDeduction(3_600_001, 2025), Math.floor(3_600_001 * 0.2 + 440_000));
+check('660万円ちょうど:×20%+44万円区分に含む', calcSalaryIncomeDeduction(6_600_000, 2025), 1_760_000);
+check('660万円超850万円以下の下限:×10%+110万円', calcSalaryIncomeDeduction(6_600_001, 2025), Math.floor(6_600_001 * 0.1 + 1_100_000));
+check('850万円ちょうど:×10%+110万円区分に含む', calcSalaryIncomeDeduction(8_500_000, 2025), 1_950_000);
+check('850万円超:195万円上限', calcSalaryIncomeDeduction(8_500_001, 2025), 1_950_000);
+check('1,000万円:195万円上限', calcSalaryIncomeDeduction(10_000_000, 2025), 1_950_000);
+check('2024年分(令和6年分)も同じ令和7年度版テーブルを使う(2025年以前は一律)',
+  calcSalaryIncomeDeduction(4_000_000, 2024), calcSalaryIncomeDeduction(4_000_000, 2025));
+
+console.log('\n' + '='.repeat(90));
+console.log('【calcSalaryIncomeDeduction】令和8年分・令和9年分(incomeYear=2026/2027)の特例テーブル');
+console.log('出典: 国税庁「令和8年度税制改正(所得税の基礎控除の引上げ等関係)Q&A」Q3-1①の表');
+console.log('https://www.nta.go.jp/users/gensen/2026kiso/pdf/0026005-024.pdf');
+console.log('='.repeat(90));
+
+for (const year of [2026, 2027]) {
+  // 69万1,000円未満(Q&Aに明記なし):deduction≥incomeとなるためcalcSalaryIncome側で所得は0に floor される
+  check(`[${year}年]69万1,000円未満(69万円ちょうど):所得は0に floor される`,
+    Math.max(0, 690_000 - calcSalaryIncomeDeduction(690_000, year)), 0);
+  // 69万1,000円以上74万1,000円未満:所得金額「なし」(=0円)
+  check(`[${year}年]69万1,000円:所得0円`, Math.max(0, 691_000 - calcSalaryIncomeDeduction(691_000, year)), 0);
+  check(`[${year}年]74万999円(74万1,000円未満の上限):所得0円`, Math.max(0, 740_999 - calcSalaryIncomeDeduction(740_999, year)), 0);
+  // 74万1,000円以上219万1,000円未満:所得=収入金額-74万円(=deduction 740,000一定)
+  check(`[${year}年]74万1,000円:所得=1,000円`, 741_000 - calcSalaryIncomeDeduction(741_000, year), 1_000);
+  check(`[${year}年]219万999円(219万1,000円未満の上限):所得=150万999円`, 2_190_999 - calcSalaryIncomeDeduction(2_190_999, year), 1_450_999);
+  // 219万1,000円以上219万3,000円未満:所得=145万1,000円(固定)
+  check(`[${year}年]219万1,000円:所得=145万1,000円`, 2_191_000 - calcSalaryIncomeDeduction(2_191_000, year), 1_451_000);
+  check(`[${year}年]219万2,999円:所得=145万1,000円(区分内で固定)`, 2_192_999 - calcSalaryIncomeDeduction(2_192_999, year), 1_451_000);
+  // 219万3,000円以上219万6,000円未満:所得=145万3,000円(固定)
+  check(`[${year}年]219万3,000円:所得=145万3,000円`, 2_193_000 - calcSalaryIncomeDeduction(2_193_000, year), 1_453_000);
+  check(`[${year}年]219万5,999円:所得=145万3,000円(区分内で固定)`, 2_195_999 - calcSalaryIncomeDeduction(2_195_999, year), 1_453_000);
+  // 219万6,000円以上220万円未満:所得=145万6,000円(固定)
+  check(`[${year}年]219万6,000円:所得=145万6,000円`, 2_196_000 - calcSalaryIncomeDeduction(2_196_000, year), 1_456_000);
+  check(`[${year}年]219万9,999円:所得=145万6,000円(区分内で固定)`, 2_199_999 - calcSalaryIncomeDeduction(2_199_999, year), 1_456_000);
+  // 220万円ちょうどで、「収入-74万円」方式と既存の速算表(30%+8万円)が一致することを確認
+  // (指示書記載の検証済み事項:どちらでも所得146万円になる)
+  check(`[${year}年]220万円:従来の速算表(×30%+8万円)に切り替わる`, calcSalaryIncomeDeduction(2_200_000, year), Math.floor(2_200_000 * 0.3 + 80_000 + 1e-6));
+  check(`[${year}年]220万円:所得146万円(新旧両方式で一致)`, 2_200_000 - calcSalaryIncomeDeduction(2_200_000, year), 1_460_000);
+  // 360万・660万・850万円の上位区分は令和7年度版と完全に同一(前回投資調査で確認済み)
+  check(`[${year}年]360万円ちょうど:令和7年度版と同一`, calcSalaryIncomeDeduction(3_600_000, year), calcSalaryIncomeDeduction(3_600_000, 2025));
+  check(`[${year}年]850万円超:195万円上限(令和7年度版と同一)`, calcSalaryIncomeDeduction(9_000_000, year), 1_950_000);
+}
+
+console.log('\n' + '='.repeat(90));
+console.log('【calcSalaryIncomeDeduction】令和10年分以降(incomeYear>=2028)の暫定近似(未確定)');
+console.log('一次情報未確認のため、190万円までの区分を69万円に据え置く保守的な近似。');
+console.log('='.repeat(90));
+
+check('[2028年]190万円以下:一律69万円(暫定近似)', calcSalaryIncomeDeduction(1_900_000, 2028), 690_000);
+check('[2028年]220万円以上は上位区分と同一(令和7年度版と同じ速算表)', calcSalaryIncomeDeduction(2_200_000, 2028), Math.floor(2_200_000 * 0.3 + 80_000 + 1e-6));
+check('[2030年]同じ暫定近似がそれ以降の年にも適用される', calcSalaryIncomeDeduction(1_900_000, 2030), 690_000);
 
 console.log('\n' + '='.repeat(90));
 console.log('【calcTaxableSalaryIncome】給与所得控除+住民税基礎控除43万円(ideco.ts定数を再利用)');
 console.log('='.repeat(90));
 
-check('年収400万円:課税所得233万円', calcTaxableSalaryIncome(4_000_000), 2_330_000);
-check('低所得:課税所得0円(マイナスにならない)', calcTaxableSalaryIncome(500_000), 0);
+check('年収400万円(2025年分):課税所得233万円', calcTaxableSalaryIncome(4_000_000, 2025), 2_330_000);
+check('低所得(2025年分):課税所得0円(マイナスにならない)', calcTaxableSalaryIncome(500_000, 2025), 0);
 
 console.log('\n' + '='.repeat(90));
 console.log('【calcResidentTaxTiming】代表12パターン(退職前年年収400/600/800万円 × 退職月1/5/9/12月)');
@@ -97,8 +151,14 @@ const MATRIX = [
   { income: 8_000_000, month: 12, remaining: 238_333, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
 ];
 
+// 波2は退職年=今年(new Date().getFullYear())の給与所得控除テーブルを使う。本スクリプトの
+// 実行年である2026年は「令和8年分」に該当し、74万円ベースの特例テーブルが適用される。
+// 400万円・5月退職のケース(月割り推計167万円弱)だけがこの変更の影響を受け、63,600円→54,600円
+// になる(計算過程はimpl_kyuyo_koujo_reiwa8_9_tokurei_report.mdに記載)。他の11パターンは
+// 月割り推計所得が「0円にfloorされる低所得帯」または「220万円を上回り上位区分の速算表が
+// 令和7年度版と共通のため無影響」のいずれかに該当し、値は変わらない。
 const NEXT_YEAR_TOTAL = {
-  '4000000-1': 5_000, '4000000-5': 63_600, '4000000-9': 164_000, '4000000-12': 238_000,
+  '4000000-1': 5_000, '4000000-5': 54_600, '4000000-9': 164_000, '4000000-12': 238_000,
   '6000000-1': 5_000, '6000000-5': 129_000, '6000000-9': 278_000, '6000000-12': 398_000,
   '8000000-1': 5_000, '8000000-5': 187_300, '8000000-9': 398_000, '8000000-12': 572_000,
 };
@@ -233,26 +293,37 @@ console.log('='.repeat(90));
 }
 
 console.log('\n' + '='.repeat(90));
-console.log('【給与所得控除の速算表近似:別表第五との誤差上限(区分ごとに一意)】');
+console.log('【給与所得控除の速算表近似:別表第五との誤差上限(区分ごとに一意、令和7年分のみ検証済み)】');
 console.log('出典: docs/fixes/active/betsuhyo5-extraction/investigation_report.md');
 console.log('='.repeat(90));
 {
-  check('190万円以下:差なし', calcSalaryDeductionApproxMaxError(1_900_000), 0);
-  check('190万円超〜360万円以下:最大1,200円', calcSalaryDeductionApproxMaxError(2_000_000), 1_200);
-  check('360万円超〜660万円以下:最大800円', calcSalaryDeductionApproxMaxError(4_000_000), 800);
-  check('660万円超〜850万円以下:最大400円', calcSalaryDeductionApproxMaxError(7_000_000), 400);
-  check('850万円超:差なし', calcSalaryDeductionApproxMaxError(9_000_000), 0);
+  check('[2025年]190万円以下:差なし', calcSalaryDeductionApproxMaxError(1_900_000, 2025), 0);
+  check('[2025年]190万円超〜360万円以下:最大1,200円', calcSalaryDeductionApproxMaxError(2_000_000, 2025), 1_200);
+  check('[2025年]360万円超〜660万円以下:最大800円', calcSalaryDeductionApproxMaxError(4_000_000, 2025), 800);
+  check('[2025年]660万円超〜850万円以下:最大400円', calcSalaryDeductionApproxMaxError(7_000_000, 2025), 400);
+  check('[2025年]850万円超:差なし', calcSalaryDeductionApproxMaxError(9_000_000, 2025), 0);
+  // 令和8年分以降は別表第五との照合を行っていないため、区分によらずnull(未検証)を返す
+  check('[2026年]190万円以下でもnull(未検証。令和7年度版と異なりテーブル自体が別物のため)',
+    calcSalaryDeductionApproxMaxError(1_900_000, 2026), null);
+  check('[2026年]190万円超〜360万円以下相当でもnull(未検証)', calcSalaryDeductionApproxMaxError(4_000_000, 2026), null);
+  check('[2028年]令和10年分以降もnull(未検証)', calcSalaryDeductionApproxMaxError(4_000_000, 2028), null);
 
-  // assumptionNotesへの反映(該当区分の上限のみを動的に表示、指示書の「望ましい」実装方針)
-  // 波1(incomeBasisAmount=300万円)・波2(推計225万円)ともに190万円超〜360万円以下の
-  // 30%区分(最大1,200円)に入るケースを選ぶ。
+  // assumptionNotesへの反映(該当区分の上限のみを動的に表示、指示書の「望ましい」実装方針)。
+  // 波1(incomeBasisAmount=300万円、incomeYear=2025)は190万円超〜360万円以下の
+  // 30%区分(最大1,200円)に入るケースを選ぶ。波2(incomeYear=2026、退職年が「今年」のため)は
+  // 常に「未検証」の注記になる(下のブロックで別途検証する)。
   const withGap = calcResidentTaxTiming({ priorYearIncome: 3_000_000, retirementMonth: 9, postRetirementIncome: 0 });
-  check('30%区分に該当:assumptionNotesに最大1,200円の注記あり',
+  check('30%区分(令和7年分・波1)に該当:assumptionNotesに最大1,200円の注記あり',
     withGap.assumptionNotes.some(n => n.includes('最大1,200円')), true);
 
+  // 波1(incomeYear=2025・190万円以下=差なし)・波2(incomeYear=2026・今年=未検証)の組み合わせ。
+  // 波1側には「最大◯円」のような具体的な差の注記が付かない(差なしのため)一方、
+  // 波2側には今年(2026年)が令和8年度特例テーブルの対象であるための「未検証」注記が付く。
   const noGap = calcResidentTaxTiming({ priorYearIncome: 1_000_000, retirementMonth: 12, postRetirementIncome: 0 });
-  check('差なし区分のみに該当:assumptionNotesに誤差上限の注記なし',
-    noGap.assumptionNotes.some(n => n.includes('別表第五')), false);
+  check('波1(差なし区分)には具体的な差額の注記が付かない',
+    noGap.assumptionNotes.some(n => /最大[\d,]+円程度の差/.test(n)), false);
+  check('波2(今年=2026年、特例テーブル対象)には別表第五との誤差が未検証である旨の注記が付く',
+    noGap.assumptionNotes.some(n => n.includes('未検証')), true);
 }
 
 console.log('\n' + '='.repeat(90));
