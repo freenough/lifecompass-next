@@ -15,6 +15,11 @@ export interface ResidentTaxTimingFormValues {
   useRetirementYearOverride: boolean;
   retirementYearIncomeOverrideManYen: number;
   lumpSumPreference: LumpSumPreference;
+  /** 40歳以上65歳未満か(介護保険料を社会保険料控除の概算料率に含めるかどうか) */
+  isAge40OrOver: boolean;
+  /** true の間だけ socialInsuranceRateOverridePercent を calcResidentTaxTiming() に渡す */
+  useSocialInsuranceRateOverride: boolean;
+  socialInsuranceRateOverridePercent: number;
 }
 
 interface ResidentTaxTimingFormProps {
@@ -29,15 +34,20 @@ interface NumberFieldProps {
   suffix: string;
   onChange: (v: number) => void;
   min?: number;
+  /** 1未満のステップを指定すると小数入力を許可する(例:0.1で14.6%のような値を扱える)。デフォルト1(整数のみ)。 */
+  step?: number;
 }
 
 /**
  * RetirementTaxForm.tsx の NumberField と同一パターン(入力中の生文字列と確定値を分離し、
- * blur時にのみ親stateへ反映・デフォルトへのフォールバックを行う)。
+ * blur時にのみ親stateへ反映・デフォルトへのフォールバックを行う)。stepが1未満の場合は
+ * PrepayVsInvestForm.tsxのNumberFieldと同様、小数を保持したまま丸めない。
  */
-function NumberField({ label, id, value, suffix, onChange, min }: NumberFieldProps) {
+function NumberField({ label, id, value, suffix, onChange, min, step = 1 }: NumberFieldProps) {
   const [inputStr, setInputStr] = useState(String(value));
   const isFocused = useRef(false);
+  const isIntegerStep = Number.isInteger(step);
+  const roundValue = (raw: number) => (isIntegerStep ? Math.round(raw) : raw);
 
   useEffect(() => {
     if (!isFocused.current) setInputStr(String(value));
@@ -55,6 +65,7 @@ function NumberField({ label, id, value, suffix, onChange, min }: NumberFieldPro
           id={id}
           type="number"
           inputMode="decimal"
+          step={step}
           value={inputStr}
           onChange={e => {
             const cleaned = stripLeadingZero(e.target.value);
@@ -62,7 +73,7 @@ function NumberField({ label, id, value, suffix, onChange, min }: NumberFieldPro
             if (cleaned === '') return;
             const raw = Number(cleaned);
             if (!isNaN(raw)) {
-              onChange(min !== undefined ? Math.max(min, Math.round(raw)) : Math.round(raw));
+              onChange(min !== undefined ? Math.max(min, roundValue(raw)) : roundValue(raw));
             }
           }}
           onBlur={() => {
@@ -70,7 +81,7 @@ function NumberField({ label, id, value, suffix, onChange, min }: NumberFieldPro
             const raw = Number(inputStr);
             const safe = inputStr === '' || isNaN(raw)
               ? fallback
-              : (min !== undefined ? Math.max(min, Math.round(raw)) : Math.round(raw));
+              : (min !== undefined ? Math.max(min, roundValue(raw)) : roundValue(raw));
             setInputStr(String(safe));
             onChange(safe);
           }}
@@ -93,6 +104,11 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
   const [detailsOpen, setDetailsOpen] = useState(false);
   const showTwoYearsAgoField = values.retirementMonth <= 5;
   const showLumpSumToggle = values.retirementMonth >= 6;
+  // 1〜5月退職:波2の所得基準=退職前年の年収(priorYearIncomeで入力済み)。
+  //   retirementYearIncomeOverride(「退職年の実際の給与収入」)は波2の計算に一切使われないため不要。
+  // 6〜12月退職:波2の所得基準=退職年の所得(月割り推計)。retirementYearIncomeOverrideが
+  //   実額の上書き先として意味を持つ(residentTaxTiming.tsのcalcNextYearTax()参照)。
+  const showRetirementYearOverrideField = values.retirementMonth >= 6;
 
   return (
     <div className="flex flex-col gap-4">
@@ -173,26 +189,28 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
         </button>
         {detailsOpen && (
           <div className="px-3 pb-3 pt-1 flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={values.useRetirementYearOverride}
-                  onChange={e => onChange({ useRetirementYearOverride: e.target.checked })}
-                  className="rounded"
-                />
-                退職年の実際の給与収入がわかっている
-              </label>
-              {values.useRetirementYearOverride && (
-                <NumberField
-                  label="退職年の給与収入(実額・額面・税込)"
-                  id="retirementYearIncomeOverrideManYen"
-                  value={values.retirementYearIncomeOverrideManYen}
-                  suffix="万円"
-                  onChange={v => onChange({ retirementYearIncomeOverrideManYen: v })}
-                />
-              )}
-            </div>
+            {showRetirementYearOverrideField && (
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={values.useRetirementYearOverride}
+                    onChange={e => onChange({ useRetirementYearOverride: e.target.checked })}
+                    className="rounded"
+                  />
+                  退職年の実際の給与収入がわかっている
+                </label>
+                {values.useRetirementYearOverride && (
+                  <NumberField
+                    label="退職年の給与収入(実額・額面・税込)"
+                    id="retirementYearIncomeOverrideManYen"
+                    value={values.retirementYearIncomeOverrideManYen}
+                    suffix="万円"
+                    onChange={v => onChange({ retirementYearIncomeOverrideManYen: v })}
+                  />
+                )}
+              </div>
+            )}
 
             {showTwoYearsAgoField && (
               <div className="flex flex-col gap-2">
@@ -219,6 +237,51 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
                 </p>
               </div>
             )}
+
+            <div className="flex flex-col gap-2">
+              <label
+                className={`flex items-center gap-2 text-sm ${
+                  values.useSocialInsuranceRateOverride ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 cursor-pointer'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={values.isAge40OrOver}
+                  onChange={e => onChange({ isAge40OrOver: e.target.checked })}
+                  disabled={values.useSocialInsuranceRateOverride}
+                  className="rounded disabled:cursor-not-allowed"
+                />
+                40歳以上65歳未満(介護保険料を含む)
+              </label>
+              {values.useSocialInsuranceRateOverride && (
+                <p className="text-xs text-slate-400">
+                  社会保険料率を直接入力しているため、この項目は使用されません。
+                </p>
+              )}
+
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={values.useSocialInsuranceRateOverride}
+                  onChange={e => onChange({ useSocialInsuranceRateOverride: e.target.checked })}
+                  className="rounded"
+                />
+                社会保険料率が分かっている
+              </label>
+              {values.useSocialInsuranceRateOverride && (
+                <NumberField
+                  label="社会保険料率(本人負担分の合計)"
+                  id="socialInsuranceRateOverridePercent"
+                  value={values.socialInsuranceRateOverridePercent}
+                  suffix="%"
+                  step={0.1}
+                  onChange={v => onChange({ socialInsuranceRateOverridePercent: v })}
+                />
+              )}
+              <p className="text-xs text-slate-400">
+                未入力の場合は概算料率(40歳未満14.6%、40歳以上65歳未満15.4%)で試算します。
+              </p>
+            </div>
           </div>
         )}
       </div>

@@ -5,7 +5,7 @@ import ResidentTaxTimingForm, { type ResidentTaxTimingFormValues } from '@/compo
 import ResidentTaxTimingResult from '@/components/tools/resident-tax-timing/ResidentTaxTimingResult';
 import ResidentTaxTimingComparisonTable from '@/components/tools/resident-tax-timing/ResidentTaxTimingComparisonTable';
 import ResidentTaxTimingCta from '@/components/tools/resident-tax-timing/ResidentTaxTimingCta';
-import type { ResidentTaxTimingInput } from '@/lib/tax/residentTaxTiming';
+import { isEarlyYearRetirement, type ResidentTaxTimingInput } from '@/lib/tax/residentTaxTiming';
 import { trackEvent } from '@/lib/gtag';
 
 const CALCULATE_EVENT_DEBOUNCE_MS = 500;
@@ -19,6 +19,9 @@ const DEFAULT_VALUES: ResidentTaxTimingFormValues = {
   useRetirementYearOverride: false,
   retirementYearIncomeOverrideManYen: 600,
   lumpSumPreference: 'installment',
+  isAge40OrOver: false,
+  useSocialInsuranceRateOverride: false,
+  socialInsuranceRateOverridePercent: 14.6,
 };
 
 export default function ResidentTaxTimingTool({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
@@ -50,6 +53,10 @@ export default function ResidentTaxTimingTool({ relatedArticles }: { relatedArti
       ? values.retirementYearIncomeOverrideManYen * 10_000
       : undefined,
     lumpSumPreference: values.lumpSumPreference,
+    isAge40OrOver: values.isAge40OrOver,
+    socialInsuranceRateOverride: values.useSocialInsuranceRateOverride
+      ? values.socialInsuranceRateOverridePercent
+      : undefined,
   };
 
   return (
@@ -62,9 +69,19 @@ export default function ResidentTaxTimingTool({ relatedArticles }: { relatedArti
           退職月・退職前年の年収から、住民税がいつ・いくら発生するかを試算します。
         </p>
         <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-          住民税は「前の年の所得」をもとに翌年課税される仕組みのため、退職すると、
-          ①退職前から進行中だった住民税の残り と ②退職した年の所得をもとにした翌年の新しい住民税、
-          という2つのタイミングでお金が必要になります。
+          {isEarlyYearRetirement(values.retirementMonth) ? (
+            <>
+              住民税は「前の年の所得」をもとに翌年課税される仕組みのため、退職すると、
+              ①退職前から進行中だった住民税の残り と ②退職前年の所得をもとにした今年の新しい住民税、
+              という2つのタイミングでお金が必要になります。
+            </>
+          ) : (
+            <>
+              住民税は「前の年の所得」をもとに翌年課税される仕組みのため、退職すると、
+              ①退職前から進行中だった住民税の残り と ②退職した年の所得をもとにした翌年の新しい住民税、
+              という2つのタイミングでお金が必要になります。
+            </>
+          )}
         </p>
       </div>
 

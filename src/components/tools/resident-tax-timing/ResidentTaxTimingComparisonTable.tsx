@@ -40,7 +40,7 @@ export default function ResidentTaxTimingComparisonTable({
             <th className="px-4 py-2 text-left font-medium">退職月</th>
             <th className="px-4 py-2 text-left font-medium">所得基準</th>
             <th className="px-4 py-2 text-right font-medium">今の住民税の残り</th>
-            <th className="px-4 py-2 text-right font-medium">翌年6月〜</th>
+            <th className="px-4 py-2 text-right font-medium">②(新しい住民税)</th>
             <th className="px-4 py-2 text-right font-medium">合計</th>
           </tr>
         </thead>
@@ -79,6 +79,8 @@ export default function ResidentTaxTimingComparisonTable({
       </table>
       <p className="px-4 pb-3 pt-2 text-[11px] text-slate-400">
         3月退職と9月退職では、住民税の計算のもとになる年が違うため、金額も変わります。
+        また、②の課税開始時期も退職月によって異なります(1〜5月退職〈3月など〉:今年6月から/
+        6〜12月退職〈6月・9月・12月〉:翌年6月から)。
         退職後給与収入は0円、前々年所得・退職年所得の詳細入力は考慮せず、基本条件のみで比較しています
         (独身・扶養家族なしを前提とした試算です)。
       </p>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { calcResidentTaxTiming, type ResidentTaxTimingInput } from '@/lib/tax/residentTaxTiming';
+import { calcResidentTaxTiming, isEarlyYearRetirement, type ResidentTaxTimingInput } from '@/lib/tax/residentTaxTiming';
 import ToolCard from '@/components/tools/ui/ToolCard';
 
 interface ResidentTaxTimingResultProps {
@@ -20,6 +20,11 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
   const [detailsOpen, setDetailsOpen] = useState(false);
   const result = calcResidentTaxTiming(input);
   const { currentYearTax, nextYearTax, assumptionNotes } = result;
+  // 1〜5月退職は前年まるまる1年分を基準に「今年6月」から、6〜12月退職は退職年の部分所得を
+  // 基準に「翌年6月」から新規課税が始まる(residentTaxTiming.tsのcalcNextYearTax()参照)。
+  // 見出し・注記の文言はこの区分に応じて出し分ける(判定はresidentTaxTiming.tsの
+  // isEarlyYearRetirement()に集約、ここで独自に判定条件を再定義しない)。
+  const earlyYearRetirement = isEarlyYearRetirement(input.retirementMonth);
 
   // 表示はすべて「個別に万円へ丸めてから合計する」方式に統一する(円単位のtotalCashNeededを
   // 直接丸めて使うと、①+②の丸め後合計とヘッドラインが一致しないケースがあるため)。
@@ -55,9 +60,12 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
       </div>
 
       <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 leading-relaxed">
-        本ツールは、独身・扶養家族なし・給与所得のみ(社会保険料控除等は未考慮)を前提とした
-        簡易試算です。配偶者控除・扶養控除、事業所得・不動産所得等がある場合や、
+        本ツールは、独身・扶養家族なし・給与所得のみを前提とした簡易試算です(社会保険料控除は
+        概算料率で考慮しています)。配偶者控除・扶養控除、事業所得・不動産所得等がある場合や、
         ふるさと納税・住宅ローン控除等を利用している場合は、実際の税額と異なります。
+        本ツールは、退職が今年({result.retirementYear}年)であることを前提に、その時点の税制で
+        試算しています。実際の退職が翌年以降になる場合、適用される税制(控除額等)が変わり、
+        結果が異なることがあります。
       </p>
 
       <div className="mt-4 border-t border-slate-100 pt-4 text-sm text-slate-700">
@@ -81,7 +89,10 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
         )}
 
         <p className="text-xs font-semibold text-slate-500 mt-4 mb-1">
-          <span className="text-accent font-bold">②</span> 退職した年の所得をもとにした、翌年6月からの新しい住民税
+          <span className="text-accent font-bold">②</span>{' '}
+          {earlyYearRetirement
+            ? '退職前年の所得をもとにした、今年6月からの新しい住民税'
+            : '退職した年の所得をもとにした、翌年6月からの新しい住民税'}
         </p>
         <div className="flex justify-between py-1.5">
           <span className="text-slate-500">所得割</span>
@@ -128,15 +139,46 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
             <p>
               「今の住民税の残り」は、退職時点で特別徴収(給与天引き)中の住民税年度の残額です。
               {currentYearTax.incomeBasisYearLabel}の年収{fmt(toManYen(currentYearTax.incomeBasisAmount))}万円を
-              基準に、給与所得控除・住民税の基礎控除(43万円)を差し引いた課税所得に、
-              市民税6%・県民税4%の標準税率と標準的な均等割(5,000円)を適用して年間税額を算出し、
-              退職月から住民税年度末(5月)までの残り月数で按分しています(年間税額を残り月数で
-              按分した概算です。実際の月ごとの徴収額とは一致しない場合があります)。
+              基準に、給与所得控除・社会保険料控除({fmt(toManYen(currentYearTax.socialInsuranceDeductionApplied))}万円)・
+              住民税の基礎控除(43万円)を差し引いた課税所得に、市民税6%・県民税4%の標準税率を
+              適用し、そこから調整控除({fmt(currentYearTax.adjustmentDeductionApplied)}円)を差し引いた
+              所得割と、標準的な均等割(5,000円)を合計して年間税額を算出し、退職月から住民税年度末
+              (5月)までの残り月数で按分しています(年間税額を残り月数で按分した概算です。
+              実際の月ごとの徴収額とは一致しない場合があります)。
             </p>
             <p>
-              「退職翌年6月からの新規課税」は、退職年の給与収入(退職前の給与を前年年収の
-              月割りで仮定、退職後に別の収入があればそれも合算)を基準に、同様の方法で
-              翌年度分の住民税を算出しています。
+              {earlyYearRetirement ? (
+                <>
+                  「今年6月からの新規課税」は、退職前年の年収(1年間まるまる在職していたと
+                  仮定)を基準に、同様の方法で新規課税分の住民税を算出しています(社会保険料控除
+                  {fmt(toManYen(nextYearTax.socialInsuranceDeductionApplied))}万円、調整控除
+                  {fmt(nextYearTax.adjustmentDeductionApplied)}円)。退職月が1〜5月の場合、
+                  進行中の住民税年度(①)が終わる5月の直後、今年6月から新しい住民税年度が
+                  始まるため、②は「翌年」ではなく「今年」の6月から発生します。
+                </>
+              ) : (
+                <>
+                  「退職翌年6月からの新規課税」は、退職年の給与収入(退職前の給与を前年年収の
+                  月割りで仮定、退職後に別の収入があればそれも合算)を基準に、同様の方法で
+                  翌年度分の住民税を算出しています(社会保険料控除
+                  {fmt(toManYen(nextYearTax.socialInsuranceDeductionApplied))}万円、調整控除
+                  {fmt(nextYearTax.adjustmentDeductionApplied)}円)。
+                </>
+              )}
+            </p>
+            <p>
+              社会保険料控除は、厚生年金・健康保険・雇用保険(40歳以上65歳未満の場合は介護保険も)の
+              本人負担分の概算料率(40歳未満14.6%、40歳以上65歳未満15.4%。「より正確に試算する」欄で
+              実際の料率に置き換え可能)を年収に乗じた金額です。標準報酬月額の上限や賞与の別建て
+              計算は考慮していない簡易近似です。
+              {input.isAge40OrOver && input.socialInsuranceRateOverride === undefined && (
+                '40歳以上65歳未満の料率は、①(1〜2年前の所得基準)・②(退職年または退職前年の所得基準)の'
+                + 'いずれにも同じ料率を一律に適用しています。実際はそれぞれの所得を得た時点の年齢によって'
+                + '料率が異なる場合があります。'
+              )}
+              調整控除は、所得税と住民税で人的控除(基礎控除等)の
+              金額に差があることによる税負担増を調整するための控除で、独身・扶養なしの場合は
+              課税所得金額に応じて2,500円前後になります。
             </p>
             <p>
               給与所得控除は国税庁の令和7年分以後の速算表に基づく近似値です(本来、
@@ -160,11 +202,12 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
             </p>
             <p className="pt-2 border-t border-slate-100">
               本ツールは、独身・扶養家族なし・給与所得のみを前提とした簡易試算です。
-              社会保険料控除(健康保険・厚生年金等)、配偶者控除・扶養控除等の人的控除、
-              事業所得・不動産所得・年金収入等の給与以外の所得、ふるさと納税・住宅ローン控除・
-              医療費控除等の各種控除、自治体独自の超過課税は考慮していません。これらに該当する
-              場合、実際の税額は本ツールの試算結果と異なります。入力する年収は額面(税込)の
-              金額を想定しており、失業給付・傷病手当金等の非課税の給付は含めないでください。
+              社会保険料控除は概算料率による近似(標準報酬月額の上限・賞与の別建て計算は未考慮)で
+              考慮していますが、配偶者控除・扶養控除等の人的控除、事業所得・不動産所得・年金収入等の
+              給与以外の所得、ふるさと納税・住宅ローン控除・医療費控除等の各種控除、自治体独自の
+              超過課税は考慮していません。これらに該当する場合、実際の税額は本ツールの試算結果と
+              異なります。入力する年収は額面(税込)の金額を想定しており、失業給付・傷病手当金等の
+              非課税の給付は含めないでください。
             </p>
           </div>
         )}

@@ -33,6 +33,18 @@ import { RESIDENT_TAX_BASIC_DEDUCTION } from "./ideco";
  */
 export const PER_CAPITA_TAX = 5_000;
 
+/**
+ * 退職月が1〜5月かどうか(波1が前々年基準・波2が退職前年基準になる、住民税の徴収サイクル上の
+ * グループ)を判定する共通ヘルパー。`calcCurrentYearTax()`の`usesTwoYearsAgo`・
+ * `calcNextYearTax()`の所得基準分岐・UI側(`ResidentTaxTimingResult.tsx`・
+ * `ResidentTaxTimingTool.tsx`)の文言出し分けが、いずれもこの同一の条件
+ * (`retirementMonth <= 5`)を参照する。判定ロジックが複数箇所に別々に書かれることを避けるため、
+ * ここに集約する(impl_resident_tax_timing_intro_and_age_note.md)。
+ */
+export function isEarlyYearRetirement(retirementMonth: number): boolean {
+  return retirementMonth <= 5;
+}
+
 // ============================================================
 // 収入 → 課税所得の変換(波1・波2で共通)
 // ============================================================
@@ -116,19 +128,47 @@ export function calcSalaryDeductionApproxMaxError(incomeYen: number, incomeYear:
   return 0;
 }
 
-/** 年収から給与所得(給与所得控除後・住民税の基礎控除前の金額)を算出する。非課税判定にも使う。 */
+/** 年収から給与所得(給与所得控除後・住民税の基礎控除前の金額)を算出する。非課税判定にも使う。
+ * 社会保険料控除は含めない(非課税限度額の判定基準である「合計所得金額」は、社会保険料控除等の
+ * 所得控除を差し引く前の金額のため)。 */
 function calcSalaryIncome(incomeYen: number, incomeYear: number): number {
   return Math.max(0, incomeYen - calcSalaryIncomeDeduction(incomeYen, incomeYear));
 }
 
 /**
- * 年収から住民税の課税所得金額を算出する共通変換関数(波1・波2の両方がこれを経由する)。
- * 年収 → 給与所得控除を差し引き「給与所得」 → 住民税の基礎控除(原則43万円、
- * src/lib/tax/ideco.ts の RESIDENT_TAX_BASIC_DEDUCTION を再利用。新規定数は作らない)を
- * 差し引き「課税所得」、の2段階。ここで得た課税所得を calcResidentTax() にそのまま渡す。
+ * 社会保険料控除の概算額(円)を算出する(標準ケース:年収×概算料率)。
+ * 出典: 日本年金機構(厚生年金保険料率18.3%を労使折半→本人負担9.15%)
+ *       https://www.nenkin.go.jp/service/kounen/hokenryo/hoshu/20150515-01.html
+ *       全国健康保険協会(協会けんぽ令和8年度 全国平均保険料率9.9%を労使折半→本人負担4.95%)
+ *       https://www.kyoukaikenpo.or.jp/lp/2026hokenryou/
+ *       全国健康保険協会(介護保険料率、令和8年3月分以降1.62%を労使折半→本人負担0.81%)
+ *       https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/002/index.html
+ *       厚生労働省(雇用保険料率、令和8年度・一般の事業・労働者負担分5/1,000=0.5%)
+ *       https://www.mhlw.go.jp/content/001692566.pdf
+ * 概算料率(標準報酬月額の上限・賞与の別建て計算等は考慮しない簡易近似。
+ * docs/fixes/active/investigation_shakai_hoken_kojo_report.mdで、本ツールの想定年収帯
+ * 〈400〜800万円〉ではこの近似による誤差が実用上小さいことを確認済み):
+ *   40歳未満: 9.15%+4.95%+0.5%=14.6%
+ *   40歳以上65歳未満: 上記+介護保険0.81%=15.4%
  */
-export function calcTaxableSalaryIncome(incomeYen: number, incomeYear: number): number {
-  return Math.max(0, calcSalaryIncome(incomeYen, incomeYear) - RESIDENT_TAX_BASIC_DEDUCTION);
+export const SOCIAL_INSURANCE_RATE_UNDER_40 = 14.6;
+export const SOCIAL_INSURANCE_RATE_40_OR_OVER = 15.4;
+
+export function calcSocialInsuranceDeduction(incomeYen: number, ratePercent: number): number {
+  return Math.max(0, Math.floor(incomeYen * (ratePercent / 100) + 1e-6));
+}
+
+/**
+ * 年収から住民税の課税所得金額を算出する共通変換関数(波1・波2の両方がこれを経由する)。
+ * 年収 → 給与所得控除を差し引き → 社会保険料控除(年収×概算料率、または上書き値)を差し引き →
+ * 住民税の基礎控除(原則43万円、src/lib/tax/ideco.ts の RESIDENT_TAX_BASIC_DEDUCTION を
+ * 再利用。新規定数は作らない)を差し引き「課税所得」、という一連の変換。指示書の方針通り、
+ * 各ステップでは個別に0円未満をクランプせず、最終的な課税所得の算出時に1回だけクランプする。
+ */
+export function calcTaxableSalaryIncome(incomeYen: number, incomeYear: number, socialInsuranceRatePercent: number): number {
+  const salaryDeduction = calcSalaryIncomeDeduction(incomeYen, incomeYear);
+  const socialInsuranceDeduction = calcSocialInsuranceDeduction(incomeYen, socialInsuranceRatePercent);
+  return Math.max(0, incomeYen - salaryDeduction - socialInsuranceDeduction - RESIDENT_TAX_BASIC_DEDUCTION);
 }
 
 /**
@@ -143,6 +183,55 @@ function salaryDeductionApproxNote(waveLabel: string, incomeYen: number, incomeY
   }
   if (maxError === 0) return null;
   return `${waveLabel}の給与所得控除額は、所得税法別表第五(4,000円刻みの区分表)との間で、収入が属する区分に応じて最大${maxError.toLocaleString("ja-JP")}円程度の差が生じる場合があります(この差は区分ごとに一意に決まるものであり、ランダムに変動するものではありません)。`;
+}
+
+// ============================================================
+// 調整控除(所得税・住民税の人的控除差を調整する税額控除)
+// ============================================================
+
+/**
+ * 調整控除額を計算する。所得税と住民税で人的控除(基礎控除・扶養控除等)の金額に差があることに
+ * 伴う税負担増を調整するための税額控除で、calcResidentTax()が返す所得割額から差し引く
+ * (calcResidentTax()本体は無改修。呼び出し側でこの関数の結果を差し引く方式)。
+ *
+ * 本ツールは独身・扶養なし前提のため、「人的控除額の差の合計額」は基礎控除の差のみ=5万円で
+ * 固定される(所得税側の基礎控除が令和7年度・令和8年度改正でいくらに変動しても、調整控除の
+ * 計算に用いる差額自体は5万円のまま、と複数の自治体公式ページで確認済み。
+ * docs/fixes/active/investigation_shakai_hoken_kojo_report.md参照)。
+ *
+ * 出典(算定式): 諏訪市「人的控除の差と調整控除の計算方法」https://www.city.suwa.lg.jp/soshiki/4/4918.html
+ *               京都市「調整控除」https://www.city.kyoto.lg.jp/gyozai/page/0000028147.html
+ * - 課税所得金額が200万円以下: min(人的控除額の差の合計額, 課税所得金額) × 5%
+ * - 課税所得金額が200万円超: {人的控除額の差の合計額 - (課税所得金額-200万円)} × 5%。
+ *   ただし計算結果が2,500円を下回る場合(マイナスになる場合を含む)は2,500円とする。
+ *
+ * 【前回調査報告書(investigation_shakai_hoken_kojo_report.md)からの訂正】同報告書では
+ * 「課税所得金額が205万円超で調整控除0円」としていたが、これは誤りだった。諏訪市公式ページで
+ * 「計算結果が2,500円未満のときは2,500円」「計算結果がマイナスの場合も2,500円が適用される」
+ * ことを実例付きで確認したため訂正する。**調整控除は、合計所得金額が2,500万円を超えない限り、
+ * 課税所得金額がどれだけ高くても消滅しない(常に少なくとも2,500円)。**
+ * (合計所得金額2,500万円超で調整控除自体が不適用になるケースは、本ツールの想定年収帯
+ * 〈400〜800万円〉では通常発生しないため、本ツールでは考慮しない)
+ */
+const ADJUSTMENT_DEDUCTION_PERSONAL_DIFF = 50_000;
+const ADJUSTMENT_DEDUCTION_FLOOR = 2_500;
+
+export function calcAdjustmentDeduction(taxableIncome: number): number {
+  if (taxableIncome <= 2_000_000) {
+    return Math.floor(Math.min(ADJUSTMENT_DEDUCTION_PERSONAL_DIFF, taxableIncome) * 0.05 + 1e-6);
+  }
+  const raw = (ADJUSTMENT_DEDUCTION_PERSONAL_DIFF - (taxableIncome - 2_000_000)) * 0.05;
+  return Math.max(ADJUSTMENT_DEDUCTION_FLOOR, Math.floor(raw + 1e-6));
+}
+
+/**
+ * calcResidentTax()の所得割額から調整控除を差し引いた、実際に課税される所得割額を返す。
+ * 波1(calcAnnualResidentTax内)・波2(calcNextYearTax内)の両方がこれを呼ぶ(二重実装しない)。
+ */
+function calcIncomeTaxPartWithAdjustment(taxableIncome: number): number {
+  const { total } = calcResidentTax(taxableIncome);
+  const adjustment = calcAdjustmentDeduction(taxableIncome);
+  return Math.max(0, total - adjustment);
 }
 
 // ============================================================
@@ -192,11 +281,21 @@ function checkNonTaxable(incomeYen: number, incomeYear: number): NonTaxableWarni
   };
 }
 
-/** 年収から、その年の住民税年額(所得割+均等割)を算出する内部ヘルパー。 */
-function calcAnnualResidentTax(incomeYen: number, incomeYear: number): number {
-  const taxableIncome = calcTaxableSalaryIncome(incomeYen, incomeYear);
-  const { total } = calcResidentTax(taxableIncome);
-  return total + PER_CAPITA_TAX;
+type AnnualResidentTaxBreakdown = {
+  annualTax: number;
+  socialInsuranceDeductionApplied: number;
+  adjustmentDeductionApplied: number;
+};
+
+/** 年収から、その年の住民税年額(所得割+均等割、調整控除差引後)と内訳を算出する内部ヘルパー。 */
+function calcAnnualResidentTax(incomeYen: number, incomeYear: number, socialInsuranceRatePercent: number): AnnualResidentTaxBreakdown {
+  const taxableIncome = calcTaxableSalaryIncome(incomeYen, incomeYear, socialInsuranceRatePercent);
+  const incomeTaxPart = calcIncomeTaxPartWithAdjustment(taxableIncome);
+  return {
+    annualTax: incomeTaxPart + PER_CAPITA_TAX,
+    socialInsuranceDeductionApplied: calcSocialInsuranceDeduction(incomeYen, socialInsuranceRatePercent),
+    adjustmentDeductionApplied: calcAdjustmentDeduction(taxableIncome),
+  };
 }
 
 // ============================================================
@@ -218,6 +317,10 @@ export type ResidentTaxTimingInput = {
   retirementYearIncomeOverride?: number;
   /** 6-12月退職時のみ有効。デフォルト "installment" */
   lumpSumPreference?: LumpSumPreference;
+  /** 40歳以上65歳未満か(介護保険料を社会保険料控除の概算料率に含めるかどうか)。デフォルトfalse */
+  isAge40OrOver?: boolean;
+  /** 社会保険料率の上書き(%単位、例:14.6)。詳細設定・任意。指定時は概算料率より優先 */
+  socialInsuranceRateOverride?: number;
 };
 
 export type CurrentYearTax = {
@@ -237,15 +340,23 @@ export type CurrentYearTax = {
   /** collectionTypeが"強制一括徴収"または"任意一括徴収"の場合true(給与・退職金から天引きされる想定)。
    * "普通徴収"または"通常徴収で完了"の場合false。 */
   isWithheldAtSource: boolean;
+  /** 社会保険料控除額(円、年額ベース。annualTax算出前の課税所得計算に使った金額) */
+  socialInsuranceDeductionApplied: number;
+  /** 調整控除額(円、annualTax算出前の年間税額から差し引いた金額) */
+  adjustmentDeductionApplied: number;
 };
 
 export type NextYearTax = {
-  /** 課税所得金額の仮定値(円、給与所得控除・住民税基礎控除を差し引いた後) */
+  /** 課税所得金額の仮定値(円、給与所得控除・社会保険料控除・住民税基礎控除を差し引いた後) */
   taxableIncomeAssumption: number;
   isOverridden: boolean;
   /** 給与所得控除額(円、年間ベース、1回のみ適用) */
   incomeTaxDeductionApplied: number;
-  /** calcResidentTax()の所得割部分(円) */
+  /** 社会保険料控除額(円、年間ベース、1回のみ適用) */
+  socialInsuranceDeductionApplied: number;
+  /** 調整控除額(円、所得割から差し引いた金額) */
+  adjustmentDeductionApplied: number;
+  /** calcResidentTax()の所得割部分(円、調整控除差引後) */
   incomeTaxPart: number;
   /** 均等割(円、5,000円/年、固定) */
   perCapitaPart: number;
@@ -260,6 +371,8 @@ export type ResidentTaxTimingResult = {
   currentYearTax: CurrentYearTax;
   nextYearTax: NextYearTax;
   assumptionNotes: string[];
+  /** 退職年(西暦)。new Date().getFullYear()で算出した「今年」(UIでの前提条件の開示に使う) */
+  retirementYear: number;
 };
 
 // ============================================================
@@ -283,11 +396,14 @@ export type ResidentTaxTimingResult = {
  *   決定した「今年」をそのまま渡す(本ツールは常に「今」使われる前提)。
  *   incomeBasisYearLabelが「退職前年」ならretirementYear-1、「前々年」ならretirementYear-2の
  *   給与所得控除テーブルを参照する。
+ * @param socialInsuranceRatePercent 社会保険料控除の概算料率(%)。波1・波2で同じ値を使う。
  */
-function calcCurrentYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[], retirementYear: number): CurrentYearTax {
+function calcCurrentYearTax(
+  input: ResidentTaxTimingInput, assumptionNotes: string[], retirementYear: number, socialInsuranceRatePercent: number,
+): CurrentYearTax {
   const { priorYearIncome, retirementMonth, priorYearIncomeTwoYearsAgo, lumpSumPreference = "installment" } = input;
 
-  const usesTwoYearsAgo = retirementMonth <= 5;
+  const usesTwoYearsAgo = isEarlyYearRetirement(retirementMonth);
   const isIncomeBasisEstimated = usesTwoYearsAgo && priorYearIncomeTwoYearsAgo === undefined;
   const incomeBasisAmount = usesTwoYearsAgo
     ? priorYearIncomeTwoYearsAgo ?? priorYearIncome
@@ -299,7 +415,8 @@ function calcCurrentYearTax(input: ResidentTaxTimingInput, assumptionNotes: stri
     assumptionNotes.push("前々年の所得が未入力のため、退職前年の年収で代用しています");
   }
 
-  const annualTax = calcAnnualResidentTax(incomeBasisAmount, incomeYear);
+  const { annualTax, socialInsuranceDeductionApplied, adjustmentDeductionApplied } =
+    calcAnnualResidentTax(incomeBasisAmount, incomeYear, socialInsuranceRatePercent);
   const nonTaxableWarning = checkNonTaxable(incomeBasisAmount, incomeYear);
   const deductionNote = salaryDeductionApproxNote("今の住民税の残り", incomeBasisAmount, incomeYear);
   if (deductionNote) assumptionNotes.push(deductionNote);
@@ -334,49 +451,85 @@ function calcCurrentYearTax(input: ResidentTaxTimingInput, assumptionNotes: stri
 
   return {
     incomeBasisYearLabel, incomeBasisAmount, isIncomeBasisEstimated, collectionType, remainingAmount, note,
-    nonTaxableWarning, isWithheldAtSource,
+    nonTaxableWarning, isWithheldAtSource, socialInsuranceDeductionApplied, adjustmentDeductionApplied,
   };
 }
 
 /**
- * 波2(nextYearTax):退職年の所得を基準にした、翌年6月開始の新規課税。
- * 退職月によらず、常に「退職年の所得」を基準にする(波1のような分岐はない)。
+ * 波2(nextYearTax):進行中の住民税年度(波1)の直後に始まる、新規課税。
+ *
+ * 退職月によって所得基準・開始時期が異なる(docs/fixes/active/investigation_wave2_1to5gatsu_taisho_report.md
+ * で確認済みの設計。地方税法上、個人住民税は「前年(1〜12月)の所得を基準に、その年6月〜翌年5月」
+ * 課税されるという1年周期の規則性を、波1の直後のサイクルにそのまま適用しただけ):
+ * - **6〜12月退職**:退職した年(Y)自体が部分所得(1月〜退職月+退職後収入)になるケース。
+ *   翌年(Y+1)6月開始、所得基準=退職年(Y)の部分所得(月割り推計)。
+ * - **1〜5月退職**:退職者は前年(Y-1)を通じて年間在職していたため、前年(Y-1)の所得は
+ *   確定した1年分(`priorYearIncome`そのもの、月割りしない)。今年(Y)6月開始、
+ *   所得基準=前年(Y-1)のまるまる1年分。`postRetirementIncome`(退職後の同一年内収入)は
+ *   Y年の所得であり前年の所得には含まれないため、この分岐では加算しない
+ *   (2026-08セッションで修正:修正前はこの分岐がなく、1〜5月退職でも6〜12月退職と同じ
+ *   月割り推計式が誤って使われていた。本来最優先で表示すべき「前年まるまる1年分基準」の
+ *   新規課税が一切計算されず、代わりに実質「波3」〈退職年の部分所得を基準にした、さらに先の
+ *   新規課税〉に相当する小さい金額が②として表示されていた。詳細は上記調査報告書参照)。
  *
  * @param retirementYear 退職年(西暦)。calcResidentTaxTiming()が`new Date().getFullYear()`で
- *   決定した「今年」をそのまま渡す。この年の給与所得控除テーブルを参照する。
+ *   決定した「今年」をそのまま渡す。
+ * @param socialInsuranceRatePercent 社会保険料控除の概算料率(%)。波1・波2で同じ値を使う。
  */
-function calcNextYearTax(input: ResidentTaxTimingInput, assumptionNotes: string[], retirementYear: number): NextYearTax {
+function calcNextYearTax(
+  input: ResidentTaxTimingInput, assumptionNotes: string[], retirementYear: number, socialInsuranceRatePercent: number,
+): NextYearTax {
   const { priorYearIncome, retirementMonth, postRetirementIncome, retirementYearIncomeOverride } = input;
 
-  const estimatedRetirementYearIncome = (priorYearIncome / 12) * retirementMonth + postRetirementIncome;
-  const isOverridden = retirementYearIncomeOverride !== undefined;
-  const retirementYearIncome = retirementYearIncomeOverride ?? estimatedRetirementYearIncome;
+  const earlyYearRetirement = isEarlyYearRetirement(retirementMonth);
+  const incomeYear = earlyYearRetirement ? retirementYear - 1 : retirementYear;
+  const estimatedRetirementYearIncome = earlyYearRetirement
+    ? priorYearIncome
+    : (priorYearIncome / 12) * retirementMonth + postRetirementIncome;
+  // retirementYearIncomeOverride(「退職年の実際の給与収入」の上書き)は、1〜5月退職では
+  // 波2の所得基準が「退職年」ではなく「退職前年(priorYearIncome)」に変わるため意味を持たない。
+  // UI側(ResidentTaxTimingForm.tsx)は1〜5月退職時にこの入力欄自体を非表示にしているが、
+  // 計算側でも二重に防御し、渡された値があっても明示的に無視する
+  // (docs/fixes/active/impl_resident_tax_timing_override_hide.md)。
+  const isOverridden = !earlyYearRetirement && retirementYearIncomeOverride !== undefined;
+  const retirementYearIncome = (!earlyYearRetirement && retirementYearIncomeOverride !== undefined)
+    ? retirementYearIncomeOverride
+    : estimatedRetirementYearIncome;
 
   if (!isOverridden) {
     assumptionNotes.push(
-      "退職前の給与は前年の年収を月割りした仮定値です。賞与の時期により実際の所得とは差が生じます。"
+      earlyYearRetirement
+        ? "今年6月からの新規課税は、退職前年の年収をそのまま使用しています(退職月が1〜5月のため、前年は年間を通じて在職していたと仮定しています)。"
+        : "退職前の給与は前年の年収を月割りした仮定値です。賞与の時期により実際の所得とは差が生じます。"
     );
   }
 
-  if (postRetirementIncome > 0) {
+  if (postRetirementIncome > 0 && !earlyYearRetirement) {
     assumptionNotes.push(
       "退職翌年6月からの新規課税は、自己納付(普通徴収)を前提に試算しています。退職後の勤務先で特別徴収が設定されている場合は、給与天引きになることがあります。"
     );
   }
 
-  const deductionNote = salaryDeductionApproxNote("退職翌年の新規課税", retirementYearIncome, retirementYear);
+  const deductionNote = salaryDeductionApproxNote(
+    earlyYearRetirement ? "今年6月からの新規課税" : "退職翌年の新規課税",
+    retirementYearIncome, incomeYear,
+  );
   if (deductionNote) assumptionNotes.push(deductionNote);
 
-  const incomeTaxDeductionApplied = calcSalaryIncomeDeduction(retirementYearIncome, retirementYear);
-  const taxableIncomeAssumption = calcTaxableSalaryIncome(retirementYearIncome, retirementYear);
-  const { total: incomeTaxPart } = calcResidentTax(taxableIncomeAssumption);
+  const incomeTaxDeductionApplied = calcSalaryIncomeDeduction(retirementYearIncome, incomeYear);
+  const socialInsuranceDeductionApplied = calcSocialInsuranceDeduction(retirementYearIncome, socialInsuranceRatePercent);
+  const taxableIncomeAssumption = calcTaxableSalaryIncome(retirementYearIncome, incomeYear, socialInsuranceRatePercent);
+  const adjustmentDeductionApplied = calcAdjustmentDeduction(taxableIncomeAssumption);
+  const incomeTaxPart = calcIncomeTaxPartWithAdjustment(taxableIncomeAssumption);
   const perCapitaPart = PER_CAPITA_TAX;
-  const nonTaxableWarning = checkNonTaxable(retirementYearIncome, retirementYear);
+  const nonTaxableWarning = checkNonTaxable(retirementYearIncome, incomeYear);
 
   return {
     taxableIncomeAssumption,
     isOverridden,
     incomeTaxDeductionApplied,
+    socialInsuranceDeductionApplied,
+    adjustmentDeductionApplied,
     incomeTaxPart,
     perCapitaPart,
     total: incomeTaxPart + perCapitaPart,
@@ -388,14 +541,32 @@ export function calcResidentTaxTiming(input: ResidentTaxTimingInput): ResidentTa
   // 本ツールは常に「今」使われる前提のため、実行時点の西暦年を「退職年」とみなす
   // (指示書で確認済みの設計方針。ユーザーに西暦年の入力は求めない)。
   const retirementYear = new Date().getFullYear();
+  const socialInsuranceRatePercent = input.socialInsuranceRateOverride ??
+    (input.isAge40OrOver ? SOCIAL_INSURANCE_RATE_40_OR_OVER : SOCIAL_INSURANCE_RATE_UNDER_40);
   const assumptionNotes: string[] = [];
-  const currentYearTax = calcCurrentYearTax(input, assumptionNotes, retirementYear);
-  const nextYearTax = calcNextYearTax(input, assumptionNotes, retirementYear);
+
+  // 40歳以上65歳未満の設定(介護保険料込みの料率)は、波1(1〜2年前の所得基準)・波2
+  // (退職年または退職前年の所得基準)の両方に一律で適用される簡易試算である旨の注記。
+  // 「40歳未満」(デフォルト)の場合はこの注記を出さない:年齢は単調に増加するため、
+  // 「現在40歳未満」ならば1〜2年前の時点でも必ず40歳未満だったことになり、簡略化による
+  // 誤差は理論上生じ得ない。一方「40歳以上」の場合は、直近で40歳に到達したばかりの
+  // ケースなど、1〜2年前は40歳未満だった可能性があるため、一律適用による誤差が生じ得る
+  // (impl_resident_tax_timing_intro_and_age_note.md)。socialInsuranceRateOverride指定時は
+  // 年齢由来の料率選択自体が行われていないため、この注記の対象外とする。
+  if (input.isAge40OrOver && input.socialInsuranceRateOverride === undefined) {
+    assumptionNotes.push(
+      "社会保険料率(40歳以上65歳未満の設定)は、波1・波2のいずれにも同じ料率を一律に適用した簡易試算です。実際は、それぞれの所得を得た時点(1〜2年前と退職時点)での年齢によって異なる場合があります。"
+    );
+  }
+
+  const currentYearTax = calcCurrentYearTax(input, assumptionNotes, retirementYear, socialInsuranceRatePercent);
+  const nextYearTax = calcNextYearTax(input, assumptionNotes, retirementYear, socialInsuranceRatePercent);
 
   return {
     totalCashNeeded: currentYearTax.remainingAmount + nextYearTax.total,
     currentYearTax,
     nextYearTax,
     assumptionNotes,
+    retirementYear,
   };
 }

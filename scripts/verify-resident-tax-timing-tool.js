@@ -20,6 +20,27 @@
  * 参照するようになり、一部の期待値が変わる可能性がある(実行時点の年に依存しない
  * calcSalaryIncomeDeduction()の直接呼び出しテストは影響を受けない)。
  *
+ * 【重要】impl_resident_tax_timing_phase2.mdで社会保険料控除(概算料率、isAge40OrOver未指定
+ * 時のデフォルトは14.6%)・調整控除を追加したことに伴い、calcResidentTaxTiming()経由の
+ * MATRIX等の期待値は全面的に再計算した(Python Decimalによる独立検算は完了報告書
+ * impl_resident_tax_timing_phase2_report.md参照。この検算で確認した2ケース〈600万円・9月、
+ * 400万円・1月〉の値が本番コードの出力と完全一致することを確認済みのため、残りのケースは
+ * 本番コードの実出力をそのまま期待値として採用している)。
+ *
+ * 【重要】impl_resident_tax_timing_wave2_fix.mdで、1〜5月退職時の波2(nextYearTax)の
+ * 所得基準を「退職年の部分所得を月割り推計」から「前年まるまる1年分(priorYearIncomeそのもの、
+ * postRetirementIncomeは加算しない)」に修正したことに伴い、MATRIX・NEXT_YEAR_TOTALのうち
+ * retirementMonthが1・5のケース(1〜5月退職グループ)の期待値を全面的に再計算した。
+ * retirementMonthが6・9・12のケース(6〜12月退職グループ)は本修正の対象外であり、
+ * 一切期待値を変更していない(完了報告書impl_resident_tax_timing_wave2_fix_report.md参照)。
+ * 修正後は「1〜5月退職の波2は月に依らず常に同じ金額(前年まるまる1年分の年間税額)になる」
+ * という構造上の性質を持つため、NEXT_YEAR_TOTALの`-1`キーと`-5`キーは同一の値になる
+ * (さらに、上位区分〈220万円超〉では給与所得控除が年に依存しないため、この値は偶然にも
+ * 6〜12月退職グループの`-12`キー〈=priorYearIncome/12×12+0=priorYearIncomeそのものに
+ * 帰着する〉と同額になる。本ツールが扱う年収帯400〜800万円はすべて220万円を超えるため、
+ * 3つのキーが常に同額になるという副次的な一致であり、意図した設計ではない偶然の一致である
+ * 点に注意)。
+ *
  * 実行: node scripts/verify-resident-tax-timing-tool.js
  */
 
@@ -31,9 +52,14 @@ const {
   calcSalaryIncomeDeduction,
   calcSalaryDeductionApproxMaxError,
   calcTaxableSalaryIncome,
+  calcSocialInsuranceDeduction,
+  calcAdjustmentDeduction,
   calcResidentTaxTiming,
   PER_CAPITA_TAX,
   NON_TAXABLE_SALARY_INCOME_THRESHOLD,
+  SOCIAL_INSURANCE_RATE_UNDER_40,
+  SOCIAL_INSURANCE_RATE_40_OR_OVER,
+  isEarlyYearRetirement,
 } = require('../src/lib/tax/residentTaxTiming');
 
 let pass = 0, fail = 0;
@@ -121,8 +147,9 @@ console.log('\n' + '='.repeat(90));
 console.log('【calcTaxableSalaryIncome】給与所得控除+住民税基礎控除43万円(ideco.ts定数を再利用)');
 console.log('='.repeat(90));
 
-check('年収400万円(2025年分):課税所得233万円', calcTaxableSalaryIncome(4_000_000, 2025), 2_330_000);
-check('低所得(2025年分):課税所得0円(マイナスにならない)', calcTaxableSalaryIncome(500_000, 2025), 0);
+// 社会保険料率0%を指定し、社会保険料控除導入前の既存テストの意味を保つ(回帰確認)
+check('年収400万円(2025年分・社会保険料率0%):課税所得233万円', calcTaxableSalaryIncome(4_000_000, 2025, 0), 2_330_000);
+check('低所得(2025年分・社会保険料率0%):課税所得0円(マイナスにならない)', calcTaxableSalaryIncome(500_000, 2025, 0), 0);
 
 console.log('\n' + '='.repeat(90));
 console.log('【calcResidentTaxTiming】代表12パターン(退職前年年収400/600/800万円 × 退職月1/5/9/12月)');
@@ -130,37 +157,37 @@ console.log('前々年の年収は未入力(=isIncomeBasisEstimated: trueで代�
 console.log('retirementYearIncomeOverride未指定、lumpSumPreference未指定(デフォルトinstallment)。');
 console.log('='.repeat(90));
 
+// 2026-08セッションでのimpl_resident_tax_timing_phase2.md実装(社会保険料控除14.6%・
+// 調整控除)により、remaining・NEXT_YEAR_TOTALの期待値を全面的に再計算した(社会保険料控除
+// なしの旧値からの差分は完了報告書impl_resident_tax_timing_phase2_report.mdに記載)。
+// isEstimated・collectionType・basis・nextYearNonTaxable(非課税判定は社会保険料控除の影響を
+// 受けない設計、checkNonTaxable()は給与所得ベースのため)は無変更。
 const MATRIX = [
   // [priorYearIncome, month, expectedAnnualTaxRemaining, expectedCollectionType, expectedBasisLabel, expectedIsEstimated, expectedNextYearNonTaxable]
-  // isEstimated: 波1がpriorYearIncomeTwoYearsAgoで代用したかどうか。1-5月グループのみ意味を持つ
-  // (今回のケースはpriorYearIncomeTwoYearsAgo未入力なので1-5月は常にtrue)。6-12月グループは
-  // そもそも前々年基準を使わないため、代用の概念自体が存在せずfalse。
-  // nextYearNonTaxable: 波2は「年収÷12×退職月」の月割り推計のため、1月退職(1ヶ月分のみ)は
-  // どの年収帯でも推計値が非課税限度額(給与所得45万円)を下回り true になる(現実的な挙動)。
-  { income: 4_000_000, month: 1, remaining: 99_166, collectionType: '強制一括徴収', basis: '前々年', isEstimated: true, nextYearNonTaxable: true },
+  // 1〜5月退職(month:1・5)のnextYearNonTaxableは、wave2-fix後は常にfalse(前年まるまる1年分の
+  // 高収入〈400/600/800万円〉が基準になるため、非課税限度額45万円を大きく上回る。修正前は
+  // month:1のみ月割り推計がほぼ0円になり誤ってtrueだった)。
+  { income: 4_000_000, month: 1, remaining: 73_750, collectionType: '強制一括徴収', basis: '前々年', isEstimated: true, nextYearNonTaxable: false },
   { income: 4_000_000, month: 5, remaining: 0, collectionType: '通常徴収で完了', basis: '前々年', isEstimated: true, nextYearNonTaxable: false },
-  { income: 4_000_000, month: 9, remaining: 158_666, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
-  { income: 4_000_000, month: 12, remaining: 99_166, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
-  { income: 6_000_000, month: 1, remaining: 165_833, collectionType: '強制一括徴収', basis: '前々年', isEstimated: true, nextYearNonTaxable: true },
+  { income: 4_000_000, month: 9, remaining: 118_000, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
+  { income: 4_000_000, month: 12, remaining: 73_750, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
+  { income: 6_000_000, month: 1, remaining: 128_250, collectionType: '強制一括徴収', basis: '前々年', isEstimated: true, nextYearNonTaxable: false },
   { income: 6_000_000, month: 5, remaining: 0, collectionType: '通常徴収で完了', basis: '前々年', isEstimated: true, nextYearNonTaxable: false },
-  { income: 6_000_000, month: 9, remaining: 265_333, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
-  { income: 6_000_000, month: 12, remaining: 165_833, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
-  { income: 8_000_000, month: 1, remaining: 238_333, collectionType: '強制一括徴収', basis: '前々年', isEstimated: true, nextYearNonTaxable: true },
+  { income: 6_000_000, month: 9, remaining: 205_200, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
+  { income: 6_000_000, month: 12, remaining: 128_250, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
+  { income: 8_000_000, month: 1, remaining: 188_583, collectionType: '強制一括徴収', basis: '前々年', isEstimated: true, nextYearNonTaxable: false },
   { income: 8_000_000, month: 5, remaining: 0, collectionType: '通常徴収で完了', basis: '前々年', isEstimated: true, nextYearNonTaxable: false },
-  { income: 8_000_000, month: 9, remaining: 381_333, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
-  { income: 8_000_000, month: 12, remaining: 238_333, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
+  { income: 8_000_000, month: 9, remaining: 301_733, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
+  { income: 8_000_000, month: 12, remaining: 188_583, collectionType: '普通徴収', basis: '退職前年', isEstimated: false, nextYearNonTaxable: false },
 ];
 
-// 波2は退職年=今年(new Date().getFullYear())の給与所得控除テーブルを使う。本スクリプトの
-// 実行年である2026年は「令和8年分」に該当し、74万円ベースの特例テーブルが適用される。
-// 400万円・5月退職のケース(月割り推計167万円弱)だけがこの変更の影響を受け、63,600円→54,600円
-// になる(計算過程はimpl_kyuyo_koujo_reiwa8_9_tokurei_report.mdに記載)。他の11パターンは
-// 月割り推計所得が「0円にfloorされる低所得帯」または「220万円を上回り上位区分の速算表が
-// 令和7年度版と共通のため無影響」のいずれかに該当し、値は変わらない。
+// month:1・5(1〜5月退職グループ)はwave2-fixにより「前年まるまる1年分」基準に変更したため、
+// 同一収入であれば1月退職と5月退職で波2合計が完全に同額になる(月に依らない)。
+// month:9・12(6〜12月退職グループ)は本修正の対象外・完全に無変更(回帰確認の核心)。
 const NEXT_YEAR_TOTAL = {
-  '4000000-1': 5_000, '4000000-5': 54_600, '4000000-9': 164_000, '4000000-12': 238_000,
-  '6000000-1': 5_000, '6000000-5': 129_000, '6000000-9': 278_000, '6000000-12': 398_000,
-  '8000000-1': 5_000, '8000000-5': 187_300, '8000000-9': 398_000, '8000000-12': 572_000,
+  '4000000-1': 177_000, '4000000-5': 177_000, '4000000-9': 117_600, '4000000-12': 177_000,
+  '6000000-1': 307_800, '6000000-5': 307_800, '6000000-9': 209_700, '6000000-12': 307_800,
+  '8000000-1': 452_600, '8000000-5': 452_600, '8000000-9': 307_800, '8000000-12': 452_600,
 };
 
 for (const c of MATRIX) {
@@ -206,7 +233,7 @@ console.log('='.repeat(90));
   });
   check('前々年入力あり:isIncomeBasisEstimated', withInput.currentYearTax.isIncomeBasisEstimated, false);
   check('前々年入力あり:incomeBasisAmount', withInput.currentYearTax.incomeBasisAmount, 3_500_000);
-  check('前々年入力あり:波1残額(199,000円×5/12)', withInput.currentYearTax.remainingAmount, 82_916);
+  check('前々年入力あり:波1残額(社会保険料控除・調整控除込み、145,300円×5/12)', withInput.currentYearTax.remainingAmount, 60_541);
   check('前々年入力あり:assumptionNotesに代用の注記なし',
     withInput.assumptionNotes.some(n => n.includes('前々年の所得が未入力')), false);
 }
@@ -217,14 +244,14 @@ console.log('='.repeat(90));
 {
   const installment = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0 });
   check('installment(デフォルト):区分', installment.currentYearTax.collectionType, '普通徴収');
-  check('installment(デフォルト):残額', installment.currentYearTax.remainingAmount, 265_333);
+  check('installment(デフォルト):残額', installment.currentYearTax.remainingAmount, 205_200);
   check('installment(デフォルト):isWithheldAtSource', installment.currentYearTax.isWithheldAtSource, false);
 
   const lump = calcResidentTaxTiming({
     priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0, lumpSumPreference: 'lump',
   });
   check('lump選択時:区分', lump.currentYearTax.collectionType, '任意一括徴収');
-  check('lump選択時:残額(installmentと同額)', lump.currentYearTax.remainingAmount, 265_333);
+  check('lump選択時:残額(installmentと同額)', lump.currentYearTax.remainingAmount, 205_200);
   check('lump選択時:isWithheldAtSource', lump.currentYearTax.isWithheldAtSource, true);
   check('lump選択時:noteに残税額不足時の普通徴収切替の言及あり',
     lump.currentYearTax.note.includes('不足分は普通徴収に切り替わります'), true);
@@ -234,12 +261,12 @@ console.log('\n' + '='.repeat(90));
 console.log('【波2:postRetirementIncomeの加算・retirementYearIncomeOverride】');
 console.log('='.repeat(90));
 {
-  // (600万/12)*9 + 50万 = 500万円 → 検算結果: taxable=313万円, incomeTaxPart=31.3万円, total=31.8万円
+  // (600万/12)*9 + 50万 = 500万円 → 社会保険料控除(14.6%)込みで検算: taxable=240万円, total=24.25万円
   const withPost = calcResidentTaxTiming({
     priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 500_000,
   });
-  check('postRetirementIncome加算:課税所得', withPost.nextYearTax.taxableIncomeAssumption, 3_130_000);
-  check('postRetirementIncome加算:波2合計', withPost.nextYearTax.total, 318_000);
+  check('postRetirementIncome加算:課税所得', withPost.nextYearTax.taxableIncomeAssumption, 2_400_000);
+  check('postRetirementIncome加算:波2合計', withPost.nextYearTax.total, 242_500);
   check('postRetirementIncome加算:isOverridden', withPost.nextYearTax.isOverridden, false);
   check('postRetirementIncome>0:assumptionNotesに自己納付前提の注記あり',
     withPost.assumptionNotes.some(n => n.includes('自己納付(普通徴収)を前提')), true);
@@ -254,14 +281,133 @@ console.log('='.repeat(90));
   });
   check('override指定:isOverridden', overridden.nextYearTax.isOverridden, true);
   check('override指定:給与所得控除(195万円上限)', overridden.nextYearTax.incomeTaxDeductionApplied, 1_950_000);
-  check('override指定:課税所得', overridden.nextYearTax.taxableIncomeAssumption, 7_620_000);
-  check('override指定:波2合計', overridden.nextYearTax.total, 767_000);
+  check('override指定:課税所得(社会保険料控除14.6%込み)', overridden.nextYearTax.taxableIncomeAssumption, 6_160_000);
+  check('override指定:波2合計', overridden.nextYearTax.total, 618_500);
   check('override指定:assumptionNotesに月割り注記なし',
     overridden.assumptionNotes.some(n => n.includes('月割り')), false);
 
   const notOverridden = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0 });
   check('未override:assumptionNotesに月割り注記あり',
     notOverridden.assumptionNotes.some(n => n.includes('月割り')), true);
+}
+
+console.log('\n' + '='.repeat(90));
+console.log('【波2:1〜5月退職の所得基準修正】impl_resident_tax_timing_wave2_fix.md');
+console.log('報告書の試算例(退職前年年収600万円・5月退職)で、②が307,800円になることを確認する。');
+console.log('='.repeat(90));
+{
+  // 報告書(investigation_wave2_1to5gatsu_taisho_report.md)の試算例そのもの。
+  // Python Decimal相当の手計算(完了報告書impl_resident_tax_timing_wave2_fix_report.md参照)で
+  // 独立検算済み: 給与所得控除1,640,000円→給与所得4,360,000円→社会保険料控除876,000円→
+  // 課税所得3,054,000円→市民税183,200円+県民税122,100円=305,300円→調整控除2,500円差引後
+  // 所得割302,800円→+均等割5,000円=307,800円。
+  const may = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 5, postRetirementIncome: 0 });
+  check('600万円・5月退職:波2の課税所得(前年まるまる1年分基準)', may.nextYearTax.taxableIncomeAssumption, 3_054_000);
+  check('600万円・5月退職:波2の所得割(調整控除差引後)', may.nextYearTax.incomeTaxPart, 302_800);
+  check('600万円・5月退職:波2の均等割', may.nextYearTax.perCapitaPart, 5_000);
+  check('600万円・5月退職:波2合計(修正前は90,000円だった)', may.nextYearTax.total, 307_800);
+  check('600万円・5月退職:波1残額(月に依らず0円、無変更)', may.currentYearTax.remainingAmount, 0);
+  check('600万円・5月退職:totalCashNeeded(修正前は90,000円、約3.4倍に増額)', may.totalCashNeeded, 307_800);
+
+  // 1〜5月退職グループは月に依らず波2が同額になる(前年まるまる1年分が基準のため)ことを確認。
+  const jan = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 1, postRetirementIncome: 0 });
+  const mar = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 3, postRetirementIncome: 0 });
+  check('1月退職と5月退職で波2合計が同額(前年まるまる1年分が基準のため月に依らない)',
+    jan.nextYearTax.total, may.nextYearTax.total);
+  check('3月退職と5月退職でも波2合計が同額', mar.nextYearTax.total, may.nextYearTax.total);
+
+  // postRetirementIncomeは1〜5月退職の波2には一切反映されない(前年の所得には含まれないため)。
+  const withoutPostEarly = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 5, postRetirementIncome: 0 });
+  const withPostEarly = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 5, postRetirementIncome: 3_000_000 });
+  check('1〜5月退職:postRetirementIncomeを追加しても波2合計が変わらない(意図的に無視される)',
+    withPostEarly.nextYearTax.total, withoutPostEarly.nextYearTax.total);
+  check('1〜5月退職:postRetirementIncomeを追加しても波2の課税所得が変わらない',
+    withPostEarly.nextYearTax.taxableIncomeAssumption, withoutPostEarly.nextYearTax.taxableIncomeAssumption);
+
+  // assumptionNotesの出し分け(1〜5月退職)
+  check('1〜5月退職:「前年の年収をそのまま使用」の注記あり',
+    may.assumptionNotes.some(n => n.includes('退職前年の年収をそのまま使用')), true);
+  check('1〜5月退職:旧文言「月割りした仮定値」の注記は出ない',
+    may.assumptionNotes.some(n => n.includes('月割りした仮定値')), false);
+  check('1〜5月退職:postRetirementIncome>0でも「自己納付(普通徴収)を前提」の注記は出ない(波2に無関係なため)',
+    withPostEarly.assumptionNotes.some(n => n.includes('自己納付(普通徴収)を前提')), false);
+
+  // 6〜12月退職グループは本修正の対象外・一切無変更であることの直接確認(MATRIXループとは別に、
+  // 報告書が要求する「厳密なチェック」として明示的に再確認する)。
+  const sep = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0 });
+  const dec = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 12, postRetirementIncome: 0 });
+  check('6〜12月退職(9月)は無変更:波2合計', sep.nextYearTax.total, 209_700);
+  check('6〜12月退職(12月)は無変更:波2合計', dec.nextYearTax.total, 307_800);
+  check('6〜12月退職:「前年の年収をそのまま使用」の注記は出ない(月割り注記のまま)',
+    sep.assumptionNotes.some(n => n.includes('退職前年の年収をそのまま使用')), false);
+}
+
+console.log('\n' + '='.repeat(90));
+console.log('【波2:retirementYearIncomeOverrideの1〜5月退職での無視】impl_resident_tax_timing_override_hide.md');
+console.log('1〜5月退職では波2の所得基準が「退職前年」に変わり、retirementYearIncomeOverride');
+console.log('(「退職年の実際の給与収入」)は意味を持たなくなるため、渡されても明示的に無視する。');
+console.log('='.repeat(90));
+{
+  // 1〜5月退職:overrideを渡しても渡さなくても、波2は完全に同一(postRetirementIncomeの
+  // 無視確認と同じパターン)。
+  const mayWithoutOverride = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 5, postRetirementIncome: 0 });
+  const mayWithOverride = calcResidentTaxTiming({
+    priorYearIncome: 6_000_000, retirementMonth: 5, postRetirementIncome: 0,
+    retirementYearIncomeOverride: 3_000_000,
+  });
+  check('1〜5月退職:retirementYearIncomeOverrideを渡しても波2合計が変わらない(意図的に無視される)',
+    mayWithOverride.nextYearTax.total, mayWithoutOverride.nextYearTax.total);
+  check('1〜5月退職:retirementYearIncomeOverrideを渡しても波2の課税所得が変わらない',
+    mayWithOverride.nextYearTax.taxableIncomeAssumption, mayWithoutOverride.nextYearTax.taxableIncomeAssumption);
+  check('1〜5月退職:retirementYearIncomeOverrideを渡してもisOverriddenはfalseのまま',
+    mayWithOverride.nextYearTax.isOverridden, false);
+  check('1〜5月退職:retirementYearIncomeOverrideを渡しても「前年の年収をそのまま使用」の注記が出る',
+    mayWithOverride.assumptionNotes.some(n => n.includes('退職前年の年収をそのまま使用')), true);
+
+  // 6〜12月退職:overrideは引き続き正しく反映される(既存の「override指定」ブロックと同一の
+  // 期待値。ここでは回帰確認として明示的に再アサートする)。
+  const sepOverridden = calcResidentTaxTiming({
+    priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0,
+    retirementYearIncomeOverride: 10_000_000,
+  });
+  check('6〜12月退職:retirementYearIncomeOverrideは引き続き反映される(isOverridden)',
+    sepOverridden.nextYearTax.isOverridden, true);
+  check('6〜12月退職:retirementYearIncomeOverrideは引き続き反映される(波2合計、無変更)',
+    sepOverridden.nextYearTax.total, 618_500);
+}
+
+console.log('\n' + '='.repeat(90));
+console.log('【isEarlyYearRetirement共通ヘルパー・40歳到達タイミングの簡略化注記】');
+console.log('impl_resident_tax_timing_intro_and_age_note.md');
+console.log('='.repeat(90));
+{
+  check('isEarlyYearRetirement(5月)', isEarlyYearRetirement(5), true);
+  check('isEarlyYearRetirement(6月)', isEarlyYearRetirement(6), false);
+  check('isEarlyYearRetirement(1月)', isEarlyYearRetirement(1), true);
+  check('isEarlyYearRetirement(12月)', isEarlyYearRetirement(12), false);
+
+  // 40歳以上65歳未満・料率上書きなし:注記が出る
+  const over40 = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0, isAge40OrOver: true });
+  check('40歳以上・料率上書きなし:一律適用の注記あり',
+    over40.assumptionNotes.some(n => n.includes('波1・波2のいずれにも同じ料率を一律に適用')), true);
+
+  // 40歳未満(デフォルト):注記は出ない(年齢が単調増加するため、1〜2年前も40歳未満で確定しており誤差が生じ得ない)
+  const under40 = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0 });
+  check('40歳未満(デフォルト):一律適用の注記は出ない',
+    under40.assumptionNotes.some(n => n.includes('波1・波2のいずれにも同じ料率を一律に適用')), false);
+
+  // 40歳以上・かつsocialInsuranceRateOverride指定:年齢由来の料率選択が行われていないため注記は出ない
+  const over40WithOverride = calcResidentTaxTiming({
+    priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0,
+    isAge40OrOver: true, socialInsuranceRateOverride: 10,
+  });
+  check('40歳以上・料率上書きあり:一律適用の注記は出ない(年齢由来の料率選択が行われていないため)',
+    over40WithOverride.assumptionNotes.some(n => n.includes('波1・波2のいずれにも同じ料率を一律に適用')), false);
+
+  // 1〜5月退職でも同じ条件で注記の有無が決まることを確認(波の名称に依存しない)
+  const over40Early = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 5, postRetirementIncome: 0, isAge40OrOver: true });
+  check('40歳以上・1〜5月退職:一律適用の注記あり',
+    over40Early.assumptionNotes.some(n => n.includes('波1・波2のいずれにも同じ料率を一律に適用')), true);
 }
 
 console.log('\n' + '='.repeat(90));
@@ -332,22 +478,23 @@ console.log('UIは「円単位のtotalCashNeededを直接丸める」のでは�
 console.log('合計する」方式に統一した(residentTaxTiming.ts側の円単位の計算結果は無変更)。');
 console.log('='.repeat(90));
 {
-  // 手動テストで発見された具体的な不整合ケース(退職前年年収600万円・12月退職・一括徴収)。
-  // 修正前のUIロジック(toManYen(totalCashNeeded))では56万円になっていたが、
-  // 円単位の値そのものは変わっていない(165,833円+398,000円=563,833円)。
-  // 「個別に丸めてから合計する」修正後は17+40=57万円になる(想定通りの表示変更)。
+  // 手動テストで発見された不整合ケース(退職前年年収600万円・9月退職・一括徴収)。
+  // impl_resident_tax_timing_phase2.mdで社会保険料控除・調整控除を追加したことで円単位の
+  // 値が変わり、旧バグ再現ケース(12月退職)は個別丸めと直接丸めがたまたま一致するように
+  // なったため、新たに丸めのズレが生じる9月退職のケースに差し替えて検証する
+  // (「個別に丸めてから合計する」方式が必要であること自体は変わらない)。
   const bugCase = calcResidentTaxTiming({
-    priorYearIncome: 6_000_000, retirementMonth: 12, postRetirementIncome: 0, lumpSumPreference: 'lump',
+    priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0, lumpSumPreference: 'lump',
   });
   const roundedCurrent = toManYen(bugCase.currentYearTax.remainingAmount);
   const roundedNext = toManYen(bugCase.nextYearTax.total);
   const oldStyleHeadline = toManYen(bugCase.totalCashNeeded); // 修正前の(誤った)表示方式
-  check('不具合再現ケース:①(残額)', roundedCurrent, 17);
-  check('不具合再現ケース:②(小計)', roundedNext, 40);
-  check('不具合再現ケース:①+②=57万円(修正後の正しい表示)', roundedCurrent + roundedNext, 57);
-  check('不具合再現ケース:円単位の合計値は変更なし(563,833円)', bugCase.totalCashNeeded, 563_833);
-  check('不具合再現ケース:旧方式(totalCashNeededを直接丸め)は56万円のままズレることの確認',
-    oldStyleHeadline, 56);
+  check('不具合再現ケース:①(残額)', roundedCurrent, 21);
+  check('不具合再現ケース:②(小計)', roundedNext, 21);
+  check('不具合再現ケース:①+②=42万円(修正後の正しい表示)', roundedCurrent + roundedNext, 42);
+  check('不具合再現ケース:円単位の合計値(205,200円+209,700円=414,900円)', bugCase.totalCashNeeded, 414_900);
+  check('不具合再現ケース:旧方式(totalCashNeededを直接丸め)は41万円のままズレることの確認',
+    oldStyleHeadline, 41);
 
   // 全パターン(400/600/800万円×1/5/9/12月×lump/installment)で、①+②=ヘッドライン、
   // 天引き想定+自己納付想定=ヘッドライン、が常に成り立つことを確認する
@@ -400,6 +547,60 @@ console.log('='.repeat(90));
   // なることを確認する(=もし比較表がtotalCashNeededを直接丸めていたら、実際にズレが
   // 発生していたことの裏付け。今回の修正が必要だった理由そのもの)。
   check('12パターン中、個別合計とtotalCashNeeded直接丸めが一致しないケースが実在する', mismatchFound, true);
+}
+
+console.log('\n' + '='.repeat(90));
+console.log('【社会保険料控除】impl_resident_tax_timing_phase2.mdパート1');
+console.log('出典: 日本年金機構(厚生年金9.15%)・全国健康保険協会(健康保険4.95%・介護保険0.81%)・');
+console.log('厚生労働省(雇用保険0.5%、令和8年度・一般の事業・労働者負担 https://www.mhlw.go.jp/content/001692566.pdf)');
+console.log('='.repeat(90));
+{
+  check('料率定数:40歳未満14.6%', SOCIAL_INSURANCE_RATE_UNDER_40, 14.6);
+  check('料率定数:40歳以上65歳未満15.4%', SOCIAL_INSURANCE_RATE_40_OR_OVER, 15.4);
+  check('calcSocialInsuranceDeduction:年収600万円×14.6%', calcSocialInsuranceDeduction(6_000_000, 14.6), 876_000);
+  check('calcSocialInsuranceDeduction:年収600万円×15.4%', calcSocialInsuranceDeduction(6_000_000, 15.4), 924_000);
+  check('calcSocialInsuranceDeduction:年収0円', calcSocialInsuranceDeduction(0, 14.6), 0);
+
+  // isAge40OrOver未指定(デフォルトfalse=14.6%)/true(15.4%)/socialInsuranceRateOverride指定、の組み合わせ
+  const under40 = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0 });
+  check('40歳未満(デフォルト):波2の社会保険料控除額', under40.nextYearTax.socialInsuranceDeductionApplied, 657_000);
+  check('40歳未満(デフォルト):波2合計', under40.nextYearTax.total, 209_700);
+  check('40歳未満(デフォルト):波1残額', under40.currentYearTax.remainingAmount, 205_200);
+
+  const over40 = calcResidentTaxTiming({ priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0, isAge40OrOver: true });
+  check('40歳以上65歳未満:波2の社会保険料控除額(介護保険料込みで増加)', over40.nextYearTax.socialInsuranceDeductionApplied, 693_000);
+  check('40歳以上65歳未満:波2合計(控除増により40歳未満より税額が下がる)', over40.nextYearTax.total, 206_100);
+  check('40歳以上65歳未満:波1残額', over40.currentYearTax.remainingAmount, 202_000);
+  check('40歳以上65歳未満の方が40歳未満より波2合計が小さい(控除が大きいため)',
+    over40.nextYearTax.total < under40.nextYearTax.total, true);
+
+  const overridden = calcResidentTaxTiming({
+    priorYearIncome: 6_000_000, retirementMonth: 9, postRetirementIncome: 0,
+    isAge40OrOver: true, socialInsuranceRateOverride: 10,
+  });
+  check('socialInsuranceRateOverride指定時はisAge40OrOverより優先される:社会保険料控除額',
+    overridden.nextYearTax.socialInsuranceDeductionApplied, 450_000);
+  check('socialInsuranceRateOverride指定時:波2合計', overridden.nextYearTax.total, 230_500);
+}
+
+console.log('\n' + '='.repeat(90));
+console.log('【調整控除】impl_resident_tax_timing_phase2.mdパート2');
+console.log('出典: 諏訪市「人的控除の差と調整控除の計算方法」https://www.city.suwa.lg.jp/soshiki/4/4918.html');
+console.log('京都市「調整控除」https://www.city.kyoto.lg.jp/gyozai/page/0000028147.html');
+console.log('='.repeat(90));
+{
+  check('課税所得0円:調整控除0円', calcAdjustmentDeduction(0), 0);
+  check('課税所得3万円(5万円未満):3万円×5%=1,500円(2,500円固定ではなく比例)', calcAdjustmentDeduction(30_000), 1_500);
+  check('課税所得5万円ちょうど:5万円×5%=2,500円', calcAdjustmentDeduction(50_000), 2_500);
+  check('課税所得200万円ちょうど(境界、以下側):min(5万,200万)×5%=2,500円', calcAdjustmentDeduction(2_000_000), 2_500);
+  check('課税所得200万1円(境界、超側):raw=49,999×5%≈2,499円だが2,500円未満のため2,500円',
+    calcAdjustmentDeduction(2_000_001), 2_500);
+  check('課税所得205万円:raw=0円だが2,500円未満のため2,500円', calcAdjustmentDeduction(2_050_000), 2_500);
+  // 【前回調査報告書からの訂正の検証】課税所得が205万円を大きく超えても、調整控除は0円に
+  // ならず常に2,500円が下限として適用され続けることを確認する(諏訪市公式ページの
+  // 「計算結果がマイナスの場合も2,500円が適用される」という記載に基づく訂正)。
+  check('課税所得300万円(205万円を大きく超過):0円にならず2,500円が適用され続ける', calcAdjustmentDeduction(3_000_000), 2_500);
+  check('課税所得1,000万円(さらに大きく超過):それでも2,500円', calcAdjustmentDeduction(10_000_000), 2_500);
 }
 
 console.log('\n' + '='.repeat(90));
