@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL } from '@/lib/siteConfig';
-import { TOOLS, type ToolGroup } from '@/lib/toolMetadata';
+import { PUBLISHED_TOOLS, type ToolGroup } from '@/lib/toolMetadata';
 
 export const metadata: Metadata = {
   title: 'ツール | FREENOUGH 資産シミュレーター',
@@ -31,7 +31,7 @@ export default function ToolsPage() {
         <div key={group} className="mt-10 first:mt-8">
           <h2 className="text-lg font-semibold text-slate-700 mb-4">{GROUP_LABELS[group]}</h2>
           <div className="grid gap-5 sm:grid-cols-2">
-            {TOOLS.filter((tool) => tool.group === group).map((tool) => (
+            {PUBLISHED_TOOLS.filter((tool) => tool.group === group).map((tool) => (
               <Link
                 key={tool.href}
                 href={tool.href}

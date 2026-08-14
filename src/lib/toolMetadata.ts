@@ -12,6 +12,9 @@ export interface ToolItem {
   group: ToolGroup;
   primaryTopic: string;
   topics: string[];
+  // true の場合、一覧ページ・検索インデックス・サイトマップの3箇所すべてから除外する。
+  // 未指定(デフォルト)は公開扱い。
+  draft?: boolean;
 }
 
 export const TOOLS: ToolItem[] = [
@@ -120,3 +123,6 @@ export const TOOLS: ToolItem[] = [
 export const TOOL_MAP: Record<string, ToolItem> = Object.fromEntries(
   TOOLS.map((t) => [t.slug, t])
 );
+
+// 一覧ページ・検索インデックス・サイトマップが参照する公開済みツール一覧。
+export const PUBLISHED_TOOLS: ToolItem[] = TOOLS.filter((t) => !t.draft);

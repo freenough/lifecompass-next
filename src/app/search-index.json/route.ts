@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAllPosts } from '@/lib/blog';
-import { TOOLS } from '@/lib/toolMetadata';
+import { PUBLISHED_TOOLS } from '@/lib/toolMetadata';
 import { STATIC_PATHS } from '@/app/sitemap';
 
 export interface SearchIndexItem {
@@ -26,7 +26,7 @@ export async function GET() {
     featured: post.featured === true,
   }));
 
-  const toolItems: SearchIndexItem[] = TOOLS.map((tool) => ({
+  const toolItems: SearchIndexItem[] = PUBLISHED_TOOLS.map((tool) => ({
     type: 'tool',
     title: tool.title,
     description: tool.description,
