@@ -21,6 +21,8 @@ import {
 import type { Icon } from '@tabler/icons-react';
 import { getFeaturedPosts } from '@/lib/blog';
 import ConcernBlockLP from '@/components/concerns/ConcernBlockLP';
+import AssetManagementPromoSection from '@/components/lp/AssetManagementPromoSection';
+import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
 
@@ -270,8 +272,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ③.8 資産管理ツール導線 */}
+      <AssetManagementPromoSection />
+
       {/* ④ あなたはどのタイプ？ */}
-      <section className="py-12">
+      <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
             あなたはどのタイプ？
@@ -341,7 +346,7 @@ export default function HomePage() {
       </section>
 
       {/* ⑤ 使い方（3ステップ） */}
-      <section className="bg-slate-50 py-20">
+      <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
@@ -363,7 +368,7 @@ export default function HomePage() {
           bodyがflex flex-colのため、main/footer間のmarginは通常のブロック要素と違い
           相殺されず、Footerのmt-16がそのまま本セクション背景色の外側の白い隙間になっていた。
           Footer.tsx側は変更対象外のため、直前要素のマージンで打ち消す形で対応している。 */}
-      <section className="py-20 -mb-16">
+      <section className="bg-slate-50 py-20 -mb-16">
         <div className="mx-auto max-w-xl px-6 text-center">
           <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
             まず、自分の数字を入れてみる。
@@ -377,6 +382,22 @@ export default function HomePage() {
             シミュレーターを開く →
           </Link>
           <p className="mt-4 text-sm text-slate-400">無料・登録不要</p>
+
+          {/* 資産管理ツールへの従属導線（3章）。主CTAより視覚的優先度を下げるため、
+              ボタンではなく通常のテキストリンクとして実装する。 */}
+          <div className="mt-10 flex items-center gap-4 max-w-xs mx-auto">
+            <div className="flex-1 border-t border-slate-200" />
+            <span className="text-xs text-slate-400 whitespace-nowrap">すでに試算した方は</span>
+            <div className="flex-1 border-t border-slate-200" />
+          </div>
+          <p className="mt-3">
+            <Link
+              href={ASSET_MANAGEMENT_PATH}
+              className="text-sm text-slate-500 underline underline-offset-2 hover:text-slate-700"
+            >
+              資産を記録して、進捗を確認する →
+            </Link>
+          </p>
         </div>
       </section>
 
