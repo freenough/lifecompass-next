@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllPosts } from '@/lib/blog';
+import { getAllHitoriHojinPosts } from '@/lib/hitoriHojinBlog';
 import { PUBLISHED_TOOLS } from '@/lib/toolMetadata';
 import { SITE_URL } from '@/lib/siteConfig';
 
@@ -39,5 +40,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(post.date),
   }));
 
-  return [...staticEntries, ...toolEntries, ...postEntries];
+  // hitori-hojin(一人法人)関連URL。既存ロジックには影響しない別変数として追加。
+  const hitoriHojinEntries: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/hitori-hojin`, lastModified: new Date() },
+    { url: `${SITE_URL}/hitori-hojin/blog`, lastModified: new Date() },
+  ];
+  const hitoriHojinPostEntries: MetadataRoute.Sitemap = getAllHitoriHojinPosts().map((post) => ({
+    url: `${SITE_URL}/hitori-hojin/blog/${post.slug}`,
+    lastModified: new Date(post.date),
+  }));
+
+  return [...staticEntries, ...toolEntries, ...postEntries, ...hitoriHojinEntries, ...hitoriHojinPostEntries];
 }
