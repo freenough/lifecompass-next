@@ -75,7 +75,7 @@ export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) 
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `lifecompass_${profile.name || 'profile'}.json`;
+    a.download = `asset_simulation_profile_${profile.name || 'profile'}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
