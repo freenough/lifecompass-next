@@ -1,0 +1,112 @@
+'use client';
+
+import { useRef, useState } from 'react';
+import type { HojinAssetHolding, HojinCopiedPersonalHolding, HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import { exportToJson, exportToCsv, importFromJson, importFromCsv, type ExportScope } from '@/lib/hojinAssetManagement/exportImport';
+
+interface HojinAssetExportImportControlsProps {
+  hojinHoldings: HojinAssetHolding[];
+  personalHoldings: HojinCopiedPersonalHolding[];
+  snapshots: HojinAssetSnapshot[];
+  onImported: (hojinHoldings: HojinAssetHolding[], personalHoldings: HojinCopiedPersonalHolding[], snapshots?: HojinAssetSnapshot[]) => void;
+}
+
+// 個人資産管理ツールのAssetExportImportControls.tsx（ロック対象）の2ボックス構成を踏襲しつつ、
+// 「法人のみ／合算」の共通トグルを追加（10章）。JSON・CSVの両Exportがこのトグルに従う。
+export default function HojinAssetExportImportControls({
+  hojinHoldings,
+  personalHoldings,
+  snapshots,
+  onImported,
+}: HojinAssetExportImportControlsProps) {
+  const [scope, setScope] = useState<ExportScope>('combined');
+  const jsonFileInputRef = useRef<HTMLInputElement>(null);
+  const csvFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await importFromJson(file);
+      onImported(result.hojinHoldings, result.personalHoldings, result.snapshots);
+    } catch {
+      alert('JSONの読み込みに失敗しました');
+    } finally {
+      if (jsonFileInputRef.current) jsonFileInputRef.current.value = '';
+    }
+  };
+
+  const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await importFromCsv(file);
+      onImported(result.hojinHoldings, result.personalHoldings);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'CSVの読み込みに失敗しました');
+    } finally {
+      if (csvFileInputRef.current) csvFileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* 法人のみ／合算 共通トグル（Export時にのみ影響。Importはファイル内容から自動判定） */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-slate-500">エクスポート範囲:</span>
+        <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs">
+          <button
+            type="button"
+            onClick={() => setScope('hojin')}
+            className={`px-3 py-1 ${scope === 'hojin' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+          >
+            法人のみ
+          </button>
+          <button
+            type="button"
+            onClick={() => setScope('combined')}
+            className={`px-3 py-1 ${scope === 'combined' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+          >
+            合算
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 p-3">
+          <p className="text-xs font-semibold text-slate-700 mb-1">JSON</p>
+          <p className="text-[11px] text-slate-400 mb-2">法人保有資産・記録履歴（合算時は個人資産パネルも含む）の完全バックアップ</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => exportToJson(hojinHoldings, personalHoldings, snapshots, scope)}
+              className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
+            >
+              JSONでエクスポート
+            </button>
+            <label className="cursor-pointer text-xs border border-dashed border-slate-300 rounded-lg px-3 py-1.5 text-slate-500 hover:border-slate-400">
+              JSONをインポート
+              <input ref={jsonFileInputRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 p-3">
+          <p className="text-xs font-semibold text-slate-700 mb-1">CSV</p>
+          <p className="text-[11px] text-slate-400 mb-2">保有資産のみ（記録履歴を含まない）。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => exportToCsv(hojinHoldings, personalHoldings, scope)}
+              className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
+            >
+              CSVでエクスポート
+            </button>
+            <label className="cursor-pointer text-xs border border-dashed border-slate-300 rounded-lg px-3 py-1.5 text-slate-500 hover:border-slate-400">
+              CSVをインポート
+              <input ref={csvFileInputRef} type="file" accept=".csv" onChange={handleImportCsv} className="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
