@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { getHitoriHojinPostsBySeries } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_CATEGORIES } from '@/lib/hitoriHojinCategories';
 import HitoriHojinContentSection from '@/components/hitori-hojin/HitoriHojinContentSection';
+import HitoriHojinManageSection from '@/components/hitori-hojin/HitoriHojinManageSection';
 import { SITE_URL } from '@/lib/siteConfig';
 
 const SERIES = 'hitori-hojin-intro';
@@ -62,6 +63,10 @@ export default function HitoriHojinLandingPage() {
         items={considerPosts}
         footerLink={{ label: '①から順番に読みたい方はこちら', href: `/hitori-hojin/blog?series=${SERIES}` }}
       />
+
+      {/* 管理する（法人資産管理ツールPhase1への導線）。計算する（CompanyState実装待ち）は
+          引き続き非表示のままにする。 */}
+      <HitoriHojinManageSection />
 
       {/* ブログ一覧への導線 */}
       <section className="py-12 text-center">
