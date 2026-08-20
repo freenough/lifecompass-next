@@ -1,6 +1,6 @@
 'use client';
 
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, Label, ResponsiveContainer } from 'recharts';
 import { getAssetClassColor } from '@/lib/assetManagement/classColors';
 import { getAssetClassLabel } from '@/lib/assetManagement/categories';
 import type { AssetHolding } from '@/lib/assetManagement/types';
@@ -16,6 +16,8 @@ const FOLD_BUCKET_COLOR = '#c3c2b7';
 
 interface AssetAllocationChartProps {
   holdings: AssetHolding[];
+  /** 画面上部の「保有資産　合計」と同じ計算結果を渡す（ドーナツ中央表示用。別途再計算しない）。 */
+  totalAmount: number;
 }
 
 interface SliceDatum {
@@ -25,7 +27,7 @@ interface SliceDatum {
   color: string;
 }
 
-export default function AssetAllocationChart({ holdings }: AssetAllocationChartProps) {
+export default function AssetAllocationChart({ holdings, totalAmount }: AssetAllocationChartProps) {
   const totals = new Map<string, number>();
   holdings.forEach((h) => {
     if (!h.amount) return;
@@ -64,6 +66,29 @@ export default function AssetAllocationChart({ holdings }: AssetAllocationChartP
             {data.map((d) => (
               <Cell key={d.key ?? '__fold__'} fill={d.color} />
             ))}
+            {/* ドーナツ中央の合計表示。Pieの実際の描画中心(viewBox.cx/cy)にSVGテキストを
+                直接置くことで、凡例の有無に関わらず幾何学的な中心からズレない。 */}
+            <Label
+              position="center"
+              content={({ viewBox }) => {
+                const { x, y, width, height } = viewBox as { x: number; y: number; width: number; height: number };
+                const cx = x + width / 2;
+                const cy = y + height / 2;
+                return (
+                  <g>
+                    <text x={cx} y={cy - 9} textAnchor="middle" fontSize={11} fill="#94a3b8">
+                      合計
+                    </text>
+                    <text x={cx} y={cy + 13} textAnchor="middle" fontSize={22} fontWeight="bold" fill="#0f172a">
+                      {totalAmount.toLocaleString()}
+                      <tspan fontSize={13} fontWeight="normal">
+                        万円
+                      </tspan>
+                    </text>
+                  </g>
+                );
+              }}
+            />
           </Pie>
           <Tooltip formatter={(value, name) => [`${Number(value).toLocaleString()}万円`, String(name)]} />
           {/* Recharts Legendはデフォルトでitemsorter='value'（ラベルのアルファベット順）

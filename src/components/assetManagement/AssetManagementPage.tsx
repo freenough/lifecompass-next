@@ -154,7 +154,7 @@ export default function AssetManagementPage() {
 
           <section className="rounded-lg border border-slate-200 p-4">
             <h2 className="text-sm font-bold text-slate-700 mb-3">資産クラス内訳</h2>
-            <AssetAllocationChart holdings={holdings} />
+            <AssetAllocationChart holdings={holdings} totalAmount={totalAmount} />
           </section>
 
           <AssetAllocationChangeTable holdings={holdings} snapshots={snapshots} />
