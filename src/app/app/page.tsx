@@ -20,6 +20,10 @@ import SensitivityPanel    from '@/components/simulator/SensitivityPanel';
 import ImpactTable         from '@/components/simulator/ImpactTable';
 import AiPanel             from '@/components/simulator/AiPanel';
 import ProfileDrawer       from '@/components/simulator/ProfileDrawer';
+import { useCompanyStateStore } from '@/lib/hojinCompanyState/companyStateStore';
+import { simulateCorporateAssets } from '@/lib/hojinCompanyState/corporateGrowth';
+import { useDisplayMcResult } from '@/lib/hojinCompanyState/useDisplayMcResult';
+import { runMonteCarloWithCorporateAwareness } from '@/components/hojinCompanyState/CorporateSettingsSection';
 
 const STRATEGY_OPTIONS: { key: WithdrawalStrategy; label: string }[] = [
   { key: 'proportional',  label: '比例取崩' },
@@ -58,7 +62,7 @@ export default function SimulatorPage() {
   const {
     profile, snaps, analysis, mcResult, mcError, mode, cmpMode, activeStrategies, displayStrategy, activeScenarios,
     isMcRunning, setMode, setCmpMode, setActiveStrategies, setDisplayStrategy, setActiveScenarios,
-    runMonteCarlo, updateProfile,
+    updateProfile,
   } = useSimulatorStore();
 
   const [formOpen, setFormOpen] = useState(true);
@@ -100,6 +104,41 @@ export default function SimulatorPage() {
   const retSnap = baseSnaps.find(s => s.age === p.retAge);
   const fireAchievementRate = retSnap && retSnap.expense > 0
     ? Math.round((retSnap.totalAssets / (retSnap.expense * 25)) * 100)
+    : null;
+
+  // ── 法人資産オーバーレイ（最終版指示書3.8節）──────────────────────
+  // includeInPersonalSimulatorトグルOFF時はcorporate*系propsを一切渡さない
+  // （既存表示は完全に従来通り）。個人側snaps/analysis自体は、トグルON時にすでに
+  // extraEvents経由で法人取崩を反映済み（CorporateSettingsSection.tsx参照）ため、
+  // ここで追加計算するのは「法人自身の残高」の重ね合わせ表示分のみ。
+  const companyState = useCompanyStateStore(s => s.state);
+  const combinedMcResult = useCompanyStateStore(s => s.combinedMcResult);
+  const includeInPersonalSimulator = companyState.settings.includeInPersonalSimulator;
+
+  const corporateSnaps = includeInPersonalSimulator
+    ? simulateCorporateAssets(companyState.settings, p.curAge, p.lifeEx, companyState.portfolio, companyState.events, null)
+    : null;
+  const corporateBalance = corporateSnaps
+    ? baseSnaps.filter(s => s.age >= p.curAge).map(s => corporateSnaps.find(c => c.age === s.age)?.total ?? 0)
+    : null;
+  const corporateBalanceByAge = corporateSnaps
+    ? Object.fromEntries(corporateSnaps.map(c => [c.age, c.total]))
+    : null;
+  const corporateFinalTotal = corporateSnaps ? corporateSnaps[corporateSnaps.length - 1]?.total ?? 0 : null;
+  const combinedFinalTotal = includeInPersonalSimulator ? baseAnalysis.last + (corporateFinalTotal ?? 0) : null;
+
+  // mc.tsの合算MCは3戦略（比例取崩／現金優先／課税優先）それぞれ独立に計算する
+  // （2026-08-21修正：1戦略分を複製する簡略化は、戦略間の差が実際には消えていないのに
+  // 消えて見える誤表示になっていたため廃止）。変換ロジックはuseDisplayMcResultに一本化した
+  // （2026-08-22修正：MonteCarloPanel/ImpactTable/AiPanelもこのフックを使う）。
+  const displayMcResult = useDisplayMcResult(mcResult);
+  const corporateMcCombined = includeInPersonalSimulator && combinedMcResult
+    ? combinedMcResult.combined[displayStrategy].percentiles
+    : null;
+  // UI仕上げ指示書3章：KpiGridの「MC破綻確率」カードにも法人合算バッジを追加する
+  // （「最終資産」カード・モンテカルロ分析欄には既にあったが、このカードだけ実装漏れだった）。
+  const corporateCombinedBankruptcyRate = includeInPersonalSimulator && combinedMcResult
+    ? combinedMcResult.combined[displayStrategy].bankruptcyRate
     : null;
 
   if (!mounted) return (
@@ -218,7 +257,7 @@ export default function SimulatorPage() {
             </div>
             {mode === 'mc' && (
               <button
-                onClick={runMonteCarlo}
+                onClick={runMonteCarloWithCorporateAwareness}
                 disabled={isMcRunning}
                 className="rounded-lg bg-slate-700 text-white text-sm px-4 py-1.5 hover:bg-slate-600 disabled:opacity-50"
               >
@@ -341,7 +380,7 @@ export default function SimulatorPage() {
           <div ref={kpiRef}>
             <KpiGrid
               analysis={baseAnalysis}
-              mcResult={mcResult}
+              mcResult={displayMcResult}
               mode={mode}
               strategy={strategy}
               activeStrategies={activeStrategies}
@@ -357,18 +396,23 @@ export default function SimulatorPage() {
               hasIdeco={profile.params.bIdeco > 0 || profile.params.cIdeco > 0}
               spHasIdeco={(profile.params.spIdecoBal ?? 0) > 0 || (profile.params.spIdecoCon ?? 0) > 0}
               hasSeverance={profile.events.some(ev => ev.subtype === 'severance')}
+              corporateFinalTotal={corporateFinalTotal}
+              combinedFinalTotal={combinedFinalTotal}
+              corporateCombinedBankruptcyRate={corporateCombinedBankruptcyRate}
             />
           </div>
 
           <AssetChart
             profile={profile}
             snaps={snaps}
-            mcResult={mcResult}
+            mcResult={displayMcResult}
             mode={mode}
             cmpMode={cmpMode}
             activeStrategies={activeStrategies}
             displayStrategy={displayStrategy}
             activeScenarios={activeScenarios}
+            corporateBalance={corporateBalance}
+            corporateMcCombined={corporateMcCombined}
           />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -386,6 +430,7 @@ export default function SimulatorPage() {
             penAge={p.penAge}
             idecoStartAge={p.idecoStartAge}
             strategy={strategy}
+            corporateBalanceByAge={corporateBalanceByAge}
           />
 
           <AiPanel />
@@ -398,7 +443,9 @@ export default function SimulatorPage() {
         dA={baseAnalysis.dA}
         lifeEx={p.lifeEx}
         minRatio={baseAnalysis.minRatio}
-        bankruptcyRate={mcResult?.strategies[strategy as keyof typeof mcResult.strategies]?.bankruptcyRate}
+        bankruptcyRate={displayMcResult?.strategies[strategy as keyof typeof displayMcResult.strategies]?.bankruptcyRate}
+        corporateFinalTotal={corporateFinalTotal}
+        combinedFinalTotal={combinedFinalTotal}
       />
     </div>
   );

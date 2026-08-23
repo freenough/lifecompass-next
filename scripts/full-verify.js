@@ -749,3 +749,11 @@ console.log('\n' + '='.repeat(100));
 console.log('【第10弾ツール:退職後の住民税キャッシュフロー試算】verify-resident-tax-timing-tool.js');
 console.log('='.repeat(100));
 require('./verify-resident-tax-timing-tool.js');
+
+// ================================================================
+// CompanyState（法人資産を含めたFIRE試算） src/lib/hojinCompanyState/
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【CompanyState:法人資産を含めたFIRE試算】verify-companystate.js');
+console.log('='.repeat(100));
+require('./verify-companystate.js');

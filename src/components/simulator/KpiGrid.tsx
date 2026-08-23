@@ -9,6 +9,8 @@ import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
 import { findImprovementThresholds } from '@/lib/improvement-search';
 import { useEqualHeight } from '@/hooks/useEqualHeight';
 import { useSimulatorStore } from '@/store/simulatorStore';
+import { runMonteCarloWithCorporateAwareness } from '@/components/hojinCompanyState/CorporateSettingsSection';
+import CorporateCombinedBadge from '@/components/hojinCompanyState/CorporateCombinedBadge';
 
 interface KpiGridProps {
   analysis: AnalysisResult;
@@ -34,6 +36,13 @@ interface KpiGridProps {
   spHasIdeco: boolean;
   // 退職金イベントの「存在」を表すフラグ（税引後net>0とは独立。控除内で税額0円のケースも含む）
   hasSeverance: boolean;
+  // 法人資産オーバーレイ（最終版指示書3.8節）。includeInPersonalSimulatorトグルON時のみ
+  // 呼び出し元(page.tsx)から渡される。
+  corporateFinalTotal?: number | null;
+  combinedFinalTotal?: number | null;
+  // MC破綻確率カードの法人合算バッジ用（UI仕上げ指示書3章：最終資産カード・モンテカルロ分析欄には
+  // 既にあったが、このカードだけ実装漏れだったため追加）。
+  corporateCombinedBankruptcyRate?: number | null;
 }
 
 function fmt(v: number | null | undefined, suffix = '万円'): string {
@@ -61,14 +70,16 @@ function TaxSubline({ value }: { value: string }) {
 
 export default function KpiGrid({
   analysis: a, mcResult, mode, strategy, activeStrategies, p, events, lifeEx, retAge, penAge, lastExpense, fireAchievementRate, idecoReceiveType, spIdecoReceiveType,
-  hasIdeco, spHasIdeco, hasSeverance,
+  hasIdeco, spHasIdeco, hasSeverance, corporateFinalTotal, combinedFinalTotal, corporateCombinedBankruptcyRate,
 }: KpiGridProps) {
   const [eventsOpen, setEventsOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   // MC破綻確率カードの「MCモードで実行」をクリック可能にする（mc_bankruptcy_card_clickable）。
-  // ImpactTable.tsxの同名リンクと同じ導線（setMode('mc') → runMonteCarlo()）をそのまま呼び出す。
-  const { setMode, runMonteCarlo } = useSimulatorStore();
+  // ImpactTable.tsxの同名リンクと同じ導線（setMode('mc') → 法人トグルを考慮したMC実行）。
+  // 2026-08-22修正：runMonteCarlo()を直接呼ぶと法人トグルON時に個人単独MCが実行され、
+  // このカード・モンテカルロ分析欄が更新されなかったため、corporate-aware版に差し替えた。
+  const { setMode } = useSimulatorStore();
 
   // トップKPI4枚(資産寿命・FIRE達成・MC破綻確率・最終資産)の高さ統一（tooltip_wrap_fix）。
   // 改善案文言の長さでFIRE達成カードだけ行が高くなっても、min-heightで4枚全部を揃える。
@@ -239,17 +250,23 @@ export default function KpiGrid({
             }
             variant={mcStr ? mcVariant : 'neutral'}
             tooltip="モンテカルロ法（1,000試行）で終端年齢時点に資産が枯渇する試行の割合。運用利回りのランダムなブレを考慮しています。5%未満が良好、15%以上は要注意の目安です。複数戦略選択時は表示戦略基準の値を表示し、戦略ごとの内訳はモンテカルロ分析欄をご覧ください。"
-            footer={!mcStr && (
-              <p className="text-[11px] mt-1 leading-tight">
-                <button
-                  type="button"
-                  onClick={() => { setMode('mc'); setTimeout(() => runMonteCarlo(), 50); }}
-                  className="text-blue-600 hover:underline"
-                >
-                  MCモードで実行
-                </button>
-              </p>
-            )}
+            footer={
+              !mcStr ? (
+                <p className="text-[11px] mt-1 leading-tight">
+                  <button
+                    type="button"
+                    onClick={() => { setMode('mc'); setTimeout(() => runMonteCarloWithCorporateAwareness(), 50); }}
+                    className="text-blue-600 hover:underline"
+                  >
+                    MCモードで実行
+                  </button>
+                </p>
+              ) : corporateCombinedBankruptcyRate != null && (
+                <CorporateCombinedBadge className="mt-1">
+                  法人合算：破綻確率{corporateCombinedBankruptcyRate.toFixed(1)}%
+                </CorporateCombinedBadge>
+              )
+            }
           />
         </div>
         <div ref={setKpiCardRef(3)} style={kpiCardWrapperStyle}>
@@ -259,6 +276,11 @@ export default function KpiGrid({
             sub={lastSub}
             variant={lastVariant}
             tooltip="終端年齢（余命設定）時点の総資産額。最終年の年間支出1年分を下回ると「残高わずか」、0円以下は「枯渇」を示します。"
+            footer={combinedFinalTotal != null && (
+              <CorporateCombinedBadge className="mt-1">
+                法人合算: {fmt(combinedFinalTotal)}（法人 {fmt(corporateFinalTotal ?? 0)} 含む）
+              </CorporateCombinedBadge>
+            )}
           />
         </div>
       </div>

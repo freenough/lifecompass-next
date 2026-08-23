@@ -22,6 +22,12 @@ interface AssetChartProps {
   // 中央値の折れ線はactiveStrategies全戦略ぶん描画するが、帯はこの1つのみ。
   displayStrategy: string;
   activeScenarios: ScenarioKey[];
+  // 法人資産オーバーレイ（最終版指示書3.8節）。includeInPersonalSimulatorトグルON時のみ
+  // 呼び出し元(page.tsx)から渡される。OFF時はundefined/nullのままで表示に一切影響しない。
+  // 固定計算モード：baseSnaps（curAge以降）と同じインデックスに揃えた法人資産の年次残高。
+  corporateBalance?: number[] | null;
+  // MCモード：個人+法人の合算後パーセンタイル（mc.tsのCombinedMcResult.combined.percentiles）。
+  corporateMcCombined?: { p10: number[]; p50: number[]; p90: number[] } | null;
 }
 
 export const STRATEGY_LABELS: Record<string, string> = {
@@ -97,7 +103,9 @@ export function addFireLines(
 
 export function FireLines() {
   return (
-    <Line dataKey="FIREライン" stroke="#16a34a" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
+    // UI仕上げ指示書2章：FIREラインは達成基準を示す参照線であり、資産推移の系列（青系）とは
+    // 役割が異なるため、区別できるよう別系統の色（アンバー系）にする（2026-08-22修正、旧#16a34a緑）。
+    <Line dataKey="FIREライン" stroke="#d97706" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
   );
 }
 
@@ -172,6 +180,7 @@ export function EventLines({ retAge, penAge, spRetAgeMain, spPenAgeMain }: {
 
 export default function AssetChart({
   profile, snaps, mcResult, mode, cmpMode, activeStrategies, displayStrategy, activeScenarios,
+  corporateBalance, corporateMcCombined,
 }: AssetChartProps) {
   const [tab, setTab] = useState<TabKey>('total');
   const [showRealValue, setShowRealValue] = useState(false);
@@ -207,6 +216,9 @@ export default function AssetChart({
             const label = isMulti ? (STRATEGY_LABELS[st] ?? st) : '中央値';
             row[label] = strat?.percentiles.p50[i] ?? 0;
           }
+          if (corporateMcCombined) {
+            row['合算(法人含む)中央値'] = corporateMcCombined.p50[i] ?? 0;
+          }
           addFireLines(row, s);
           return row;
         });
@@ -240,6 +252,12 @@ export default function AssetChart({
                     dot={false} />
                 );
               })}
+              {corporateMcCombined && (
+                <Line dataKey="合算(法人含む)中央値" legendType="plainline"
+                  // UI仕上げ指示書2章：「中央値」「合算(法人含む)中央値」はどちらも個人資産推移の
+                  // 仲間の系列として同じ色系統（青系）でまとめる（2026-08-22修正、旧#059669緑）。
+                  stroke="#1d4ed8" strokeWidth={2} strokeDasharray="4 2" dot={false} />
+              )}
             </ComposedChart>
           </ResponsiveContainer>
           <p className="text-[11px] text-slate-400 mt-2">
@@ -347,7 +365,7 @@ export default function AssetChart({
   // ── 戦略比較モード（デフォルト）────────────────────────────
   const data = baseSnaps
     .filter(s => s.age >= curAge)
-    .map(s => {
+    .map((s, i) => {
       const inflM = Math.pow(1 + inflR / 100, s.age - curAge);
       const row: Record<string, number> = { age: s.age };
       addFireLines(row, s);
@@ -357,6 +375,9 @@ export default function AssetChart({
       for (const st of activeStrategies) {
         const label = STRATEGY_LABELS[st] ?? st;
         row[label] = snaps[st]?.find(r => r.age === s.age)?.totalAssets ?? 0;
+      }
+      if (corporateBalance) {
+        row['合算(法人含む)'] = s.totalAssets + (corporateBalance[i] ?? 0);
       }
       return row;
     });
@@ -407,6 +428,12 @@ export default function AssetChart({
                 dot={false} />
             );
           })}
+          {corporateBalance && (
+            // UI仕上げ指示書2章：「合算(法人含む)」も個人資産推移の仲間として同じ青系にする
+            // （2026-08-22修正、旧#059669緑）。
+            <Line dataKey="合算(法人含む)" legendType="plainline"
+              stroke="#1d4ed8" strokeWidth={2} strokeDasharray="4 2" dot={false} />
+          )}
         </ComposedChart>
       </ResponsiveContainer>
     </div>

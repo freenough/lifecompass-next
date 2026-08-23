@@ -12,6 +12,14 @@ interface StickyKpiBarProps {
   // 色分けの判定に使うほか、FIRE達成カードのサブテキスト（`{%}`部分）にもそのまま表示する。
   minRatio: number | null;
   bankruptcyRate?: number | null;
+  // 法人資産オーバーレイ（最終版指示書3.8節、KpiGrid.tsxと同じパターン）。
+  // includeInPersonalSimulatorトグルON時のみ呼び出し元(page.tsx)から渡される。
+  corporateFinalTotal?: number | null;
+  combinedFinalTotal?: number | null;
+}
+
+function fmt(v: number): string {
+  return v >= 10000 ? `${(v / 10000).toFixed(1)}億円` : `${Math.round(v).toLocaleString()}万円`;
 }
 
 type Variant = 'good' | 'warn' | 'danger' | 'neutral';
@@ -31,7 +39,7 @@ type Variant = 'good' | 'warn' | 'danger' | 'neutral';
  * 変更すると自動的にnullへリセットされるため、この基準の方が「タブは選んだがまだ
  * 実行していない」「実行後に入力を変えた」状態を正しく資産寿命表示に倒せる。
  */
-export default function StickyKpiBar({ visible, fA, dA, lifeEx, minRatio, bankruptcyRate }: StickyKpiBarProps) {
+export default function StickyKpiBar({ visible, fA, dA, lifeEx, minRatio, bankruptcyRate, corporateFinalTotal, combinedFinalTotal }: StickyKpiBarProps) {
   if (!visible) return null;
 
   const fireAchieved = fA != null;
@@ -71,6 +79,11 @@ export default function StickyKpiBar({ visible, fA, dA, lifeEx, minRatio, bankru
         <KpiCard label={leftCard.label} value={leftCard.value} sub={leftCard.sub} variant={leftCard.variant} />
         <KpiCard label={rightCard.label} value={rightCard.value} variant={rightCard.variant} />
       </div>
+      {combinedFinalTotal != null && (
+        <p className="text-center text-[10px] text-slate-400 pt-1">
+          法人合算: {fmt(combinedFinalTotal)}（法人 {fmt(corporateFinalTotal ?? 0)} 含む）
+        </p>
+      )}
     </div>
   );
 }

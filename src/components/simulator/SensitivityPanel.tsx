@@ -65,6 +65,10 @@ function LegendSwatch({ stroke, dasharray, width = 2 }: { stroke: string; dashar
 
 export default function SensitivityPanel() {
   const { profile, displayStrategy } = useSimulatorStore();
+  // 2026-08-22追加：法人トグルON時にsimulatorStore.extraEvents（法人取崩の税引後other_incイベント）
+  // へ反映済みの分を、このパネル独自のsimulate()呼び出しにもマージする。他のコンポーネント
+  // （runAll()自体）と同じ形で、profile.eventsにextraEventsを足してから使う。
+  const extraEvents = useSimulatorStore(s => s.extraEvents);
   const strategy = displayStrategy ?? 'proportional';
   const [deltas, setDeltas] = useState<Deltas>(ZERO);
   const [open, setOpen] = useState(false);
@@ -78,7 +82,7 @@ export default function SensitivityPanel() {
   }, []);
 
   const baseP = profileToSimParams(profile);
-  const baseEvs = profile.events;
+  const baseEvs = extraEvents.length > 0 ? [...profile.events, ...extraEvents] : profile.events;
 
   const inflClamped = baseP.inflR + deltas.dI < 0;
 

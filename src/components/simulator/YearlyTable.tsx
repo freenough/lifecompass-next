@@ -9,6 +9,9 @@ interface YearlyTableProps {
   penAge: number;
   idecoStartAge: number;
   strategy?: string;
+  // 法人資産の年次残高（最終版指示書3.8節）。includeInPersonalSimulatorトグルON時のみ
+  // 呼び出し元(page.tsx)から渡される。年齢をキーに法人資産合計(total)を引く。
+  corporateBalanceByAge?: Record<number, number> | null;
 }
 
 function fmt(v: number): string {
@@ -51,9 +54,10 @@ function downloadCSV(snaps: YearSnap[], showFill: boolean) {
   URL.revokeObjectURL(a.href);
 }
 
-export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, strategy }: YearlyTableProps) {
+export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, strategy, corporateBalanceByAge }: YearlyTableProps) {
   const [open, setOpen] = useState(false);
   const showFill = strategy === 'proportional';
+  const showCorporate = !!corporateBalanceByAge;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
@@ -87,6 +91,7 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
                 {[
                   '年齢', '総資産', 'NISA', 'iDeCo', '特定', '現金', '収入', '支出', 'CF',
                   ...(showFill ? ['補填現金', '補填NISA'] : []),
+                  ...(showCorporate ? ['法人資産', '合算'] : []),
                 ].map(h => (
                   <th key={h} className="px-2 py-2 text-right text-slate-500 font-medium whitespace-nowrap first:text-left">{h}</th>
                 ))}
@@ -136,6 +141,15 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
                         </td>
                       </>
                     )}
+                    {showCorporate && (() => {
+                      const corp = corporateBalanceByAge?.[s.age] ?? 0;
+                      return (
+                        <>
+                          <td className="px-2 py-1 text-right">{fmt(corp)}</td>
+                          <td className="px-2 py-1 text-right font-medium">{fmt(s.totalAssets + corp)}</td>
+                        </>
+                      );
+                    })()}
                   </tr>
                 );
               })}

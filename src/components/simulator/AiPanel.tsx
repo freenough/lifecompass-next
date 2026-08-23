@@ -7,6 +7,8 @@ import { profileToSimParams } from '@/lib/profile';
 import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
 import { buildRetirementExtension } from '@/lib/improvement-search';
 import type { MCResult, WithdrawalStrategy } from '@/lib/types';
+import { useDisplayMcResult, resolveDisplayMcResult } from '@/lib/hojinCompanyState/useDisplayMcResult';
+import { runMonteCarloWithCorporateAwareness } from '@/components/hojinCompanyState/CorporateSettingsSection';
 
 const GEMINI_MODEL = 'gemini-2.5-flash-lite';
 const GEMINI_TEMPERATURE = 0.2;
@@ -295,7 +297,11 @@ ${
 
 export default function AiPanel() {
   const store = useSimulatorStore();
-  const { mcResult, mcError, isMcRunning, runMonteCarlo, analysis, displayStrategy } = store;
+  const { mcError, isMcRunning, analysis, displayStrategy } = store;
+  // 2026-08-22修正：法人トグルON時はrunMonteCarloWithCorporateAwareness()が
+  // simulatorStore.mcResultではなくcompanyStateStore.combinedMcResultを更新するため、
+  // store.mcResultを直接見ると「MCシミュレーション未実行」判定のまま更新されない不具合があった。
+  const mcResult = useDisplayMcResult(store.mcResult);
   const strategy = (displayStrategy ?? 'proportional') as WithdrawalStrategy;
   const a = analysis[strategy];
 
@@ -331,7 +337,8 @@ export default function AiPanel() {
     setResult(null);
 
     try {
-      const payload = buildAIPayload(strategy, useSimulatorStore.getState());
+      const rawState = useSimulatorStore.getState();
+      const payload = buildAIPayload(strategy, { ...rawState, mcResult: resolveDisplayMcResult(rawState.mcResult) });
       const promptText = buildPrompt(payload);
 
       const MAX_RETRY = 3;
@@ -443,7 +450,7 @@ export default function AiPanel() {
             <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600 space-y-2">
               <p>破綻確率を含む精度の高い分析のため、先にMCシミュレーションを実行してください。</p>
               <button
-                onClick={() => runMonteCarlo()}
+                onClick={() => runMonteCarloWithCorporateAwareness()}
                 disabled={isMcRunning}
                 className="rounded bg-slate-700 text-white px-3 py-1.5 text-xs hover:bg-slate-600 disabled:opacity-50 transition-colors"
               >

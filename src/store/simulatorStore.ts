@@ -34,12 +34,12 @@ function loadInitialProfile(): ProfileV3 {
   return SAMPLE_PROFILE;
 }
 
-function runAll(profile: ProfileV3, strategies: WithdrawalStrategy[]): {
+function runAll(profile: ProfileV3, strategies: WithdrawalStrategy[], extraEvents: LifeEvent[] = []): {
   snaps: Record<string, YearSnap[]>;
   analysis: Record<string, AnalysisResult>;
 } {
   const p = profileToSimParams(profile);
-  const evs = profile.events;
+  const evs = extraEvents.length > 0 ? [...profile.events, ...extraEvents] : profile.events;
   const snaps: Record<string, YearSnap[]> = {};
   const analysis: Record<string, AnalysisResult> = {};
   for (const st of strategies) {
@@ -68,8 +68,13 @@ interface SimulatorState {
   displayStrategy: WithdrawalStrategy;
   activeScenarios: ScenarioKey[];
   isMcRunning: boolean;
+  // 法人側（hojinCompanyState、非ロック）から注入される追加イベント配列。runAll()内で
+  // profile.eventsとマージしてからsimulate()/analyze()に渡す。個人側のUIからは操作しない
+  // （companystate-final-implementation.md 2章：simulatorStore.tsで唯一許可された追加）。
+  extraEvents: LifeEvent[];
   updateProfile: (patch: Partial<ProfileV3['params']>) => void;
   updateEvents: (events: LifeEvent[]) => void;
+  setExtraEvents: (events: LifeEvent[]) => void;
   updatePortfolio: (phase: PortfolioPhase, acct: PortfolioAcct, rows: AssetRow[]) => void;
   updateSpousePortfolio: (acct: SpPortfolioAcct, rows: AssetRow[]) => void;
   copyCurrentToWorking: () => void;
@@ -105,27 +110,34 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
     displayStrategy: INITIAL_STRATEGIES[0],
     activeScenarios: ['neutral'],
     isMcRunning: false,
+    extraEvents: [],
 
     updateProfile: (patch) => {
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const newProfile: ProfileV3 = {
         ...profile,
         params: { ...profile.params, ...patch },
       };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     updateEvents: (events) => {
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const newProfile: ProfileV3 = { ...profile, events };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
+    setExtraEvents: (events) => {
+      const { profile, activeStrategies, extraEvents } = get();
+      const { snaps, analysis } = runAll(profile, activeStrategies, events);
+      set({ extraEvents: events, snaps, analysis, mcResult: null, mcError: null });
+    },
+
     runSimulation: () => {
-      const { profile, activeStrategies } = get();
-      const { snaps, analysis } = runAll(profile, activeStrategies);
+      const { profile, activeStrategies, extraEvents } = get();
+      const { snaps, analysis } = runAll(profile, activeStrategies, extraEvents);
       set({ snaps, analysis, mcResult: null, mcError: null });
     },
 
@@ -147,13 +159,13 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
     },
 
     loadProfile: (profile) => {
-      const { activeStrategies } = get();
-      const { snaps, analysis } = runAll(profile, activeStrategies);
+      const { activeStrategies, extraEvents } = get();
+      const { snaps, analysis } = runAll(profile, activeStrategies, extraEvents);
       set({ profile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     updatePortfolio: (phase, acct, rows) => {
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const newPortfolio = {
         ...profile.portfolio,
         [phase]: { ...profile.portfolio[phase], [acct]: rows },
@@ -176,12 +188,12 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         params: { ...profile.params, ...paramPatch },
         portfolio: newPortfolio,
       };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     updateSpousePortfolio: (acct, rows) => {
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const newCurrent = { ...profile.portfolio.current, [acct]: rows };
       // Sync spNisaBal/spIdecoBal/spTaxBal from spouse portfolio rows
       const spNisaBal  = (newCurrent.spNisa  ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
@@ -192,12 +204,12 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         params: { ...profile.params, spNisaBal, spIdecoBal, spTaxBal },
         portfolio: { ...profile.portfolio, current: newCurrent },
       };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     copyCurrentToWorking: () => {
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const cur = profile.portfolio.current;
       const accts: PortfolioAcct[] = ['nisa', 'ideco', 'tax'];
 
@@ -235,14 +247,14 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         params: { ...profile.params, ...paramPatch },
         portfolio: { ...profile.portfolio, working: newWorking },
       };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     setSameAsWorking: (val) => {
       // PF側「同じPFを使う」は資産配分の同期のみに専念する（σ/mcStdRは
       // sigmaSameAsWorking経由の独立したgetterで扱うため、ここでは動かさない）。
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const newProfile: ProfileV3 = {
         ...profile,
         portfolio: {
@@ -250,12 +262,12 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
           retirement: { ...profile.portfolio.retirement, sameAsWorking: val },
         },
       };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     setRateSameAsWorking: (val) => {
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const paramPatch: Partial<ProfileV3['params']> = { rateSameAsWorking: val };
       if (!val) {
         // OFFにした瞬間、その時点の積立期側の実効値を取崩期用の独立値としてコピーし、
@@ -270,12 +282,12 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         paramPatch.pfManualFlags = flags;
       }
       const newProfile: ProfileV3 = { ...profile, params: { ...profile.params, ...paramPatch } };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
     setSigmaSameAsWorking: (val) => {
-      const { profile, activeStrategies } = get();
+      const { profile, activeStrategies, extraEvents } = get();
       const paramPatch: Partial<ProfileV3['params']> = { sigmaSameAsWorking: val };
       if (!val) {
         // OFFにした瞬間、その時点の積立期側の実効σを取崩期用の独立値としてコピーし、
@@ -285,7 +297,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         paramPatch.pfManualFlags = { ...profile.params.pfManualFlags, mcStdR: true };
       }
       const newProfile: ProfileV3 = { ...profile, params: { ...profile.params, ...paramPatch } };
-      const { snaps, analysis } = runAll(newProfile, activeStrategies);
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
     },
 
@@ -296,8 +308,8 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
       set(updates);
     },
     setActiveStrategies: (activeStrategies) => {
-      const { profile, displayStrategy } = get();
-      const { snaps, analysis } = runAll(profile, activeStrategies);
+      const { profile, displayStrategy, extraEvents } = get();
+      const { snaps, analysis } = runAll(profile, activeStrategies, extraEvents);
       // 表示戦略として選択中の戦略のチェックを外した場合、残っている先頭の戦略に
       // 自動的にフォールバックする（常にactiveStrategiesのメンバーである不変条件を維持）
       const nextDisplay = activeStrategies.includes(displayStrategy) ? displayStrategy : activeStrategies[0];

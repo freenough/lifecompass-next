@@ -11,6 +11,7 @@ import InfoTooltip from '@/components/simulator/InfoTooltip';
 import PortfolioPanel from '@/components/simulator/PortfolioPanel';
 import LifeEventTimeline from '@/components/simulator/LifeEventTimeline';
 import SampleDataBanner from '@/components/simulator/SampleDataBanner';
+import CorporateSettingsSection from '@/components/hojinCompanyState/CorporateSettingsSection';
 
 type RateFieldKey = 'rWNisa' | 'rWIdeco' | 'rWTax' | 'rRNisa' | 'rRIdeco' | 'rRTax' | 'mcStd' | 'mcStdR';
 
@@ -668,6 +669,11 @@ export default function SimulatorForm() {
             <label htmlFor="sigmaSameAsWorking" className="text-xs text-slate-600">取崩期は積立期と同じ標準偏差を使う</label>
           </div>
         </Section>
+      </Section>
+
+      {/* ⑤ 法人資産（一人法人） */}
+      <Section title="法人資産（一人法人）" defaultOpen={false}>
+        <CorporateSettingsSection />
       </Section>
 
     </div>

@@ -2,6 +2,11 @@
 
 import { useSimulatorStore } from '@/store/simulatorStore';
 import { STRATEGY_LABELS, STRATEGY_COLORS_SUB, STRATEGY_PRIMARY_COLOR } from '@/components/simulator/AssetChart';
+import { useDisplayMcResult } from '@/lib/hojinCompanyState/useDisplayMcResult';
+import { useCompanyStateStore } from '@/lib/hojinCompanyState/companyStateStore';
+import type { WithdrawalStrategy } from '@/lib/types';
+import type { CombinedMcStrategyResult } from '@/lib/hojinCompanyState/mc';
+import CorporateCombinedBadge from '@/components/hojinCompanyState/CorporateCombinedBadge';
 
 function fmt(v: number) {
   return v >= 10000 ? `${(v / 10000).toFixed(1)}億円` : `${Math.round(v).toLocaleString()}万円`;
@@ -17,8 +22,29 @@ function depletionStr(mean: number | null, min: number | null, rate: number, tri
   return `枯渇した${n}試行：平均${meanStr}・最短${minStr}`;
 }
 
+// 法人合算行（1戦略ぶん）。単一戦略ブロック・複数戦略ブロックの両方から共有する。
+// UI仕上げ指示書3章：共通のCorporateCombinedBadgeコンポーネントを使う（旧・独自スタイル廃止）。
+// 最終監査3.3：個人単独側（破綻確率・p10・p50・p90の4指標）と情報量を揃える
+// （従来は破綻確率・中央値の2指標のみで、p10/p90が欠けていた）。
+function CorporateCombinedRow({ combined }: { combined: CombinedMcStrategyResult }) {
+  const p10 = combined.percentiles.p10.at(-1) ?? 0;
+  const p50 = combined.percentiles.p50.at(-1) ?? 0;
+  const p90 = combined.percentiles.p90.at(-1) ?? 0;
+  return (
+    <CorporateCombinedBadge className="mt-1">
+      法人合算：破綻確率{combined.bankruptcyRate.toFixed(1)}%・p10 {fmt(p10)}・中央値{fmt(p50)}・p90 {fmt(p90)}
+    </CorporateCombinedBadge>
+  );
+}
+
 export default function MonteCarloPanel() {
-  const { mcResult, mode, activeStrategies, displayStrategy } = useSimulatorStore();
+  const { mode, activeStrategies, displayStrategy } = useSimulatorStore();
+  const rawMcResult = useSimulatorStore(s => s.mcResult);
+  const mcResult = useDisplayMcResult(rawMcResult);
+  const includeInPersonalSimulator = useCompanyStateStore(s => s.state.settings.includeInPersonalSimulator);
+  const combinedMcResult = useCompanyStateStore(s => s.combinedMcResult);
+  const showCorporate = includeInPersonalSimulator && !!combinedMcResult;
+
   const isMulti = activeStrategies.length > 1;
   // 単一戦略選択時はdisplayStrategy===activeStrategies[0]のため、従来と同じ値になる
   const stResult = mcResult?.strategies[displayStrategy as keyof typeof mcResult.strategies];
@@ -57,6 +83,7 @@ export default function MonteCarloPanel() {
               <span className="font-medium text-red-600">{stResult.depletionMin}歳</span>
             </div>
           )}
+          {showCorporate && <CorporateCombinedRow combined={combinedMcResult!.combined[displayStrategy]} />}
         </div>
       )}
 
@@ -86,6 +113,7 @@ export default function MonteCarloPanel() {
                   {depletionStr(strat.depletionMean, strat.depletionMin, rate, mcResult.trials)}・
                   p10 {fmt(p10)}・中央値 {fmt(p50)}・p90 {fmt(p90)}
                 </p>
+                {showCorporate && <CorporateCombinedRow combined={combinedMcResult!.combined[st as WithdrawalStrategy]} />}
               </div>
             );
           })}
