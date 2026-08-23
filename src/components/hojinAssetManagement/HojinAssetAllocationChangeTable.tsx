@@ -1,15 +1,16 @@
 'use client';
 
 import { classBreakdown } from '@/lib/hojinAssetManagement/breakdown';
-import { getAssetClassLabel } from '@/lib/hojinAssetManagement/categories';
+import { getAssetClassLabel } from '@/lib/assetManagement/categories';
 import { getAssetClassColor } from '@/lib/hojinAssetManagement/classColors';
-import type { HojinAssetHolding, HojinCopiedPersonalHolding, HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import type { AssetHolding } from '@/lib/assetManagement/types';
+import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 
 interface HojinAssetAllocationChangeTableProps {
-  hojinHoldings: HojinAssetHolding[];
-  personalHoldings: HojinCopiedPersonalHolding[];
+  hojinHoldings: AssetHolding[];
+  personalHoldings: AssetHolding[];
   snapshots: HojinAssetSnapshot[];
-  displayScope: 'hojin' | 'combined';
+  displayScope: 'personalOnly' | 'combined';
 }
 
 // 個人資産管理ツールのAssetAllocationChangeTable.tsx（ロック対象）を複製し、6.3節のトグルに
@@ -23,10 +24,11 @@ export default function HojinAssetAllocationChangeTable({
   const latest = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
   if (!latest) return null;
 
-  const currentHoldings = displayScope === 'combined' ? [...hojinHoldings, ...personalHoldings] : hojinHoldings;
+  // フェーズ1：/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す。
+  const currentHoldings = displayScope === 'combined' ? [...personalHoldings, ...hojinHoldings] : personalHoldings;
   const lastHoldings = displayScope === 'combined'
-    ? [...latest.hojinHoldings, ...latest.personalHoldings]
-    : latest.hojinHoldings;
+    ? [...latest.personalHoldings, ...latest.hojinHoldings]
+    : latest.personalHoldings;
 
   const currentBreakdown = classBreakdown(currentHoldings);
   const lastBreakdown = classBreakdown(lastHoldings);

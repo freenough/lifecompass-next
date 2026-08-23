@@ -3,18 +3,19 @@
 import { useState, useEffect } from 'react';
 import KpiCard from '@/components/simulator/KpiCard';
 import PersonalizationRatioSlider from './PersonalizationRatioSlider';
-import type { HojinAssetHolding, HojinCopiedPersonalHolding, HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import type { AssetHolding } from '@/lib/assetManagement/types';
+import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 
 interface HojinAssetProgressPanelProps {
-  hojinHoldings: HojinAssetHolding[];
-  personalHoldings: HojinCopiedPersonalHolding[];
+  hojinHoldings: AssetHolding[];
+  personalHoldings: AssetHolding[];
   snapshots: HojinAssetSnapshot[];
   targetAmount: number;
   onChangeTarget: (amount: number) => void;
   personalizationRatio: number;
   onChangeRatio: (ratio: number) => void;
-  /** 「前回記録比」カードのみ6.3節のトグルに追従する。他（目標までの進捗・積み上げバー等）は追従しない。 */
-  displayScope: 'hojin' | 'combined';
+  /** 「前回記録比」カードのみ表示トグルに追従する。他（目標までの進捗・積み上げバー等）は追従しない。 */
+  displayScope: 'personalOnly' | 'combined';
 }
 
 // 個人資産管理ツールのAssetProgressPanel.tsx（ロック対象）のカード3枚構成を踏襲しつつ、
@@ -42,9 +43,10 @@ export default function HojinAssetProgressPanel({
   const remaining = targetAmount > 0 ? targetAmount - personalTotal : null;
 
   const latest = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
-  const currentScopedTotal = displayScope === 'combined' ? hojinTotal + personalTotal : hojinTotal;
+  // フェーズ1：/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す。
+  const currentScopedTotal = displayScope === 'combined' ? personalTotal + hojinTotal : personalTotal;
   const lastScopedTotal = latest
-    ? (displayScope === 'combined' ? latest.totalHojinAmount + latest.totalPersonalAmount : latest.totalHojinAmount)
+    ? (displayScope === 'combined' ? latest.totalPersonalAmount + latest.totalHojinAmount : latest.totalPersonalAmount)
     : null;
   const diffFromLast = latest && lastScopedTotal !== null ? currentScopedTotal - lastScopedTotal : null;
   const diffFromLastPct = latest && lastScopedTotal !== null && lastScopedTotal > 0 && diffFromLast !== null

@@ -1,14 +1,15 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import type { HojinAssetHolding, HojinCopiedPersonalHolding, HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import type { AssetHolding } from '@/lib/assetManagement/types';
+import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 import { exportToJson, exportToCsv, importFromJson, importFromCsv, type ExportScope } from '@/lib/hojinAssetManagement/exportImport';
 
 interface HojinAssetExportImportControlsProps {
-  hojinHoldings: HojinAssetHolding[];
-  personalHoldings: HojinCopiedPersonalHolding[];
+  hojinHoldings: AssetHolding[];
+  personalHoldings: AssetHolding[];
   snapshots: HojinAssetSnapshot[];
-  onImported: (hojinHoldings: HojinAssetHolding[], personalHoldings: HojinCopiedPersonalHolding[], snapshots?: HojinAssetSnapshot[]) => void;
+  onImported: (hojinHoldings: AssetHolding[], personalHoldings: AssetHolding[], snapshots?: HojinAssetSnapshot[]) => void;
 }
 
 // 個人資産管理ツールのAssetExportImportControls.tsx（ロック対象）の2ボックス構成を踏襲しつつ、
@@ -75,7 +76,7 @@ export default function HojinAssetExportImportControls({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg border border-slate-200 p-3">
           <p className="text-xs font-semibold text-slate-700 mb-1">JSON</p>
-          <p className="text-[11px] text-slate-400 mb-2">法人保有資産・記録履歴（合算時は個人資産パネルも含む）の完全バックアップ</p>
+          <p className="text-[11px] text-slate-400 mb-2">法人保有資産・記録履歴（合算時は個人資産も含む）の完全バックアップ</p>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => exportToJson(hojinHoldings, personalHoldings, snapshots, scope)}

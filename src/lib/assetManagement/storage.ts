@@ -33,17 +33,25 @@ function dedupeSnapshotsByDate(snapshots: AssetSnapshot[]): AssetSnapshot[] {
   return Array.from(map.values()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
+// フェーズ1でAssetSnapshotにprofileIdを追加したことに伴う後方互換マイグレーション
+// （欠落しているデータは'default'で補完する。将来のプロファイル機能の下地、機能自体は未実装）。
+function withDefaultProfileId(snapshots: AssetSnapshot[]): AssetSnapshot[] {
+  return snapshots.map((s) => (s.profileId ? s : { ...s, profileId: 'default' }));
+}
+
 export function loadSnapshots(): AssetSnapshot[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(SNAPSHOTS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as AssetSnapshot[];
-    const deduped = dedupeSnapshotsByDate(parsed);
+    const deduped = dedupeSnapshotsByDate(withDefaultProfileId(parsed));
     // 4章の不具合（addSnapshotが同一dateでも無条件追加していたため生じた既存の重複行）を、
     // 読み込みのたびに自動整理する。同一dateは最後の値を残すだけで、ユーザーの実データを
     // 削除するわけではない（本来上書きされているべきだった状態に揃えるだけ）。
-    if (deduped.length !== parsed.length) saveSnapshots(deduped);
+    if (deduped.length !== parsed.length || deduped.some((s, i) => s.profileId !== parsed[i]?.profileId)) {
+      saveSnapshots(deduped);
+    }
     return deduped;
   } catch {
     return [];
@@ -67,6 +75,7 @@ export function addSnapshot(holdings: AssetHolding[]): AssetSnapshot[] {
     date: toYearMonth(new Date()),
     holdings,
     totalAmount: holdings.reduce((s, h) => s + h.amount, 0),
+    profileId: 'default',
   };
   const existing = loadSnapshots();
   const idx = existing.findIndex((s) => s.date === snapshot.date);

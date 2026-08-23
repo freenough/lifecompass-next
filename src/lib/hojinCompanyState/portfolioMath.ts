@@ -5,7 +5,7 @@
 // 複数口座の加重集計部分（calcAggregateMu/calcAggregateSigma/calcAggregatedSigma相当）は
 // 実装しない（過剰実装を避ける、3.3節）。
 
-import { ASSET_CLASSES } from '../hojinAssetManagement/categories';
+import { ASSET_CLASSES } from '../assetManagement/categories';
 import type { CorporatePortfolioRow, CorporatePortfolioPhase, CorporatePortfolio } from './types';
 
 const ASSET_MU:    Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.mu ?? 0]));

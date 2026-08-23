@@ -52,7 +52,12 @@ export function exportToJson(holdings: AssetHolding[], snapshots: AssetSnapshot[
 // CSVはこの並びで固定。IDを1列目に含めるのは、CSV Importで自社Export形式のみを
 // 対象にidベースのmergeHoldings（JSON Importと共通ロジック）をそのまま再利用するため
 // （2章：IDが無いと「同じCSVを2回取り込むと行が倍増する」という別の重複バグを生む）。
-const CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '保有者', '金額(万円)', '更新日'];
+// フェーズ1（資産管理ツール統合）で法人版CSVと列構成を揃えるため、3列目のラベルを
+// 「保有者」→「区分」に改称した（値の意味・集合は不変：本人/配偶者/法人）。
+const CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '区分', '金額(万円)', '更新日'];
+// 改称前（「保有者」列）のCSVも後方互換で読み込めるようにする。列の意味・並びは同一のため、
+// ヘッダーの1語だけを許容する形で判定を緩める。
+const LEGACY_CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '保有者', '金額(万円)', '更新日'];
 const CSV_IMPORT_ERROR_MESSAGE = '対応していないCSV形式です。自社のCSVエクスポート機能で出力したファイルを選択してください。';
 
 function csvField(value: string | number): string {
@@ -163,7 +168,8 @@ export function importHoldingsFromCsv(file: File): Promise<AssetHolding[]> {
 
         const header = parseCsvLine(lines[0]);
         const headerMatches =
-          header.length === CSV_HEADERS.length && header.every((h, i) => h === CSV_HEADERS[i]);
+          (header.length === CSV_HEADERS.length && header.every((h, i) => h === CSV_HEADERS[i])) ||
+          (header.length === LEGACY_CSV_HEADERS.length && header.every((h, i) => h === LEGACY_CSV_HEADERS[i]));
         if (!headerMatches) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
 
         const incoming: AssetHolding[] = lines.slice(1).map((line) => {

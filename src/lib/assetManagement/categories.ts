@@ -71,3 +71,35 @@ const ASSET_CLASS_DISPLAY_LABELS: Record<string, string> = {};
 export function getAssetClassLabel(assetClass: string): string {
   return ASSET_CLASS_DISPLAY_LABELS[assetClass] ?? assetClass;
 }
+
+// ---------------------------------------------------------------------------
+// 法人（一人法人）資産管理ツール向けの分類（フェーズ1で個人版に一本化、
+// src/lib/hojinAssetManagement/categories.ts は廃止）。ASSET_CLASSESは上記と共通。
+// ---------------------------------------------------------------------------
+
+export const HOJIN_ACCOUNT_CATEGORIES = [
+  '法人預金', '法人証券口座', '保険積立金', '貸付金・仮払金', 'その他法人資産',
+] as const;
+export type HojinAccountCategory = (typeof HOJIN_ACCOUNT_CATEGORIES)[number];
+
+export const INSURANCE_ASSET_CLASS = '保険';
+
+// 法人カテゴリ→選択可能な資産クラス。空配列＝資産クラスのドロップダウン自体を出さず、
+// 固定値を使う（法人預金/貸付金・仮払金は'現金'、保険積立金は'保険'。実際の固定値割り当ては
+// HOJIN_CATEGORY_DEFAULT_ASSET_CLASSを参照）。
+export const ALLOWED_ASSET_CLASSES_BY_HOJIN_CATEGORY: Record<HojinAccountCategory, AssetClassDef[]> = {
+  '法人預金': [],
+  '法人証券口座': STANDARD_CLASSES,
+  '保険積立金': [],
+  '貸付金・仮払金': [],
+  'その他法人資産': OTHER_CATEGORY_CLASSES,
+};
+
+// 法人カテゴリに新規行を追加したときのデフォルト資産クラス（固定カテゴリの実際の固定値もここで定義）。
+export const HOJIN_CATEGORY_DEFAULT_ASSET_CLASS: Record<HojinAccountCategory, string> = {
+  '法人預金': CASH_ASSET_CLASS,
+  '法人証券口座': STANDARD_CLASSES[0]?.key ?? '全世界株',
+  '保険積立金': INSURANCE_ASSET_CLASS,
+  '貸付金・仮払金': CASH_ASSET_CLASS,
+  'その他法人資産': OTHER_CATEGORY_CLASSES[0]?.key ?? '不動産',
+};

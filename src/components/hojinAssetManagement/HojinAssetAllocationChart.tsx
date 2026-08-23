@@ -2,8 +2,8 @@
 
 import { PieChart, Pie, Cell, Tooltip, Legend, Label, ResponsiveContainer } from 'recharts';
 import { getAssetClassColor } from '@/lib/hojinAssetManagement/classColors';
-import { getAssetClassLabel } from '@/lib/hojinAssetManagement/categories';
-import type { HojinAssetHolding, HojinCopiedPersonalHolding } from '@/lib/hojinAssetManagement/types';
+import { getAssetClassLabel } from '@/lib/assetManagement/categories';
+import type { AssetHolding } from '@/lib/assetManagement/types';
 
 // 個人資産管理ツールのAssetAllocationChart.tsx（ロック対象）のRecharts・ssr:false動的import
 // パターン、MAX_SLICES畳み込みロジックをそのまま複製（8章：資産クラス軸で合算表示）。
@@ -12,10 +12,10 @@ const FOLD_BUCKET_LABEL = 'その他の資産クラス';
 const FOLD_BUCKET_COLOR = '#c3c2b7';
 
 interface HojinAssetAllocationChartProps {
-  hojinHoldings: HojinAssetHolding[];
-  personalHoldings: HojinCopiedPersonalHolding[];
-  /** 'hojin'なら法人保有資産のみ、'combined'なら個人資産パネルも合算する（6.3節トグルに追従）。 */
-  displayScope: 'hojin' | 'combined';
+  hojinHoldings: AssetHolding[];
+  personalHoldings: AssetHolding[];
+  /** 'personalOnly'なら個人資産のみ、'combined'なら法人保有資産も合算する（表示トグルに追従）。 */
+  displayScope: 'personalOnly' | 'combined';
 }
 
 interface SliceDatum {
@@ -26,9 +26,11 @@ interface SliceDatum {
 }
 
 export default function HojinAssetAllocationChart({ hojinHoldings, personalHoldings, displayScope }: HojinAssetAllocationChartProps) {
-  // 8章：個人化想定比率は反映しない。実際の保有金額をそのまま合算する。
+  // 個人化想定比率は反映しない。実際の保有金額をそのまま合算する。
+  // フェーズ1：/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す
+  // （法人資産管理ツール単体だった頃の'hojin'（法人のみ）から意味が反転している）。
   const holdings: { assetClass: string; amount: number }[] =
-    displayScope === 'combined' ? [...hojinHoldings, ...personalHoldings] : hojinHoldings;
+    displayScope === 'combined' ? [...personalHoldings, ...hojinHoldings] : personalHoldings;
 
   const totals = new Map<string, number>();
   holdings.forEach((h) => {

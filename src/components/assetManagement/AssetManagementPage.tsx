@@ -1,13 +1,17 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ACCOUNT_CATEGORIES,
   ALLOWED_ASSET_CLASSES_BY_CATEGORY,
   CASH_ASSET_CLASS,
+  HOJIN_ACCOUNT_CATEGORIES,
+  ALLOWED_ASSET_CLASSES_BY_HOJIN_CATEGORY,
+  HOJIN_CATEGORY_DEFAULT_ASSET_CLASS,
 } from '@/lib/assetManagement/categories';
 import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
+import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 import {
   loadHoldings,
   saveHoldings,
@@ -16,17 +20,32 @@ import {
   loadTargetAmount,
   saveTargetAmount,
 } from '@/lib/assetManagement/storage';
+import {
+  loadHojinHoldings,
+  saveHojinHoldings,
+  loadSnapshots as loadHojinSnapshots,
+  addSnapshot as addHojinSnapshot,
+  loadTargetAmount as loadHojinTargetAmount,
+  saveTargetAmount as saveHojinTargetAmount,
+  loadPersonalizationRatio,
+  savePersonalizationRatio,
+} from '@/lib/hojinAssetManagement/storage';
 import AssetHoldingCard from './AssetHoldingCard';
 import AssetProgressPanel from './AssetProgressPanel';
 import AssetAllocationChangeTable from './AssetAllocationChangeTable';
 import MonthlyRecordBanner from './MonthlyRecordBanner';
 import AssetExportImportControls from './AssetExportImportControls';
+import HojinAssetHoldingCard from '@/components/hojinAssetManagement/HojinAssetHoldingCard';
+import HojinAssetProgressPanel from '@/components/hojinAssetManagement/HojinAssetProgressPanel';
+import HojinAssetAllocationChangeTable from '@/components/hojinAssetManagement/HojinAssetAllocationChangeTable';
+import HojinAssetExportImportControls from '@/components/hojinAssetManagement/HojinAssetExportImportControls';
 
 // Rechartsコンポーネントは必ずssr:falseの動的importで読み込む（ResponsiveContainerが
 // DOM計測に依存するため。HeroDemo.tsx/src/app/page.tsxの既存パターンを踏襲）。
 const AssetAllocationChart = dynamic(() => import('./AssetAllocationChart'), { ssr: false });
-// 3章で折れ線グラフ（Recharts）を追加したため、こちらも動的importに変更。
 const AssetSnapshotHistory = dynamic(() => import('./AssetSnapshotHistory'), { ssr: false });
+const HojinAssetAllocationChart = dynamic(() => import('@/components/hojinAssetManagement/HojinAssetAllocationChart'), { ssr: false });
+const HojinAssetSnapshotHistory = dynamic(() => import('@/components/hojinAssetManagement/HojinAssetSnapshotHistory'), { ssr: false });
 
 function newId(): string {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -39,6 +58,28 @@ export default function AssetManagementPage() {
   // モバイル（lg:未満）のみ有効な「入力を編集」トグル。lg:以上は常時展開
   // （既存シミュレーター本体のformOpenパターンを参照して踏襲、7章）。
   const [formOpen, setFormOpen] = useState(false);
+
+  // フェーズ1（資産管理ツール統合）：法人資産（一人法人）セクション。CompanyState
+  // （SimulatorForm.tsx＋CorporateSettingsSection.tsx）と同じ「トグルで展開」パターンを
+  // 踏襲しつつ、資産管理ツールは単純なCRUD・表示のみのため、Zustandストアを新設せず
+  // このページ1つでstateを保持する（個人・法人のholdingsを同じ場所で持つことで、
+  // 法人セクションが個人資産を「常にライブ参照」できるようにし、フェーズ1の目的である
+  // 「個人データをインポート」ボタン廃止・食い違いバグの構造的解消を実現する）。
+  // 初期値はSSR/クライアントで一致させるため常にfalseにし、法人データがあればマウント後の
+  // useEffectでONに切り替える（localStorage読み取り結果をuseStateの初期化関数に直接使うと、
+  // サーバー側（window未定義＝常に空）とクライアント側（実データあり）でレンダー結果が食い違い、
+  // 条件分岐でDOM構造ごと変わるためReactのハイドレーションエラーになる）。
+  const [includeCorporate, setIncludeCorporate] = useState(false);
+  useEffect(() => {
+    if (loadHojinHoldings().length > 0) setIncludeCorporate(true);
+  }, []);
+  const [hojinHoldings, setHojinHoldings] = useState<AssetHolding[]>(() => loadHojinHoldings());
+  const [hojinSnapshots, setHojinSnapshots] = useState<HojinAssetSnapshot[]>(() => loadHojinSnapshots());
+  const [hojinTargetAmount, setHojinTargetAmount] = useState<number>(() => loadHojinTargetAmount());
+  const [personalizationRatio, setPersonalizationRatio] = useState<number>(() => loadPersonalizationRatio());
+  // 表示：個人のみ／合算。/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す
+  // （法人資産管理ツール単体だった頃の「法人のみ／合算」から意味が反転している）。
+  const [displayScopePref, setDisplayScopePref] = useState<'personalOnly' | 'combined'>('combined');
 
   const updateHoldings = (next: AssetHolding[]) => {
     setHoldings(next);
@@ -70,8 +111,44 @@ export default function AssetManagementPage() {
     updateHoldings(holdings.filter((h) => h.id !== id));
   };
 
+  const updateHojinHoldings = (next: AssetHolding[]) => {
+    setHojinHoldings(next);
+    saveHojinHoldings(next);
+  };
+
+  const handleAddHojin = (category: string) => {
+    const key = category as keyof typeof ALLOWED_ASSET_CLASSES_BY_HOJIN_CATEGORY;
+    const defaultAssetClass = HOJIN_CATEGORY_DEFAULT_ASSET_CLASS[key] ?? ALLOWED_ASSET_CLASSES_BY_HOJIN_CATEGORY[key]?.[0]?.key ?? '全世界株';
+    const holding: AssetHolding = {
+      id: newId(),
+      owner: 'corporate',
+      accountCategory: category,
+      assetClass: defaultAssetClass,
+      amount: 0,
+      updatedAt: new Date().toISOString(),
+    };
+    updateHojinHoldings([...hojinHoldings, holding]);
+  };
+
+  const handleChangeHojin = (id: string, patch: Partial<AssetHolding>) => {
+    updateHojinHoldings(
+      hojinHoldings.map((h) => (h.id === id ? { ...h, ...patch, updatedAt: new Date().toISOString() } : h))
+    );
+  };
+
+  const handleDeleteHojin = (id: string) => {
+    updateHojinHoldings(hojinHoldings.filter((h) => h.id !== id));
+  };
+
+  // 「記録する」押下時：個人資産は常に記録し、法人資産を含めるトグルON時は、その瞬間の
+  // 個人holdings state（=まさに今ライブ表示している値）をそのまま法人スナップショットにも
+  // 自動的に書き込む。手動の「個人データをインポート」操作は不要（フェーズ1の核心）。
   const handleRecord = () => {
-    setSnapshots(addSnapshot(holdings));
+    const nextSnapshots = addSnapshot(holdings);
+    setSnapshots(nextSnapshots);
+    if (includeCorporate) {
+      setHojinSnapshots(addHojinSnapshot(hojinHoldings, holdings));
+    }
   };
 
   const handleChangeTarget = (amount: number) => {
@@ -79,12 +156,36 @@ export default function AssetManagementPage() {
     saveTargetAmount(amount);
   };
 
+  const handleChangeHojinTarget = (amount: number) => {
+    setHojinTargetAmount(amount);
+    saveHojinTargetAmount(amount);
+  };
+
+  const handleChangeRatio = (ratio: number) => {
+    setPersonalizationRatio(ratio);
+    savePersonalizationRatio(ratio);
+  };
+
   const handleImported = (nextHoldings: AssetHolding[], nextSnapshots: AssetSnapshot[]) => {
     setHoldings(nextHoldings);
     setSnapshots(nextSnapshots);
   };
 
+  const handleHojinImported = (
+    nextHojinHoldings: AssetHolding[],
+    nextPersonalHoldings: AssetHolding[],
+    nextHojinSnapshots?: HojinAssetSnapshot[],
+  ) => {
+    setHojinHoldings(nextHojinHoldings);
+    setHoldings(nextPersonalHoldings);
+    if (nextHojinSnapshots) setHojinSnapshots(nextHojinSnapshots);
+  };
+
   const totalAmount = holdings.reduce((s, h) => s + (h.amount || 0), 0);
+  const hojinTotal = hojinHoldings.reduce((s, h) => s + (h.amount || 0), 0);
+  // 法人保有資産が未入力のときは「個人のみ」に固定する（合算しても差が出ないため）。
+  const hojinIsEmpty = hojinHoldings.length === 0 || hojinTotal === 0;
+  const displayScope: 'personalOnly' | 'combined' = hojinIsEmpty ? 'personalOnly' : displayScopePref;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12">
@@ -133,36 +234,149 @@ export default function AssetManagementPage() {
                 onDelete={handleDelete}
               />
             ))}
+
+            {/* 法人資産（一人法人）を含める：CompanyStateのSimulatorForm.tsx＋
+                CorporateSettingsSection.tsxと同じトグル展開パターン。 */}
+            <div className="mt-3 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-slate-700">法人資産（一人法人）を含める</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={includeCorporate}
+                  onClick={() => setIncludeCorporate((v) => !v)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                    includeCorporate ? 'bg-blue-500' : 'bg-slate-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      includeCorporate ? 'translate-x-4' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {includeCorporate && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xs font-bold text-slate-700">法人保有資産</h3>
+                    <span className="text-xs font-bold text-slate-800">合計 {hojinTotal.toLocaleString()}万円</span>
+                  </div>
+                  {HOJIN_ACCOUNT_CATEGORIES.map((category) => (
+                    <HojinAssetHoldingCard
+                      key={category}
+                      category={category}
+                      holdings={hojinHoldings.filter((h) => h.accountCategory === category)}
+                      allowedAssetClasses={ALLOWED_ASSET_CLASSES_BY_HOJIN_CATEGORY[category]}
+                      onAdd={handleAddHojin}
+                      onChange={(id, patch) => handleChangeHojin(id, patch as Partial<AssetHolding>)}
+                      onDelete={handleDeleteHojin}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* 右: サマリー群 */}
         <div className="flex flex-1 flex-col gap-6 min-w-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto lg:pr-4 lg:-mr-4">
+          {includeCorporate && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">表示:</span>
+                <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setDisplayScopePref('personalOnly')}
+                    className={`px-3 py-1 ${displayScope === 'personalOnly' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    個人のみ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDisplayScopePref('combined')}
+                    disabled={hojinIsEmpty}
+                    className={`px-3 py-1 ${displayScope === 'combined' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'} disabled:opacity-40 disabled:cursor-not-allowed`}
+                  >
+                    合算
+                  </button>
+                </div>
+              </div>
+              {hojinIsEmpty && (
+                <span className="text-xs text-slate-400">法人資産が未入力のため「個人のみ」で表示しています</span>
+              )}
+            </div>
+          )}
+
           <section>
-            <AssetSnapshotHistory snapshots={snapshots} onRecord={handleRecord} />
+            {includeCorporate ? (
+              <HojinAssetSnapshotHistory snapshots={hojinSnapshots} onRecord={handleRecord} displayScope={displayScope} />
+            ) : (
+              <AssetSnapshotHistory snapshots={snapshots} onRecord={handleRecord} />
+            )}
           </section>
 
           <section>
             <h2 className="text-sm font-bold text-slate-700 mb-3">FIRE進捗</h2>
-            <AssetProgressPanel
-              holdings={holdings}
-              snapshots={snapshots}
-              targetAmount={targetAmount}
-              onChangeTarget={handleChangeTarget}
-            />
+            {includeCorporate ? (
+              <HojinAssetProgressPanel
+                hojinHoldings={hojinHoldings}
+                personalHoldings={holdings}
+                snapshots={hojinSnapshots}
+                targetAmount={hojinTargetAmount}
+                onChangeTarget={handleChangeHojinTarget}
+                personalizationRatio={personalizationRatio}
+                onChangeRatio={handleChangeRatio}
+                displayScope={displayScope}
+              />
+            ) : (
+              <AssetProgressPanel
+                holdings={holdings}
+                snapshots={snapshots}
+                targetAmount={targetAmount}
+                onChangeTarget={handleChangeTarget}
+              />
+            )}
           </section>
 
           <section className="rounded-lg border border-slate-200 p-4">
             <h2 className="text-sm font-bold text-slate-700 mb-3">資産クラス内訳</h2>
-            <AssetAllocationChart holdings={holdings} totalAmount={totalAmount} />
+            {includeCorporate ? (
+              <HojinAssetAllocationChart hojinHoldings={hojinHoldings} personalHoldings={holdings} displayScope={displayScope} />
+            ) : (
+              <AssetAllocationChart holdings={holdings} totalAmount={totalAmount} />
+            )}
           </section>
 
-          <AssetAllocationChangeTable holdings={holdings} snapshots={snapshots} />
+          {includeCorporate ? (
+            <HojinAssetAllocationChangeTable
+              hojinHoldings={hojinHoldings}
+              personalHoldings={holdings}
+              snapshots={hojinSnapshots}
+              displayScope={displayScope}
+            />
+          ) : (
+            <AssetAllocationChangeTable holdings={holdings} snapshots={snapshots} />
+          )}
 
           <section>
             <h2 className="text-sm font-bold text-slate-700 mb-3">Export / Import</h2>
             <AssetExportImportControls holdings={holdings} snapshots={snapshots} onImported={handleImported} />
           </section>
+
+          {includeCorporate && (
+            <section>
+              <h2 className="text-sm font-bold text-slate-700 mb-3">法人資産 Export / Import</h2>
+              <HojinAssetExportImportControls
+                hojinHoldings={hojinHoldings}
+                personalHoldings={holdings}
+                snapshots={hojinSnapshots}
+                onImported={handleHojinImported}
+              />
+            </section>
+          )}
         </div>
       </div>
     </main>

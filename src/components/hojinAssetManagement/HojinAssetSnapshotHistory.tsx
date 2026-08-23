@@ -7,7 +7,7 @@ import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 interface HojinAssetSnapshotHistoryProps {
   snapshots: HojinAssetSnapshot[];
   onRecord: () => void;
-  displayScope: 'hojin' | 'combined';
+  displayScope: 'personalOnly' | 'combined';
 }
 
 const INITIAL_HISTORY_COUNT = 5;
@@ -26,7 +26,8 @@ export default function HojinAssetSnapshotHistory({ snapshots, onRecord, display
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
     .map((s) => ({
       date: s.date,
-      amount: displayScope === 'combined' ? s.totalHojinAmount + s.totalPersonalAmount : s.totalHojinAmount,
+      // フェーズ1：/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す。
+      amount: displayScope === 'combined' ? s.totalPersonalAmount + s.totalHojinAmount : s.totalPersonalAmount,
     }));
   const descending = [...ascending].reverse();
   const visibleRows = expanded ? descending : descending.slice(0, INITIAL_HISTORY_COUNT);

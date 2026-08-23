@@ -13,7 +13,7 @@
 // μ・σの手入力UIを完全に除去し、常に自動算出値のみを読み取り専用表示する。
 
 import { useState } from 'react';
-import { ASSET_CLASSES } from '@/lib/hojinAssetManagement/categories';
+import { ASSET_CLASSES } from '@/lib/assetManagement/categories';
 import {
   getEffectivePhaseMetrics, calcPortfolioMetrics, getEffectiveRetirementMu, getEffectiveRetirementSigma,
 } from '@/lib/hojinCompanyState/portfolioMath';

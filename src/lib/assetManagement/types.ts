@@ -14,4 +14,7 @@ export interface AssetSnapshot {
   date: string;             // 'YYYY-MM'形式（月次判定に使用、monthlyCheck.ts参照）
   holdings: AssetHolding[];
   totalAmount: number;
+  // フェーズ2以降のプロファイル機能に備えたスキーマ下地（フェーズ1では常に'default'固定）。
+  // 関連するUI・切替ロジックはフェーズ1では実装しない。
+  profileId: string;
 }

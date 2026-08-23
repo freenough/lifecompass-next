@@ -1,7 +1,7 @@
 'use client';
 
-import type { AssetClassDef } from '@/lib/hojinAssetManagement/categories';
-import { getAssetClassLabel } from '@/lib/hojinAssetManagement/categories';
+import type { AssetClassDef } from '@/lib/assetManagement/categories';
+import { getAssetClassLabel } from '@/lib/assetManagement/categories';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 
 // 個人資産管理ツールのAssetHoldingCard.tsx（ロック対象）の見た目・構造を参照して複製した
@@ -13,7 +13,7 @@ import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 // ownerは個人資産パネル側のみ実際に値を持つ（法人保有資産側は省略可＝undefined）。
 export interface HojinCardHolding {
   id: string;
-  owner?: 'personal' | 'personal_spouse';
+  owner?: 'personal' | 'personal_spouse' | 'corporate';
   accountCategory: string;
   assetClass: string;
   amount: number;

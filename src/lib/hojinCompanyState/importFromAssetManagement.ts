@@ -4,7 +4,7 @@
 // ファイル選択なし）。ボタン押下時に一括上書きする想定で、自動同期は行わない。
 
 import { loadHojinHoldings } from '../hojinAssetManagement/storage';
-import type { HojinAssetHolding } from '../hojinAssetManagement/types';
+import type { AssetHolding } from '../assetManagement/types';
 import type { CorporatePortfolioRow } from './types';
 
 // 変換ルール（3.6節）：
@@ -20,7 +20,7 @@ export interface ImportedCorporateAssets {
 }
 
 export function importFromAssetManagement(): ImportedCorporateAssets {
-  const holdings: HojinAssetHolding[] = loadHojinHoldings();
+  const holdings: AssetHolding[] = loadHojinHoldings();
 
   const investedHoldings = holdings.filter(h => INVESTED_CATEGORIES.has(h.accountCategory));
   const cashHoldings = holdings.filter(h => CASH_CATEGORIES.has(h.accountCategory));
