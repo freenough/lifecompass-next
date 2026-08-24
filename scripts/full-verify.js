@@ -757,3 +757,12 @@ console.log('\n' + '='.repeat(100));
 console.log('【CompanyState:法人資産を含めたFIRE試算】verify-companystate.js');
 console.log('='.repeat(100));
 require('./verify-companystate.js');
+
+// ================================================================
+// 資産管理ツール：CSV記録履歴インポートの重複排除・区分フィルタ（純粋関数の単体テスト）
+// investigation_csv_duplicate_bug_and_reset_feature.md で発覚したバグA・バグBの回帰テスト
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【資産管理ツール:CSV重複排除・区分フィルタ】verify-asset-management-csv.js');
+console.log('='.repeat(100));
+require('./verify-asset-management-csv.js');

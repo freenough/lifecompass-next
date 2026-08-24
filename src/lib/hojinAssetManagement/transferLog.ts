@@ -42,3 +42,9 @@ export function appendTransferLog(entry: Omit<TransferLogEntry, 'id' | 'executed
   saveTransferLog(next);
   return next;
 }
+
+/** 移転履歴ログを全削除する（追加実装4章：全データリセット機能。法人スコープのリセット時に呼ぶ）。 */
+export function clearTransferLog(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(TRANSFER_LOG_KEY);
+}

@@ -1,5 +1,6 @@
 import type { AssetHolding } from '@/lib/assetManagement/types';
-import { MAX_SNAPSHOTS } from '@/lib/assetManagement/config';
+import { MAX_SNAPSHOTS } from '../assetManagement/config';
+import { normalizeYearMonth, mergeById } from '../assetManagement/csvHistory';
 import type { HojinAssetSnapshot } from './types';
 import { toYearMonth } from './monthlyCheck';
 
@@ -40,14 +41,50 @@ function withDefaultProfileId(snapshots: HojinAssetSnapshot[]): HojinAssetSnapsh
   return snapshots.map((s) => (s.profileId ? s : { ...s, profileId: 'default' }));
 }
 
+/**
+ * 未正規化の年月ラベル（例：「Aug-26」）で保存されてしまったスナップショットを、読み込みの
+ * たびに正規化・統合する（investigation_csv_duplicate_bug_and_reset_feature.md §3）。
+ * 正規化後のdateに既存のスナップショットがあれば、hojinHoldings・personalHoldingsとも
+ * mergeById（正規化後の年月に元々あった行を優先、未正規化側にしかない行は追加で取り込む）で
+ * 統合する。normalizeYearMonthがnullを返す場合はデータを失わないよう元のdateのまま残す。
+ */
+function migrateBadDateLabels(snapshots: HojinAssetSnapshot[]): HojinAssetSnapshot[] {
+  const isValid = (date: string) => /^\d{4}-\d{2}$/.test(date);
+  const bad = snapshots.filter((s) => !isValid(s.date));
+  if (bad.length === 0) return snapshots;
+
+  const byDate = new Map<string, HojinAssetSnapshot>(snapshots.filter((s) => isValid(s.date)).map((s) => [s.date, s]));
+  const unmigratable: HojinAssetSnapshot[] = [];
+  for (const s of bad) {
+    const fixedDate = normalizeYearMonth(s.date);
+    if (!fixedDate) {
+      unmigratable.push(s);
+      continue;
+    }
+    const existing = byDate.get(fixedDate);
+    const hojinHoldings = existing ? mergeById(s.hojinHoldings, existing.hojinHoldings) : s.hojinHoldings;
+    const personalHoldings = existing ? mergeById(s.personalHoldings, existing.personalHoldings) : s.personalHoldings;
+    byDate.set(fixedDate, {
+      date: fixedDate,
+      hojinHoldings,
+      personalHoldings,
+      totalHojinAmount: hojinHoldings.reduce((sum, h) => sum + (h.amount || 0), 0),
+      totalPersonalAmount: personalHoldings.reduce((sum, h) => sum + (h.amount || 0), 0),
+      profileId: existing?.profileId || s.profileId || 'default',
+    });
+  }
+  return [...Array.from(byDate.values()), ...unmigratable].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
 export function loadSnapshots(): HojinAssetSnapshot[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(SNAPSHOTS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as HojinAssetSnapshot[];
-    const deduped = dedupeSnapshotsByDate(withDefaultProfileId(parsed));
-    if (deduped.length !== parsed.length || deduped.some((s, i) => s.profileId !== parsed[i]?.profileId)) {
+    const dateFixed = migrateBadDateLabels(parsed);
+    const deduped = dedupeSnapshotsByDate(withDefaultProfileId(dateFixed));
+    if (JSON.stringify(deduped) !== JSON.stringify(parsed)) {
       saveSnapshots(deduped);
     }
     return deduped;
@@ -119,4 +156,21 @@ export function loadPersonalizationRatio(): number {
 
 export function savePersonalizationRatio(ratio: number): void {
   localStorage.setItem(PERSONALIZATION_RATIO_KEY, String(ratio));
+}
+
+/**
+ * 法人資産管理ツールの全データを削除する（追加実装4章：全データリセット機能）。
+ * 法人保有資産・記録履歴は常に削除する。目標資産額・個人化想定比率（設定値）は
+ * includeSettingsがtrueのときのみ削除。移転履歴ログ（transferLog.ts）はこの関数の
+ * 対象外（呼び出し元がclearTransferLogを別途呼ぶこと、モジュールの責務を分離するため）。
+ * 取り消せない操作であり、呼び出し元（UI）で確認ダイアログを表示してから呼ぶこと。
+ */
+export function resetAll(options: { includeSettings: boolean }): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(HOJIN_HOLDINGS_KEY);
+  localStorage.removeItem(SNAPSHOTS_KEY);
+  if (options.includeSettings) {
+    localStorage.removeItem(TARGET_KEY);
+    localStorage.removeItem(PERSONALIZATION_RATIO_KEY);
+  }
 }

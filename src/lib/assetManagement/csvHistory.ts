@@ -8,17 +8,56 @@ export interface DatedHoldings {
   holdings: AssetHolding[];
 }
 
-/** CSV行（年月付き）を年月でグループ化する。同一年月の行は出現順に配列へ積み上げる。 */
+/**
+ * id一致→上書き、id不一致→新規追加（既存の位置は保持し、新規分は末尾に追加）。
+ * JSON Import・旧CSV Import（assetManagement/exportImport.tsのmergeHoldings、
+ * hojinAssetManagement/exportImport.tsの旧mergeById）と共通のID一致判定ロジック。
+ * 経路ごとに同じ種類の判定を別々に実装していたことが、CSV重複バグ・区分クロス混入バグの
+ * 双方の一因だったため（調査報告：investigation_csv_duplicate_bug_and_reset_feature.md）、
+ * ID一致判定はこの1箇所に集約し、他の場所からはこれを呼び出す形に統一する。
+ */
+export function mergeById<T extends { id: string }>(existing: T[], incoming: T[]): T[] {
+  const merged = [...existing];
+  for (const item of incoming) {
+    const idx = merged.findIndex((e) => e.id === item.id);
+    if (idx >= 0) merged[idx] = item;
+    else merged.push(item);
+  }
+  return merged;
+}
+
+/**
+ * CSV行（年月付き）を年月でグループ化する。同一年月グループ内で同一idの行が複数存在する場合は
+ * mergeByIdと同じ「id一致→上書き（最後に出現した行が勝つ）」ルールで1件に収束させる
+ * （調査報告のバグA：以前はid判定なしに無条件pushしていたため、CSVファイル自体に同一id+
+ * 同一年月の行が複数含まれていると、1回のインポートだけで重複行がそのまま保存されていた）。
+ */
 export function groupRowsByYearMonth(
   rows: Array<AssetHolding & { yearMonth: string }>,
 ): Map<string, AssetHolding[]> {
   const map = new Map<string, AssetHolding[]>();
   for (const { yearMonth, ...holding } of rows) {
-    const arr = map.get(yearMonth);
-    if (arr) arr.push(holding);
-    else map.set(yearMonth, [holding]);
+    const existing = map.get(yearMonth);
+    map.set(yearMonth, existing ? mergeById(existing, [holding]) : [holding]);
   }
   return map;
+}
+
+/**
+ * CSV行を、指定したowner（区分）を除外したうえで年月グループ化する。法人セクションのCSV
+ * インポートは本人/配偶者行を除外し、個人セクションのCSVインポートは法人行を除外する
+ * （調査報告のバグB：以前は法人側にのみ除外フィルタがあり、個人側に対称の実装が
+ * 反映されていなかった。同じ種類の処理は両方の呼び出し元がこの1つの関数を共有することで、
+ * 今後どちらか一方だけ直して他方に反映し忘れる、という食い違いを構造的に防ぐ）。
+ */
+export function buildGroupsExcludingOwners(
+  rows: Array<AssetHolding & { yearMonth: string }>,
+  excludedOwners: ReadonlyArray<AssetHolding['owner']>,
+): { groups: Map<string, AssetHolding[]>; ignoredCount: number; affectedYearMonths: string[] } {
+  const included = rows.filter((r) => !excludedOwners.includes(r.owner));
+  const ignoredCount = rows.length - included.length;
+  const groups = groupRowsByYearMonth(included);
+  return { groups, ignoredCount, affectedYearMonths: sortedYearMonths(groups) };
 }
 
 /**

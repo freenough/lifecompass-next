@@ -9,10 +9,10 @@ import {
 import {
   loadHoldings as loadPersonalHoldings,
   saveHoldings as savePersonalHoldings,
-} from '@/lib/assetManagement/storage';
-import { mergeHoldings } from '@/lib/assetManagement/exportImport';
-import { toYearMonth } from '@/lib/assetManagement/monthlyCheck';
-import { groupRowsByYearMonth, replaceYearMonthGroups, rowToHolding, normalizeYearMonth } from '@/lib/assetManagement/csvHistory';
+} from '../assetManagement/storage';
+import { mergeHoldings } from '../assetManagement/exportImport';
+import { toYearMonth } from '../assetManagement/monthlyCheck';
+import { replaceYearMonthGroups, rowToHolding, normalizeYearMonth, mergeById, buildGroupsExcludingOwners } from '../assetManagement/csvHistory';
 
 // 個人資産管理ツール（exportImport.ts、ロック対象外）のExport/Import機構とは別実装だが、
 // フェーズ1でCSVヘッダー構成を統一した（4章）。ファイル名は個人側と同じ命名規則
@@ -144,17 +144,6 @@ export function exportToCsv(
   downloadBlob(blob, `${FILENAME_PREFIX}_${scope}_${todayStamp()}.csv`);
 }
 
-/** id一致→上書き、id不一致→新規追加（既存の位置は保持し、新規分は末尾に追加）。 */
-function mergeById<T extends { id: string }>(existing: T[], incoming: T[]): T[] {
-  const merged = [...existing];
-  for (const item of incoming) {
-    const idx = merged.findIndex((e) => e.id === item.id);
-    if (idx >= 0) merged[idx] = item;
-    else merged.push(item);
-  }
-  return merged;
-}
-
 /** date一致→上書き、不一致→新規追加。マージ後はdate昇順に並べ直す。 */
 function mergeSnapshots(existing: HojinAssetSnapshot[], incoming: HojinAssetSnapshot[]): HojinAssetSnapshot[] {
   const merged = [...existing];
@@ -218,6 +207,10 @@ export interface ParsedHojinHistoryCsv {
  * のみを対象とする。本人/配偶者行が含まれていても個人ツール本体のストアには一切書き込まず、
  * 件数だけ数えて呼び出し元の確認ダイアログでの注意喚起に使う（合算表示のためのライブ参照は
  * 読み取り専用であり、法人側の操作が個人の実データを書き換えてよい設計にはなっていないため）。
+ * owner除外＋グループ化はcsvHistory.tsのbuildGroupsExcludingOwnersを個人側パーサ
+ * （assetManagement/exportImport.tsのparseHistoryCsv）と共用する
+ * （investigation_csv_duplicate_bug_and_reset_feature.md バグB：以前は法人側にのみ
+ * この除外フィルタがあり、個人側に対称の実装が反映されていなかった）。
  */
 export function parseHojinHistoryCsv(text: string): ParsedHojinHistoryCsv {
   const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
@@ -240,16 +233,10 @@ export function parseHojinHistoryCsv(text: string): ParsedHojinHistoryCsv {
     throw new Error(`年月列を解釈できない行があります: ${badRows.join('、')}。CSVを修正して再度お試しください。`);
   }
 
-  const hojinRows = allRows.filter((r) => r.owner === 'corporate');
-  const ignoredPersonalRowCount = allRows.length - hojinRows.length;
-  const hojinGroups = groupRowsByYearMonth(hojinRows);
-  const affectedYearMonths = sortedYearMonthsOf(hojinGroups);
+  const { groups: hojinGroups, ignoredCount: ignoredPersonalRowCount, affectedYearMonths } =
+    buildGroupsExcludingOwners(allRows, ['personal', 'personal_spouse']);
 
   return { hojinGroups, ignoredPersonalRowCount, affectedYearMonths };
-}
-
-function sortedYearMonthsOf(groups: Map<string, AssetHolding[]>): string[] {
-  return Array.from(groups.keys()).sort();
 }
 
 /**

@@ -40,6 +40,8 @@ export default function AssetExportImportControls({ holdings, snapshots, onImpor
   /**
    * 年月列ありの新形式（記録履歴対応）か、旧6列形式かをヘッダーだけで判定し、
    * 新形式のときのみ「影響を受ける年月ラベル」を示す確認ダイアログを挟む（1-3節）。
+   * 個人セクションでのCSVインポートは個人保有資産のみを対象とし、法人行が含まれていても
+   * 反映しない（investigation_csv_duplicate_bug_and_reset_feature.md バグB対応）。
    */
   const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,10 +59,20 @@ export default function AssetExportImportControls({ holdings, snapshots, onImpor
         return;
       }
       const parsed = parseHistoryCsv(text);
-      if (parsed.affectedYearMonths.length > 0) {
-        const confirmed = window.confirm(`${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`);
-        if (!confirmed) return;
+      if (parsed.affectedYearMonths.length === 0) {
+        alert(
+          parsed.ignoredCorporateRowCount > 0
+            ? 'このCSVには個人（本人/配偶者）の行が含まれていないため、インポートできる内容がありません。法人の行は個人インポートでは反映されません。'
+            : 'インポートできる内容がありませんでした。'
+        );
+        return;
       }
+      let message = `${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`;
+      if (parsed.ignoredCorporateRowCount > 0) {
+        message += '\n\n※法人の行は個人インポートでは反映されません';
+      }
+      const confirmed = window.confirm(message);
+      if (!confirmed) return;
       const result = applyHistoryCsv(parsed);
       onImported(result.holdings, result.snapshots);
       if (result.removed.length > 0) onRemoved?.(result.removed);

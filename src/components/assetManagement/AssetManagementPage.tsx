@@ -19,6 +19,7 @@ import {
   addSnapshot,
   loadTargetAmount,
   saveTargetAmount,
+  resetAll as resetPersonalAll,
 } from '@/lib/assetManagement/storage';
 import {
   loadHojinHoldings,
@@ -29,12 +30,15 @@ import {
   saveTargetAmount as saveHojinTargetAmount,
   loadPersonalizationRatio,
   savePersonalizationRatio,
+  resetAll as resetHojinAll,
 } from '@/lib/hojinAssetManagement/storage';
+import { clearTransferLog } from '@/lib/hojinAssetManagement/transferLog';
 import AssetHoldingCard from './AssetHoldingCard';
 import AssetProgressPanel from './AssetProgressPanel';
 import AssetAllocationChangeTable from './AssetAllocationChangeTable';
 import MonthlyRecordBanner from './MonthlyRecordBanner';
 import AssetExportImportControls from './AssetExportImportControls';
+import AssetResetControls, { type ResetScope } from './AssetResetControls';
 import HojinAssetHoldingCard from '@/components/hojinAssetManagement/HojinAssetHoldingCard';
 import HojinAssetProgressPanel from '@/components/hojinAssetManagement/HojinAssetProgressPanel';
 import HojinAssetAllocationChangeTable from '@/components/hojinAssetManagement/HojinAssetAllocationChangeTable';
@@ -198,6 +202,25 @@ export default function AssetManagementPage() {
     setHoldings(nextPersonalHoldings);
     if (nextHojinSnapshots) setHojinSnapshots(nextHojinSnapshots);
     if (nextPersonalSnapshots) setSnapshots(nextPersonalSnapshots);
+  };
+
+  // 全データリセット（追加実装4章）。対象範囲ごとにストレージを削除したうえで、
+  // 各stateをストレージから読み直す（削除後は空配列・デフォルト設定値になる）。
+  const handleReset = (scope: ResetScope, includeSettings: boolean) => {
+    if (scope === 'personal' || scope === 'both') {
+      resetPersonalAll({ includeSettings });
+      setHoldings(loadHoldings());
+      setSnapshots(loadSnapshots());
+      setTargetAmount(loadTargetAmount());
+    }
+    if (scope === 'hojin' || scope === 'both') {
+      resetHojinAll({ includeSettings });
+      clearTransferLog();
+      setHojinHoldings(loadHojinHoldings());
+      setHojinSnapshots(loadHojinSnapshots());
+      setHojinTargetAmount(loadHojinTargetAmount());
+      setPersonalizationRatio(loadPersonalizationRatio());
+    }
   };
 
   const totalAmount = holdings.reduce((s, h) => s + (h.amount || 0), 0);
@@ -422,6 +445,10 @@ export default function AssetManagementPage() {
               />
             </section>
           )}
+
+          <section>
+            <AssetResetControls onReset={handleReset} />
+          </section>
         </div>
       </div>
     </main>

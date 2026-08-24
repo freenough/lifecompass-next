@@ -1,7 +1,7 @@
 import type { AssetHolding, AssetSnapshot } from './types';
 import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots } from './storage';
 import { toYearMonth } from './monthlyCheck';
-import { groupRowsByYearMonth, replaceYearMonthGroups, sortedYearMonths, rowToHolding, normalizeYearMonth } from './csvHistory';
+import { replaceYearMonthGroups, rowToHolding, normalizeYearMonth, mergeById, buildGroupsExcludingOwners } from './csvHistory';
 
 interface AssetManagementExportPayload {
   version: 1;
@@ -115,15 +115,12 @@ export function exportToCsv(holdings: AssetHolding[], snapshots: AssetSnapshot[]
   downloadBlob(blob, `${FILENAME_PREFIX}_${todayStamp()}.csv`);
 }
 
-/** id一致→上書き、id不一致→新規追加（既存の位置は保持し、新規分は末尾に追加）。 */
+/**
+ * id一致→上書き、id不一致→新規追加（既存の位置は保持し、新規分は末尾に追加）。
+ * 実体はcsvHistory.tsのmergeById（CSV記録履歴インポートの重複排除と共通のロジック）。
+ */
 export function mergeHoldings(existing: AssetHolding[], incoming: AssetHolding[]): AssetHolding[] {
-  const merged = [...existing];
-  for (const h of incoming) {
-    const idx = merged.findIndex(e => e.id === h.id);
-    if (idx >= 0) merged[idx] = h;
-    else merged.push(h);
-  }
-  return merged;
+  return mergeById(existing, incoming);
 }
 
 /**
@@ -230,12 +227,19 @@ export function importHoldingsFromCsv(file: File): Promise<AssetHolding[]> {
 
 export interface ParsedHistoryCsv {
   groups: Map<string, AssetHolding[]>;
+  /** 法人行が含まれていた件数（個人インポートでは反映しない。確認ダイアログでの注意喚起用）。 */
+  ignoredCorporateRowCount: number;
   affectedYearMonths: string[];
 }
 
 /**
  * 年月列ありの新形式CSVをパースする（適用はまだ行わない。確認ダイアログを挟むための
- * 2段階Import、追加実装：CSV記録履歴対応 1-3節）。
+ * 2段階Import、追加実装：CSV記録履歴対応 1-3節）。個人セクションでのCSVインポートは
+ * 個人保有資産（owner:'corporate'以外の行）のみを対象とする。法人行が含まれていても
+ * 法人ツール本体のストアには一切書き込まず、件数だけ数えて呼び出し元の確認ダイアログでの
+ * 注意喚起に使う（法人側と対称の制約、investigation_csv_duplicate_bug_and_reset_feature.md
+ * バグB対応。buildGroupsExcludingOwnersを法人側パーサと共用することで、
+ * 「片方だけ直して他方に反映し忘れる」食い違いを構造的に防ぐ）。
  */
 export function parseHistoryCsv(text: string): ParsedHistoryCsv {
   const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
@@ -264,8 +268,8 @@ export function parseHistoryCsv(text: string): ParsedHistoryCsv {
     throw new Error(`年月列を解釈できない行があります: ${badRows.join('、')}。CSVを修正して再度お試しください。`);
   }
 
-  const groups = groupRowsByYearMonth(rows);
-  return { groups, affectedYearMonths: sortedYearMonths(groups) };
+  const { groups, ignoredCount, affectedYearMonths } = buildGroupsExcludingOwners(rows, ['corporate']);
+  return { groups, ignoredCorporateRowCount: ignoredCount, affectedYearMonths };
 }
 
 /**

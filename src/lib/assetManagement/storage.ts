@@ -1,6 +1,7 @@
 import type { AssetHolding, AssetSnapshot } from './types';
 import { toYearMonth } from './monthlyCheck';
 import { MAX_SNAPSHOTS } from './config';
+import { normalizeYearMonth, mergeById } from './csvHistory';
 
 // 既存の'lifeCompassProfiles'（src/lib/storage.ts）とは完全に分離した新規キー。
 const HOLDINGS_KEY  = 'lifeCompassAssetHoldings';
@@ -38,17 +39,54 @@ function withDefaultProfileId(snapshots: AssetSnapshot[]): AssetSnapshot[] {
   return snapshots.map((s) => (s.profileId ? s : { ...s, profileId: 'default' }));
 }
 
+/**
+ * 差し戻し対応（remand_csv_date_parsing_and_scope_fix.md）でCSV年月列の正規化を実装したが、
+ * それ以前に「Aug-26」のような未正規化ラベルで保存されてしまったスナップショットは
+ * 新規インポート時のバリデーションだけでは直らない（読み込みのたびに残り続ける）。
+ * 読み込みのたびにdate文字列がYYYY-MM形式でないものをnormalizeYearMonthで正規化し、
+ * 正規化後のdateに既存のスナップショットがあればholdingsをmergeById（正規化後の年月に
+ * 元々あった行を優先し、未正規化側にしかない行は追加で取り込む）で統合する
+ * （investigation_csv_duplicate_bug_and_reset_feature.md §3）。
+ * normalizeYearMonthがnullを返す場合（万一パターンにも当てはまらない場合）はデータを
+ * 失わないよう元のdateのまま残す。
+ */
+function migrateBadDateLabels(snapshots: AssetSnapshot[]): AssetSnapshot[] {
+  const isValid = (date: string) => /^\d{4}-\d{2}$/.test(date);
+  const bad = snapshots.filter((s) => !isValid(s.date));
+  if (bad.length === 0) return snapshots;
+
+  const byDate = new Map<string, AssetSnapshot>(snapshots.filter((s) => isValid(s.date)).map((s) => [s.date, s]));
+  const unmigratable: AssetSnapshot[] = [];
+  for (const s of bad) {
+    const fixedDate = normalizeYearMonth(s.date);
+    if (!fixedDate) {
+      unmigratable.push(s);
+      continue;
+    }
+    const existing = byDate.get(fixedDate);
+    const holdings = existing ? mergeById(s.holdings, existing.holdings) : s.holdings;
+    byDate.set(fixedDate, {
+      date: fixedDate,
+      holdings,
+      totalAmount: holdings.reduce((sum, h) => sum + (h.amount || 0), 0),
+      profileId: existing?.profileId || s.profileId || 'default',
+    });
+  }
+  return [...Array.from(byDate.values()), ...unmigratable].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
 export function loadSnapshots(): AssetSnapshot[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(SNAPSHOTS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as AssetSnapshot[];
-    const deduped = dedupeSnapshotsByDate(withDefaultProfileId(parsed));
-    // 4章の不具合（addSnapshotが同一dateでも無条件追加していたため生じた既存の重複行）を、
-    // 読み込みのたびに自動整理する。同一dateは最後の値を残すだけで、ユーザーの実データを
-    // 削除するわけではない（本来上書きされているべきだった状態に揃えるだけ）。
-    if (deduped.length !== parsed.length || deduped.some((s, i) => s.profileId !== parsed[i]?.profileId)) {
+    const dateFixed = migrateBadDateLabels(parsed);
+    const deduped = dedupeSnapshotsByDate(withDefaultProfileId(dateFixed));
+    // 4章の不具合（addSnapshotが同一dateでも無条件追加していたため生じた既存の重複行）や、
+    // 上記の未正規化年月ラベルを、読み込みのたびに自動整理する。ユーザーの実データを
+    // 削除するわけではない（本来あるべき状態に揃えるだけ）。
+    if (JSON.stringify(deduped) !== JSON.stringify(parsed)) {
       saveSnapshots(deduped);
     }
     return deduped;
@@ -101,4 +139,18 @@ export function loadTargetAmount(): number {
 
 export function saveTargetAmount(amount: number): void {
   localStorage.setItem(TARGET_KEY, String(amount));
+}
+
+/**
+ * 個人資産管理ツールの全データを削除する（追加実装4章：全データリセット機能）。
+ * 保有資産・記録履歴は常に削除する。目標資産額（設定値）はincludeSettingsがtrueのときのみ削除。
+ * 取り消せない操作であり、呼び出し元（UI）で確認ダイアログを表示してから呼ぶこと。
+ */
+export function resetAll(options: { includeSettings: boolean }): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(HOLDINGS_KEY);
+  localStorage.removeItem(SNAPSHOTS_KEY);
+  if (options.includeSettings) {
+    localStorage.removeItem(TARGET_KEY);
+  }
 }
