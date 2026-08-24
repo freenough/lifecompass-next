@@ -2,15 +2,25 @@
 
 import { useRef } from 'react';
 import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
-import { exportToJson, exportToCsv, importFromJson, importHoldingsFromCsv } from '@/lib/assetManagement/exportImport';
+import {
+  exportToJson,
+  exportToCsv,
+  importFromJson,
+  detectCsvFormat,
+  importHoldingsFromCsvText,
+  parseHistoryCsv,
+  applyHistoryCsv,
+} from '@/lib/assetManagement/exportImport';
 
 interface AssetExportImportControlsProps {
   holdings: AssetHolding[];
   snapshots: AssetSnapshot[];
   onImported: (holdings: AssetHolding[], snapshots: AssetSnapshot[]) => void;
+  /** 保存上限超過による自動削除が発生したときに呼ばれる（追加実装：保存上限変更）。 */
+  onRemoved?: (removed: AssetSnapshot[]) => void;
 }
 
-export default function AssetExportImportControls({ holdings, snapshots, onImported }: AssetExportImportControlsProps) {
+export default function AssetExportImportControls({ holdings, snapshots, onImported, onRemoved }: AssetExportImportControlsProps) {
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,12 +37,33 @@ export default function AssetExportImportControls({ holdings, snapshots, onImpor
     }
   };
 
+  /**
+   * 年月列ありの新形式（記録履歴対応）か、旧6列形式かをヘッダーだけで判定し、
+   * 新形式のときのみ「影響を受ける年月ラベル」を示す確認ダイアログを挟む（1-3節）。
+   */
   const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const mergedHoldings = await importHoldingsFromCsv(file);
-      onImported(mergedHoldings, snapshots);
+      const text = await file.text();
+      const format = detectCsvFormat(text);
+      if (format === 'unknown') {
+        alert('対応していないCSV形式です。自社のCSVエクスポート機能で出力したファイルを選択してください。');
+        return;
+      }
+      if (format === 'legacy') {
+        const mergedHoldings = importHoldingsFromCsvText(text);
+        onImported(mergedHoldings, snapshots);
+        return;
+      }
+      const parsed = parseHistoryCsv(text);
+      if (parsed.affectedYearMonths.length > 0) {
+        const confirmed = window.confirm(`${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`);
+        if (!confirmed) return;
+      }
+      const result = applyHistoryCsv(parsed);
+      onImported(result.holdings, result.snapshots);
+      if (result.removed.length > 0) onRemoved?.(result.removed);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'CSVの読み込みに失敗しました');
     } finally {
@@ -60,13 +91,13 @@ export default function AssetExportImportControls({ holdings, snapshots, onImpor
         </div>
       </div>
 
-      {/* 右＝CSV：保有資産のみ。表計算ソフトで編集してサイトに戻すための補助導線（2.4節）。 */}
+      {/* 右＝CSV：保有資産＋記録履歴（年月ラベル付き）。表計算ソフトで編集してサイトに戻すための導線。 */}
       <div className="rounded-lg border border-slate-200 p-3">
         <p className="text-xs font-semibold text-slate-700 mb-1">CSV</p>
-        <p className="text-[11px] text-slate-400 mb-2">保有資産のみ。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
+        <p className="text-[11px] text-slate-400 mb-2">保有資産＋記録履歴（年月ラベル付き）。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => exportToCsv(holdings)}
+            onClick={() => exportToCsv(holdings, snapshots)}
             className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
           >
             CSVでエクスポート

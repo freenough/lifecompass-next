@@ -1,24 +1,34 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import type { AssetHolding } from '@/lib/assetManagement/types';
+import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
-import { exportToJson, exportToCsv, importFromJson, importFromCsv, type ExportScope } from '@/lib/hojinAssetManagement/exportImport';
+import {
+  exportToJson,
+  exportToCsv,
+  importFromJson,
+  parseHojinHistoryCsv,
+  applyHojinHistoryCsv,
+  type ExportScope,
+} from '@/lib/hojinAssetManagement/exportImport';
 
 interface HojinAssetExportImportControlsProps {
   hojinHoldings: AssetHolding[];
   personalHoldings: AssetHolding[];
   snapshots: HojinAssetSnapshot[];
-  onImported: (hojinHoldings: AssetHolding[], personalHoldings: AssetHolding[], snapshots?: HojinAssetSnapshot[]) => void;
+  onImported: (hojinHoldings: AssetHolding[], personalHoldings: AssetHolding[], hojinSnapshots?: HojinAssetSnapshot[], personalSnapshots?: AssetSnapshot[]) => void;
+  /** 保存上限超過による自動削除が発生したときに呼ばれる（追加実装：保存上限変更）。 */
+  onRemoved?: (removedHojin: HojinAssetSnapshot[], removedPersonal: AssetSnapshot[]) => void;
 }
 
-// 個人資産管理ツールのAssetExportImportControls.tsx（ロック対象）の2ボックス構成を踏襲しつつ、
+// 個人資産管理ツールのAssetExportImportControls.tsx（ロック対象外）の2ボックス構成を踏襲しつつ、
 // 「法人のみ／合算」の共通トグルを追加（10章）。JSON・CSVの両Exportがこのトグルに従う。
 export default function HojinAssetExportImportControls({
   hojinHoldings,
   personalHoldings,
   snapshots,
   onImported,
+  onRemoved,
 }: HojinAssetExportImportControlsProps) {
   const [scope, setScope] = useState<ExportScope>('combined');
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
@@ -37,12 +47,22 @@ export default function HojinAssetExportImportControls({
     }
   };
 
+  /** 年月ラベル付きCSVを読み込み、影響を受ける年月の一覧を示す確認ダイアログを挟んで適用する（1-3節）。 */
   const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const result = await importFromCsv(file);
-      onImported(result.hojinHoldings, result.personalHoldings);
+      const text = await file.text();
+      const parsed = parseHojinHistoryCsv(text);
+      if (parsed.affectedYearMonths.length > 0) {
+        const confirmed = window.confirm(`${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`);
+        if (!confirmed) return;
+      }
+      const result = applyHojinHistoryCsv(parsed);
+      onImported(result.hojinHoldings, result.personalHoldings, result.hojinSnapshots, result.personalSnapshots);
+      if (result.removedHojin.length > 0 || result.removedPersonal.length > 0) {
+        onRemoved?.(result.removedHojin, result.removedPersonal);
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'CSVの読み込みに失敗しました');
     } finally {
@@ -93,10 +113,10 @@ export default function HojinAssetExportImportControls({
 
         <div className="rounded-lg border border-slate-200 p-3">
           <p className="text-xs font-semibold text-slate-700 mb-1">CSV</p>
-          <p className="text-[11px] text-slate-400 mb-2">保有資産のみ（記録履歴を含まない）。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
+          <p className="text-[11px] text-slate-400 mb-2">保有資産＋記録履歴（年月ラベル付き）。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => exportToCsv(hojinHoldings, personalHoldings, scope)}
+              onClick={() => exportToCsv(hojinHoldings, personalHoldings, snapshots, scope)}
               className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
             >
               CSVでエクスポート

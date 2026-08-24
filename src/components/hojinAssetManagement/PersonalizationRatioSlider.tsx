@@ -29,7 +29,7 @@ export default function PersonalizationRatioSlider({ ratio, onChange, hojinTotal
         className="w-full accent-slate-700"
       />
       <p className="mt-1 text-[11px] text-slate-400 leading-relaxed">
-        法人の利益状況を踏まえて、将来どのくらいの割合を個人の手取りとして受け取れそうか、目安をご自身で設定してください
+        まだ引き出していない法人保有資産のうち、将来どのくらいの割合を個人の手取りとして受け取れそうか、目安をご自身で設定してください（資産移転ヘルパーで実際に移転した分は実績として扱われ、この比率の対象には含まれません）
       </p>
       <p className="mt-2 text-xs text-slate-600">
         個人化想定額: <span className="font-bold text-slate-900">{personalizedAmount.toLocaleString()}万円</span>

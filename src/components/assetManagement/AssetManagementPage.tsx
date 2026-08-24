@@ -39,6 +39,7 @@ import HojinAssetHoldingCard from '@/components/hojinAssetManagement/HojinAssetH
 import HojinAssetProgressPanel from '@/components/hojinAssetManagement/HojinAssetProgressPanel';
 import HojinAssetAllocationChangeTable from '@/components/hojinAssetManagement/HojinAssetAllocationChangeTable';
 import HojinAssetExportImportControls from '@/components/hojinAssetManagement/HojinAssetExportImportControls';
+import HojinTransferHelper from '@/components/hojinAssetManagement/HojinTransferHelper';
 
 // Rechartsコンポーネントは必ずssr:falseの動的importで読み込む（ResponsiveContainerが
 // DOM計測に依存するため。HeroDemo.tsx/src/app/page.tsxの既存パターンを踏襲）。
@@ -80,6 +81,18 @@ export default function AssetManagementPage() {
   // 表示：個人のみ／合算。/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す
   // （法人資産管理ツール単体だった頃の「法人のみ／合算」から意味が反転している）。
   const [displayScopePref, setDisplayScopePref] = useState<'personalOnly' | 'combined'>('combined');
+
+  // 保存上限（MAX_SNAPSHOTS）超過による自動削除の通知バナー（追加実装2章）。
+  const [removalNotice, setRemovalNotice] = useState<string | null>(null);
+  const notifyRemoved = (removedGroups: Array<{ date: string }[]>) => {
+    const all = removedGroups.flat();
+    if (all.length === 0) return;
+    const dates = all.map((r) => r.date).sort();
+    const first = dates[0];
+    const last = dates[dates.length - 1];
+    const range = first === last ? first : `${first}〜${last}`;
+    setRemovalNotice(`保存上限のため、${range}の記録を自動削除しました`);
+  };
 
   const updateHoldings = (next: AssetHolding[]) => {
     setHoldings(next);
@@ -144,10 +157,14 @@ export default function AssetManagementPage() {
   // 個人holdings state（=まさに今ライブ表示している値）をそのまま法人スナップショットにも
   // 自動的に書き込む。手動の「個人データをインポート」操作は不要（フェーズ1の核心）。
   const handleRecord = () => {
-    const nextSnapshots = addSnapshot(holdings);
+    const { snapshots: nextSnapshots, removed } = addSnapshot(holdings);
     setSnapshots(nextSnapshots);
     if (includeCorporate) {
-      setHojinSnapshots(addHojinSnapshot(hojinHoldings, holdings));
+      const { snapshots: nextHojinSnapshots, removed: removedHojin } = addHojinSnapshot(hojinHoldings, holdings);
+      setHojinSnapshots(nextHojinSnapshots);
+      notifyRemoved([removed, removedHojin]);
+    } else {
+      notifyRemoved([removed]);
     }
   };
 
@@ -175,10 +192,12 @@ export default function AssetManagementPage() {
     nextHojinHoldings: AssetHolding[],
     nextPersonalHoldings: AssetHolding[],
     nextHojinSnapshots?: HojinAssetSnapshot[],
+    nextPersonalSnapshots?: AssetSnapshot[],
   ) => {
     setHojinHoldings(nextHojinHoldings);
     setHoldings(nextPersonalHoldings);
     if (nextHojinSnapshots) setHojinSnapshots(nextHojinSnapshots);
+    if (nextPersonalSnapshots) setSnapshots(nextPersonalSnapshots);
   };
 
   const totalAmount = holdings.reduce((s, h) => s + (h.amount || 0), 0);
@@ -197,6 +216,18 @@ export default function AssetManagementPage() {
       <div className="mb-6">
         <MonthlyRecordBanner snapshots={snapshots} onRecord={handleRecord} />
       </div>
+
+      {removalNotice && (
+        <div className="mb-6 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-xs text-slate-600">{removalNotice}</p>
+          <button
+            onClick={() => setRemovalNotice(null)}
+            className="shrink-0 text-xs text-slate-400 hover:text-slate-600"
+          >
+            閉じる
+          </button>
+        </div>
+      )}
 
       {/* デスクトップ(lg:1024px以上)は左右2カラム、モバイルは上下積み。
           既存の資産シミュレーター本体（src/app/app/page.tsx）の左サイドバー/右メイン分割・
@@ -274,6 +305,14 @@ export default function AssetManagementPage() {
                       onDelete={handleDeleteHojin}
                     />
                   ))}
+
+                  <HojinTransferHelper
+                    hojinHoldings={hojinHoldings}
+                    personalHoldings={holdings}
+                    personalizationRatio={personalizationRatio}
+                    onUpdateHojinHoldings={updateHojinHoldings}
+                    onUpdatePersonalHoldings={updateHoldings}
+                  />
                 </div>
               )}
             </div>
@@ -363,7 +402,12 @@ export default function AssetManagementPage() {
 
           <section>
             <h2 className="text-sm font-bold text-slate-700 mb-3">Export / Import</h2>
-            <AssetExportImportControls holdings={holdings} snapshots={snapshots} onImported={handleImported} />
+            <AssetExportImportControls
+              holdings={holdings}
+              snapshots={snapshots}
+              onImported={handleImported}
+              onRemoved={(removed) => notifyRemoved([removed])}
+            />
           </section>
 
           {includeCorporate && (
@@ -374,6 +418,7 @@ export default function AssetManagementPage() {
                 personalHoldings={holdings}
                 snapshots={hojinSnapshots}
                 onImported={handleHojinImported}
+                onRemoved={(removedHojin, removedPersonal) => notifyRemoved([removedHojin, removedPersonal])}
               />
             </section>
           )}

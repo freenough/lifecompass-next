@@ -1,5 +1,7 @@
 import type { AssetHolding, AssetSnapshot } from './types';
 import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots } from './storage';
+import { toYearMonth } from './monthlyCheck';
+import { groupRowsByYearMonth, replaceYearMonthGroups, sortedYearMonths, rowToHolding } from './csvHistory';
 
 interface AssetManagementExportPayload {
   version: 1;
@@ -54,9 +56,12 @@ export function exportToJson(holdings: AssetHolding[], snapshots: AssetSnapshot[
 // （2章：IDが無いと「同じCSVを2回取り込むと行が倍増する」という別の重複バグを生む）。
 // フェーズ1（資産管理ツール統合）で法人版CSVと列構成を揃えるため、3列目のラベルを
 // 「保有者」→「区分」に改称した（値の意味・集合は不変：本人/配偶者/法人）。
-const CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '区分', '金額(万円)', '更新日'];
-// 改称前（「保有者」列）のCSVも後方互換で読み込めるようにする。列の意味・並びは同一のため、
-// ヘッダーの1語だけを許容する形で判定を緩める。
+// 追加実装（CSV記録履歴対応）で7列目に「年月」を追加し、現在値だけでなく過去の記録履歴
+// （AssetSnapshot[]）もCSVでまとめて編集できるようにした。
+const CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '区分', '金額(万円)', '更新日', '年月'];
+// 「年月」列を追加する前（保存上限変更前）のCSVも後方互換で読み込めるようにする。
+// 6列CSVは年月ラベルを持たないため、全行を「今月扱い」として現在のholdingsのみへ
+// インポートする（従来のimportHoldingsFromCsvと同じ挙動、スナップショットには触れない）。
 const LEGACY_CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '保有者', '金額(万円)', '更新日'];
 const CSV_IMPORT_ERROR_MESSAGE = '対応していないCSV形式です。自社のCSVエクスポート機能で出力したファイルを選択してください。';
 
@@ -91,15 +96,17 @@ function parseCsvLine(line: string): string[] {
   return fields;
 }
 
-export function exportToCsv(holdings: AssetHolding[]): void {
-  const rows = holdings.map((h) => [
-    h.id,
-    h.accountCategory,
-    h.assetClass,
-    OWNER_LABELS[h.owner] ?? h.owner,
-    h.amount,
-    h.updatedAt,
-  ]);
+/**
+ * 現在の保有資産（今月ラベル）＋保存済みの全記録履歴（今月分と重複する場合は現在値を優先し
+ * 履歴側は除外）を年月ラベル付きでCSV出力する（追加実装：CSV記録履歴対応）。
+ */
+export function exportToCsv(holdings: AssetHolding[], snapshots: AssetSnapshot[]): void {
+  const nowYM = toYearMonth(new Date());
+  const currentRows = holdings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt, nowYM]);
+  const historyRows = snapshots
+    .filter((s) => s.date !== nowYM)
+    .flatMap((s) => s.holdings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt, s.date]));
+  const rows = [...currentRows, ...historyRows];
   const bom = '﻿';
   const csv = bom + [CSV_HEADERS, ...rows].map((r) => r.map(csvField).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -152,41 +159,64 @@ export function importFromJson(file: File): Promise<{ holdings: AssetHolding[]; 
   });
 }
 
+function stripBom(text: string): string {
+  return text.replace(/^﻿/, '');
+}
+
+function parseHeader(text: string): string[] {
+  const firstLine = stripBom(text).split(/\r?\n/)[0] ?? '';
+  return parseCsvLine(firstLine);
+}
+
+function headerMatches(header: string[], expected: string[]): boolean {
+  return header.length === expected.length && header.every((h, i) => h === expected[i]);
+}
+
+export type CsvFormat = 'history' | 'legacy' | 'unknown';
+
+/** ファイルの1行目ヘッダーだけを見て、年月列ありの新形式か、旧6列形式かを判定する。 */
+export function detectCsvFormat(text: string): CsvFormat {
+  const header = parseHeader(text);
+  if (headerMatches(header, CSV_HEADERS)) return 'history';
+  if (headerMatches(header, LEGACY_CSV_HEADERS)) return 'legacy';
+  return 'unknown';
+}
+
 /**
  * 自社CSV Exportの列構成と完全一致するCSVのみを読み込む（2章：段階Aのスコープ）。
- * ヘッダーが一致しない場合は取り込みを中断し、エラーを投げる（部分一致・列推測は行わない）。
- * パース後はJSON Importと同じmergeHoldings（idベース）をそのまま再利用する。
+ * 6列・旧「保有者」ヘッダーの後方互換パス。年月ラベルを持たないため、全行を現在の
+ * holdingsへのidベースマージとしてのみ扱う（スナップショットには一切触れない、従来通り）。
  */
+export function importHoldingsFromCsvText(text: string): AssetHolding[] {
+  const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
+  if (lines.length === 0) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
+  const header = parseCsvLine(lines[0]);
+  if (!headerMatches(header, LEGACY_CSV_HEADERS)) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
+
+  const incoming: AssetHolding[] = lines.slice(1).map((line) => {
+    const [id, accountCategory, assetClass, ownerLabel, amountStr, updatedAt] = parseCsvLine(line);
+    return {
+      id,
+      owner: OWNER_LABEL_TO_VALUE[ownerLabel] ?? 'personal',
+      accountCategory,
+      assetClass,
+      amount: Number(amountStr) || 0,
+      updatedAt,
+    };
+  });
+
+  const mergedHoldings = mergeHoldings(loadHoldings(), incoming);
+  saveHoldings(mergedHoldings);
+  return mergedHoldings;
+}
+
+/** @deprecated 互換のためFile版も残す。内部でimportHoldingsFromCsvTextを呼ぶだけの薄いラッパー。 */
 export function importHoldingsFromCsv(file: File): Promise<AssetHolding[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const text = (ev.target?.result as string).replace(/^﻿/, '');
-        const lines = text.split(/\r?\n/).filter((l) => l.length > 0);
-        if (lines.length === 0) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
-
-        const header = parseCsvLine(lines[0]);
-        const headerMatches =
-          (header.length === CSV_HEADERS.length && header.every((h, i) => h === CSV_HEADERS[i])) ||
-          (header.length === LEGACY_CSV_HEADERS.length && header.every((h, i) => h === LEGACY_CSV_HEADERS[i]));
-        if (!headerMatches) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
-
-        const incoming: AssetHolding[] = lines.slice(1).map((line) => {
-          const [id, accountCategory, assetClass, ownerLabel, amountStr, updatedAt] = parseCsvLine(line);
-          return {
-            id,
-            owner: OWNER_LABEL_TO_VALUE[ownerLabel] ?? 'personal',
-            accountCategory,
-            assetClass,
-            amount: Number(amountStr) || 0,
-            updatedAt,
-          };
-        });
-
-        const mergedHoldings = mergeHoldings(loadHoldings(), incoming);
-        saveHoldings(mergedHoldings);
-        resolve(mergedHoldings);
+        resolve(importHoldingsFromCsvText(ev.target?.result as string));
       } catch (e) {
         reject(e instanceof Error ? e : new Error(CSV_IMPORT_ERROR_MESSAGE));
       }
@@ -194,4 +224,67 @@ export function importHoldingsFromCsv(file: File): Promise<AssetHolding[]> {
     reader.onerror = () => reject(reader.error);
     reader.readAsText(file);
   });
+}
+
+export interface ParsedHistoryCsv {
+  groups: Map<string, AssetHolding[]>;
+  affectedYearMonths: string[];
+}
+
+/**
+ * 年月列ありの新形式CSVをパースする（適用はまだ行わない。確認ダイアログを挟むための
+ * 2段階Import、追加実装：CSV記録履歴対応 1-3節）。
+ */
+export function parseHistoryCsv(text: string): ParsedHistoryCsv {
+  const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
+  if (lines.length === 0) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
+  const header = parseCsvLine(lines[0]);
+  if (!headerMatches(header, CSV_HEADERS)) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
+
+  const rows = lines.slice(1).map((line) => {
+    const [id, accountCategory, assetClass, ownerLabel, amountStr, updatedAt, yearMonth] = parseCsvLine(line);
+    const holding = rowToHolding({
+      id,
+      owner: OWNER_LABEL_TO_VALUE[ownerLabel] ?? 'personal',
+      accountCategory,
+      assetClass,
+      amount: Number(amountStr) || 0,
+      updatedAt,
+    });
+    return { ...holding, yearMonth };
+  });
+
+  const groups = groupRowsByYearMonth(rows);
+  return { groups, affectedYearMonths: sortedYearMonths(groups) };
+}
+
+/**
+ * parseHistoryCsvの結果を実際に適用する。年月ラベルごとにグループ化された行で、
+ * 既存の同一年月の記録を完全に置き換える（削除→挿入）。今月ラベルが含まれる場合は
+ * 現在のholdingsと今月のAssetSnapshotの両方を同期させる（1-3節）。
+ */
+export function applyHistoryCsv(parsed: ParsedHistoryCsv): {
+  holdings: AssetHolding[];
+  snapshots: AssetSnapshot[];
+  removed: AssetSnapshot[];
+} {
+  const nowYM = toYearMonth(new Date());
+  const existingSnapshots = loadSnapshots();
+  const existingDated = existingSnapshots.map((s) => ({ date: s.date, holdings: s.holdings }));
+  const updatedDated = replaceYearMonthGroups(existingDated, parsed.groups);
+
+  const updatedSnapshots: AssetSnapshot[] = updatedDated.map((d) => ({
+    date: d.date,
+    holdings: d.holdings,
+    totalAmount: d.holdings.reduce((s, h) => s + (h.amount || 0), 0),
+    profileId: 'default',
+  }));
+
+  const { trimmed, removed } = saveSnapshots(updatedSnapshots);
+
+  const currentGroupRows = parsed.groups.get(nowYM);
+  const holdings = currentGroupRows ? currentGroupRows : loadHoldings();
+  if (currentGroupRows) saveHoldings(holdings);
+
+  return { holdings, snapshots: trimmed, removed };
 }

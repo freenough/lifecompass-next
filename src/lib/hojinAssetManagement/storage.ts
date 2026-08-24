@@ -1,4 +1,5 @@
 import type { AssetHolding } from '@/lib/assetManagement/types';
+import { MAX_SNAPSHOTS } from '@/lib/assetManagement/config';
 import type { HojinAssetSnapshot } from './types';
 import { toYearMonth } from './monthlyCheck';
 
@@ -9,8 +10,8 @@ const TARGET_KEY = 'hojinAssetTarget';
 const PERSONALIZATION_RATIO_KEY = 'hojinPersonalizationRatio';
 const DEFAULT_PERSONALIZATION_RATIO = 70; // 7章：デフォルト70%を仮置き
 
-// 個人側と同じ上限件数（0.2の調査結果：24件＝2年分）。
-export const MAX_SNAPSHOTS = 24;
+// 個人側と共通の上限件数（追加実装でsrc/lib/assetManagement/config.tsに一元化）。
+export { MAX_SNAPSHOTS };
 
 export function loadHojinHoldings(): AssetHolding[] {
   if (typeof window === 'undefined') return [];
@@ -55,11 +56,12 @@ export function loadSnapshots(): HojinAssetSnapshot[] {
   }
 }
 
-export function saveSnapshots(snapshots: HojinAssetSnapshot[]): void {
-  const trimmed = snapshots.length > MAX_SNAPSHOTS
-    ? snapshots.slice(snapshots.length - MAX_SNAPSHOTS)
-    : snapshots;
+export function saveSnapshots(snapshots: HojinAssetSnapshot[]): { trimmed: HojinAssetSnapshot[]; removed: HojinAssetSnapshot[] } {
+  const excess = snapshots.length - MAX_SNAPSHOTS;
+  const removed = excess > 0 ? snapshots.slice(0, excess) : [];
+  const trimmed = excess > 0 ? snapshots.slice(excess) : snapshots;
   localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(trimmed));
+  return { trimmed, removed };
 }
 
 /**
@@ -72,7 +74,7 @@ export function saveSnapshots(snapshots: HojinAssetSnapshot[]): void {
 export function addSnapshot(
   hojinHoldings: AssetHolding[],
   personalHoldings: AssetHolding[],
-): HojinAssetSnapshot[] {
+): { snapshots: HojinAssetSnapshot[]; removed: HojinAssetSnapshot[] } {
   const snapshot: HojinAssetSnapshot = {
     date: toYearMonth(new Date()),
     hojinHoldings,
@@ -84,8 +86,8 @@ export function addSnapshot(
   const existing = loadSnapshots();
   const idx = existing.findIndex((s) => s.date === snapshot.date);
   const next = idx >= 0 ? existing.map((s, i) => (i === idx ? snapshot : s)) : [...existing, snapshot];
-  saveSnapshots(next);
-  return next;
+  const { trimmed, removed } = saveSnapshots(next);
+  return { snapshots: trimmed, removed };
 }
 
 export function loadTargetAmount(): number {

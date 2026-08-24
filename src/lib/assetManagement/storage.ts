@@ -1,14 +1,13 @@
 import type { AssetHolding, AssetSnapshot } from './types';
 import { toYearMonth } from './monthlyCheck';
+import { MAX_SNAPSHOTS } from './config';
 
 // 既存の'lifeCompassProfiles'（src/lib/storage.ts）とは完全に分離した新規キー。
 const HOLDINGS_KEY  = 'lifeCompassAssetHoldings';
 const SNAPSHOTS_KEY = 'lifeCompassAssetSnapshots';
 const TARGET_KEY    = 'lifeCompassAssetTarget';
 
-// スナップショット上限件数。月次記録を想定した2年分を目安に24件とした
-// （具体的な根拠：完了報告に記載）。
-export const MAX_SNAPSHOTS = 24;
+export { MAX_SNAPSHOTS };
 
 export function loadHoldings(): AssetHolding[] {
   if (typeof window === 'undefined') return [];
@@ -58,11 +57,16 @@ export function loadSnapshots(): AssetSnapshot[] {
   }
 }
 
-export function saveSnapshots(snapshots: AssetSnapshot[]): void {
-  const trimmed = snapshots.length > MAX_SNAPSHOTS
-    ? snapshots.slice(snapshots.length - MAX_SNAPSHOTS)
-    : snapshots;
+/**
+ * 保存上限（MAX_SNAPSHOTS）を超えた分は古い方から削除する。追加実装（保存上限変更）で、
+ * 削除されたスナップショットをUI側の通知バナーに使えるよう戻り値で返すようにした。
+ */
+export function saveSnapshots(snapshots: AssetSnapshot[]): { trimmed: AssetSnapshot[]; removed: AssetSnapshot[] } {
+  const excess = snapshots.length - MAX_SNAPSHOTS;
+  const removed = excess > 0 ? snapshots.slice(0, excess) : [];
+  const trimmed = excess > 0 ? snapshots.slice(excess) : snapshots;
   localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(trimmed));
+  return { trimmed, removed };
 }
 
 /**
@@ -70,7 +74,7 @@ export function saveSnapshots(snapshots: AssetSnapshot[]): void {
  * 同月内に複数回押された場合はdateが一致するため上書きする（4章バグ修正：以前は
  * 無条件にpushしていたため、同じ月に複数回押すと重複行が生まれていた）。
  */
-export function addSnapshot(holdings: AssetHolding[]): AssetSnapshot[] {
+export function addSnapshot(holdings: AssetHolding[]): { snapshots: AssetSnapshot[]; removed: AssetSnapshot[] } {
   const snapshot: AssetSnapshot = {
     date: toYearMonth(new Date()),
     holdings,
@@ -80,8 +84,8 @@ export function addSnapshot(holdings: AssetHolding[]): AssetSnapshot[] {
   const existing = loadSnapshots();
   const idx = existing.findIndex((s) => s.date === snapshot.date);
   const next = idx >= 0 ? existing.map((s, i) => (i === idx ? snapshot : s)) : [...existing, snapshot];
-  saveSnapshots(next);
-  return next;
+  const { trimmed, removed } = saveSnapshots(next);
+  return { snapshots: trimmed, removed };
 }
 
 export function loadTargetAmount(): number {
