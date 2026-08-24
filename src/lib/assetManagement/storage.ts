@@ -10,11 +10,24 @@ const TARGET_KEY    = 'lifeCompassAssetTarget';
 
 export { MAX_SNAPSHOTS };
 
+/**
+ * これまでの一連の修正（CSVインポート時のmergeById重複排除等）が入る前にHOLDINGS_KEYへ
+ * 書き込まれてしまった重複データ（同一idが複数件）は、新規の書き込みが起きない限り
+ * 永久に残り続ける。loadSnapshotsが持つ自己修復パターン（読み込みのたびに正規化し、
+ * 変化があれば保存し直す）と同じ考え方で、読み込みのたびにmergeByIdで重複排除する
+ * （fix_loadHoldings_missing_dedup.md）。
+ */
 export function loadHoldings(): AssetHolding[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(HOLDINGS_KEY);
-    return raw ? (JSON.parse(raw) as AssetHolding[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as AssetHolding[];
+    const deduped = mergeById([], parsed); // id一致→後勝ちで1件に収束（既存のmergeByIdを再利用）
+    if (JSON.stringify(deduped) !== JSON.stringify(parsed)) {
+      saveHoldings(deduped);
+    }
+    return deduped;
   } catch {
     return [];
   }

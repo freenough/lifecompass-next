@@ -14,11 +14,22 @@ const DEFAULT_PERSONALIZATION_RATIO = 70; // 7章：デフォルト70%を仮置�
 // 個人側と共通の上限件数（追加実装でsrc/lib/assetManagement/config.tsに一元化）。
 export { MAX_SNAPSHOTS };
 
+/**
+ * 個人版storage.tsのloadHoldingsと同一の構造上の欠陥（fix_loadHoldings_missing_dedup.md）：
+ * loadSnapshotsは読み込みのたびに自己修復するが、loadHojinHoldingsにはそれが無く、
+ * mergeById導入前に書き込まれた重複データが永久に残り続けていた。同じ自己修復パターンを適用する。
+ */
 export function loadHojinHoldings(): AssetHolding[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(HOJIN_HOLDINGS_KEY);
-    return raw ? (JSON.parse(raw) as AssetHolding[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as AssetHolding[];
+    const deduped = mergeById([], parsed);
+    if (JSON.stringify(deduped) !== JSON.stringify(parsed)) {
+      saveHojinHoldings(deduped);
+    }
+    return deduped;
   } catch {
     return [];
   }

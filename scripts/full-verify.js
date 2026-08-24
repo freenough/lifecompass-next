@@ -766,3 +766,13 @@ console.log('\n' + '='.repeat(100));
 console.log('【資産管理ツール:CSV重複排除・区分フィルタ】verify-asset-management-csv.js');
 console.log('='.repeat(100));
 require('./verify-asset-management-csv.js');
+
+// ================================================================
+// 資産管理ツール：loadHoldings/loadHojinHoldingsの重複排除・自己修復
+// fix_loadHoldings_missing_dedup.md の回帰テスト。localStorageシムを使うため、
+// 他のスクリプトへの影響を避けるためfull-verify.js内で最後に実行する。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【資産管理ツール:loadHoldings重複排除の自己修復】verify-asset-management-loadholdings-dedup.js');
+console.log('='.repeat(100));
+require('./verify-asset-management-loadholdings-dedup.js');
