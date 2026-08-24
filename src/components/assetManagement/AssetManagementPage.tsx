@@ -418,7 +418,7 @@ export default function AssetManagementPage() {
                 personalHoldings={holdings}
                 snapshots={hojinSnapshots}
                 onImported={handleHojinImported}
-                onRemoved={(removedHojin, removedPersonal) => notifyRemoved([removedHojin, removedPersonal])}
+                onRemoved={(removedHojin) => notifyRemoved([removedHojin])}
               />
             </section>
           )}

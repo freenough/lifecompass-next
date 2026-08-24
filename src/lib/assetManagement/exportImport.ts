@@ -1,7 +1,7 @@
 import type { AssetHolding, AssetSnapshot } from './types';
 import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots } from './storage';
 import { toYearMonth } from './monthlyCheck';
-import { groupRowsByYearMonth, replaceYearMonthGroups, sortedYearMonths, rowToHolding } from './csvHistory';
+import { groupRowsByYearMonth, replaceYearMonthGroups, sortedYearMonths, rowToHolding, normalizeYearMonth } from './csvHistory';
 
 interface AssetManagementExportPayload {
   version: 1;
@@ -56,9 +56,11 @@ export function exportToJson(holdings: AssetHolding[], snapshots: AssetSnapshot[
 // （2章：IDが無いと「同じCSVを2回取り込むと行が倍増する」という別の重複バグを生む）。
 // フェーズ1（資産管理ツール統合）で法人版CSVと列構成を揃えるため、3列目のラベルを
 // 「保有者」→「区分」に改称した（値の意味・集合は不変：本人/配偶者/法人）。
-// 追加実装（CSV記録履歴対応）で7列目に「年月」を追加し、現在値だけでなく過去の記録履歴
-// （AssetSnapshot[]）もCSVでまとめて編集できるようにした。
-const CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '区分', '金額(万円)', '更新日', '年月'];
+// 追加実装（CSV記録履歴対応）で「年月」列を追加し、現在値だけでなく過去の記録履歴
+// （AssetSnapshot[]）もCSVでまとめて編集できるようにした。差し戻し対応（remand
+// _csv_date_parsing_and_scope_fix.md 3-3節）で、年月がグループ化の主キーであることを
+// 編集時に分かりやすくするため、年月列をID列の直後（2列目）に移動した。
+const CSV_HEADERS = ['ID', '年月', '口座カテゴリ', '資産クラス', '区分', '金額(万円)', '更新日'];
 // 「年月」列を追加する前（保存上限変更前）のCSVも後方互換で読み込めるようにする。
 // 6列CSVは年月ラベルを持たないため、全行を「今月扱い」として現在のholdingsのみへ
 // インポートする（従来のimportHoldingsFromCsvと同じ挙動、スナップショットには触れない）。
@@ -102,10 +104,10 @@ function parseCsvLine(line: string): string[] {
  */
 export function exportToCsv(holdings: AssetHolding[], snapshots: AssetSnapshot[]): void {
   const nowYM = toYearMonth(new Date());
-  const currentRows = holdings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt, nowYM]);
+  const currentRows = holdings.map((h) => [h.id, nowYM, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt]);
   const historyRows = snapshots
     .filter((s) => s.date !== nowYM)
-    .flatMap((s) => s.holdings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt, s.date]));
+    .flatMap((s) => s.holdings.map((h) => [h.id, s.date, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt]));
   const rows = [...currentRows, ...historyRows];
   const bom = '﻿';
   const csv = bom + [CSV_HEADERS, ...rows].map((r) => r.map(csvField).join(',')).join('\n');
@@ -241,8 +243,11 @@ export function parseHistoryCsv(text: string): ParsedHistoryCsv {
   const header = parseCsvLine(lines[0]);
   if (!headerMatches(header, CSV_HEADERS)) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
 
-  const rows = lines.slice(1).map((line) => {
-    const [id, accountCategory, assetClass, ownerLabel, amountStr, updatedAt, yearMonth] = parseCsvLine(line);
+  const badRows: string[] = [];
+  const rows = lines.slice(1).map((line, i) => {
+    const [id, rawYearMonth, accountCategory, assetClass, ownerLabel, amountStr, updatedAt] = parseCsvLine(line);
+    const yearMonth = normalizeYearMonth(rawYearMonth);
+    if (!yearMonth) badRows.push(`${i + 2}行目「${rawYearMonth}」`);
     const holding = rowToHolding({
       id,
       owner: OWNER_LABEL_TO_VALUE[ownerLabel] ?? 'personal',
@@ -251,8 +256,13 @@ export function parseHistoryCsv(text: string): ParsedHistoryCsv {
       amount: Number(amountStr) || 0,
       updatedAt,
     });
-    return { ...holding, yearMonth };
+    return { ...holding, yearMonth: yearMonth ?? '' };
   });
+  // 年月列を解釈できない行が1つでもあれば、インポート全体を中断する（曖昧な形式を
+  // 別グループとして受理して分裂させることは絶対にしない、remand 3-2節）。
+  if (badRows.length > 0) {
+    throw new Error(`年月列を解釈できない行があります: ${badRows.join('、')}。CSVを修正して再度お試しください。`);
+  }
 
   const groups = groupRowsByYearMonth(rows);
   return { groups, affectedYearMonths: sortedYearMonths(groups) };

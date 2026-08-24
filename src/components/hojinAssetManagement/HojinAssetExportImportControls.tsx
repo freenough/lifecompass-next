@@ -18,7 +18,7 @@ interface HojinAssetExportImportControlsProps {
   snapshots: HojinAssetSnapshot[];
   onImported: (hojinHoldings: AssetHolding[], personalHoldings: AssetHolding[], hojinSnapshots?: HojinAssetSnapshot[], personalSnapshots?: AssetSnapshot[]) => void;
   /** 保存上限超過による自動削除が発生したときに呼ばれる（追加実装：保存上限変更）。 */
-  onRemoved?: (removedHojin: HojinAssetSnapshot[], removedPersonal: AssetSnapshot[]) => void;
+  onRemoved?: (removedHojin: HojinAssetSnapshot[]) => void;
 }
 
 // 個人資産管理ツールのAssetExportImportControls.tsx（ロック対象外）の2ボックス構成を踏襲しつつ、
@@ -47,21 +47,37 @@ export default function HojinAssetExportImportControls({
     }
   };
 
-  /** 年月ラベル付きCSVを読み込み、影響を受ける年月の一覧を示す確認ダイアログを挟んで適用する（1-3節）。 */
+  /**
+   * 年月ラベル付きCSVを読み込み、影響を受ける年月の一覧を示す確認ダイアログを挟んで適用する（1-3節）。
+   * 法人セクションでのCSVインポートは法人保有資産（owner:'corporate'の行）のみを対象とし、
+   * 本人/配偶者行が含まれていても個人ツール本体のストアには一切書き込まない（差し戻し対応
+   * remand_csv_date_parsing_and_scope_fix.md 2章）。本人/配偶者行が含まれていた場合は、
+   * 確認ダイアログで「反映されません」と明示する。
+   */
   const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
       const parsed = parseHojinHistoryCsv(text);
-      if (parsed.affectedYearMonths.length > 0) {
-        const confirmed = window.confirm(`${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`);
-        if (!confirmed) return;
+      if (parsed.affectedYearMonths.length === 0) {
+        alert(
+          parsed.ignoredPersonalRowCount > 0
+            ? 'このCSVには法人（法人）の行が含まれていないため、インポートできる内容がありません。本人/配偶者の行は法人インポートでは反映されません。'
+            : 'インポートできる内容がありませんでした。'
+        );
+        return;
       }
+      let message = `${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`;
+      if (parsed.ignoredPersonalRowCount > 0) {
+        message += '\n\n※本人/配偶者の行は法人インポートでは反映されません';
+      }
+      const confirmed = window.confirm(message);
+      if (!confirmed) return;
       const result = applyHojinHistoryCsv(parsed);
-      onImported(result.hojinHoldings, result.personalHoldings, result.hojinSnapshots, result.personalSnapshots);
-      if (result.removedHojin.length > 0 || result.removedPersonal.length > 0) {
-        onRemoved?.(result.removedHojin, result.removedPersonal);
+      onImported(result.hojinHoldings, personalHoldings, result.hojinSnapshots);
+      if (result.removedHojin.length > 0) {
+        onRemoved?.(result.removedHojin);
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'CSVの読み込みに失敗しました');

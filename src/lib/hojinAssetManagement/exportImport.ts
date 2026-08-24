@@ -9,12 +9,10 @@ import {
 import {
   loadHoldings as loadPersonalHoldings,
   saveHoldings as savePersonalHoldings,
-  loadSnapshots as loadPersonalSnapshots,
-  saveSnapshots as savePersonalSnapshots,
 } from '@/lib/assetManagement/storage';
 import { mergeHoldings } from '@/lib/assetManagement/exportImport';
 import { toYearMonth } from '@/lib/assetManagement/monthlyCheck';
-import { groupRowsByYearMonth, replaceYearMonthGroups, rowToHolding } from '@/lib/assetManagement/csvHistory';
+import { groupRowsByYearMonth, replaceYearMonthGroups, rowToHolding, normalizeYearMonth } from '@/lib/assetManagement/csvHistory';
 
 // 個人資産管理ツール（exportImport.ts、ロック対象外）のExport/Import機構とは別実装だが、
 // フェーズ1でCSVヘッダー構成を統一した（4章）。ファイル名は個人側と同じ命名規則
@@ -65,11 +63,12 @@ export function exportToJson(
 }
 
 // 個人版CSVと同じ「区分」列（本人/配偶者/法人）1本で法人行・個人行を判別する。
-// 追加実装（CSV記録履歴対応）で7列目に「年月」を追加し、現在値だけでなく過去の記録履歴
-// （HojinAssetSnapshot[]）もCSVでまとめて編集できるようにした。
+// 追加実装（CSV記録履歴対応）で「年月」列を追加し、現在値だけでなく過去の記録履歴
+// （HojinAssetSnapshot[]）もCSVでまとめて編集できるようにした。差し戻し対応（remand
+// _csv_date_parsing_and_scope_fix.md 3-3節）で年月列をID列の直後（2列目）に移動した。
 // IDを1列目に含めるのは、CSV Importで自社Export形式のみを対象にidベースのマージを
 // そのまま再利用するため（個人側と同じ設計判断）。
-const CSV_HEADERS = ['ID', '口座カテゴリ', '資産クラス', '区分', '金額(万円)', '更新日', '年月'];
+const CSV_HEADERS = ['ID', '年月', '口座カテゴリ', '資産クラス', '区分', '金額(万円)', '更新日'];
 const CSV_IMPORT_ERROR_MESSAGE = '対応していないCSV形式です。自社のCSVエクスポート機能で出力したファイルを選択してください。';
 
 const OWNER_LABELS: Record<AssetHolding['owner'], string> = {
@@ -125,17 +124,17 @@ export function exportToCsv(
   scope: ExportScope,
 ): void {
   const nowYM = toYearMonth(new Date());
-  const currentHojinRows = hojinHoldings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt, nowYM]);
+  const currentHojinRows = hojinHoldings.map((h) => [h.id, nowYM, h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt]);
   const currentPersonalRows = scope === 'combined'
-    ? personalHoldings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt, nowYM])
+    ? personalHoldings.map((h) => [h.id, nowYM, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
     : [];
   const historySnapshots = snapshots.filter((s) => s.date !== nowYM);
   const historyHojinRows = historySnapshots.flatMap((s) =>
-    s.hojinHoldings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt, s.date])
+    s.hojinHoldings.map((h) => [h.id, s.date, h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt])
   );
   const historyPersonalRows = scope === 'combined'
     ? historySnapshots.flatMap((s) =>
-        s.personalHoldings.map((h) => [h.id, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt, s.date])
+        s.personalHoldings.map((h) => [h.id, s.date, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
       )
     : [];
   const rows = [...currentHojinRows, ...currentPersonalRows, ...historyHojinRows, ...historyPersonalRows];
@@ -207,15 +206,18 @@ function stripBom(text: string): string {
 
 export interface ParsedHojinHistoryCsv {
   hojinGroups: Map<string, AssetHolding[]>;
-  personalGroups: Map<string, AssetHolding[]>;
+  /** 本人/配偶者行が含まれていた件数（法人インポートでは反映しない。確認ダイアログでの注意喚起用）。 */
+  ignoredPersonalRowCount: number;
   affectedYearMonths: string[];
 }
 
 /**
  * 自社CSV Exportの列構成と完全一致するCSVのみを読み込む。ヘッダーが一致しない場合は
- * 例外を投げる（部分一致・列推測は行わない）。「区分」列の値で法人行／個人行（本人・配偶者）に
- * 振り分けたうえで、それぞれ年月ごとにグループ化する（適用はまだ行わない、確認ダイアログを
- * 挟むための2段階Import、追加実装：CSV記録履歴対応）。
+ * 例外を投げる（部分一致・列推測は行わない）。差し戻し対応（remand_csv_date_parsing_and
+ * _scope_fix.md 2章）：法人セクションでのCSVインポートは法人保有資産（owner:'corporate'の行）
+ * のみを対象とする。本人/配偶者行が含まれていても個人ツール本体のストアには一切書き込まず、
+ * 件数だけ数えて呼び出し元の確認ダイアログでの注意喚起に使う（合算表示のためのライブ参照は
+ * 読み取り専用であり、法人側の操作が個人の実データを書き換えてよい設計にはなっていないため）。
  */
 export function parseHojinHistoryCsv(text: string): ParsedHojinHistoryCsv {
   const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
@@ -225,91 +227,60 @@ export function parseHojinHistoryCsv(text: string): ParsedHojinHistoryCsv {
   const headerMatches = header.length === CSV_HEADERS.length && header.every((h, i) => h === CSV_HEADERS[i]);
   if (!headerMatches) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
 
-  const allRows = lines.slice(1).map((line) => {
-    const [id, accountCategory, assetClass, ownerLabel, amountStr, updatedAt, yearMonth] = parseCsvLine(line);
+  const badRows: string[] = [];
+  const allRows = lines.slice(1).map((line, i) => {
+    const [id, rawYearMonth, accountCategory, assetClass, ownerLabel, amountStr, updatedAt] = parseCsvLine(line);
+    const yearMonth = normalizeYearMonth(rawYearMonth);
+    if (!yearMonth) badRows.push(`${i + 2}行目「${rawYearMonth}」`);
     const owner = OWNER_LABEL_TO_VALUE[ownerLabel] ?? 'personal';
     const holding = rowToHolding({ id, owner, accountCategory, assetClass, amount: Number(amountStr) || 0, updatedAt });
-    return { ...holding, yearMonth };
+    return { ...holding, yearMonth: yearMonth ?? '' };
   });
+  if (badRows.length > 0) {
+    throw new Error(`年月列を解釈できない行があります: ${badRows.join('、')}。CSVを修正して再度お試しください。`);
+  }
 
   const hojinRows = allRows.filter((r) => r.owner === 'corporate');
-  const personalRows = allRows.filter((r) => r.owner !== 'corporate');
+  const ignoredPersonalRowCount = allRows.length - hojinRows.length;
   const hojinGroups = groupRowsByYearMonth(hojinRows);
-  const personalGroups = groupRowsByYearMonth(personalRows);
-  const affectedYearMonths = Array.from(new Set([...hojinGroups.keys(), ...personalGroups.keys()])).sort();
+  const affectedYearMonths = sortedYearMonthsOf(hojinGroups);
 
-  return { hojinGroups, personalGroups, affectedYearMonths };
+  return { hojinGroups, ignoredPersonalRowCount, affectedYearMonths };
+}
+
+function sortedYearMonthsOf(groups: Map<string, AssetHolding[]>): string[] {
+  return Array.from(groups.keys()).sort();
 }
 
 /**
- * parseHojinHistoryCsvの結果を適用する。法人行は法人ストア（hojinHoldings/hojinSnapshots）、
- * 個人行はPhase1で確立した「法人CSVの個人行は実体である個人ストアに書き込む」方針に従い
- * 個人ツール本体のストア（assetManagement/storage）を更新する。
- * 法人スナップショットのpersonalHoldingsフィールド（表示用の複製）は、対応する年月が
- * personalGroupsにも含まれていればその内容に、含まれていなければ既存値のまま保持する。
+ * parseHojinHistoryCsvの結果を適用する。法人保有資産（hojinHoldings/hojinSnapshots）のみを
+ * 更新し、個人ツール本体のストアには一切触れない。既存の法人スナップショットのpersonalHoldings
+ * フィールド（表示用の複製、「記録する」押下時のみ自動キャプチャされる）は変更せずそのまま保持する。
  */
 export function applyHojinHistoryCsv(parsed: ParsedHojinHistoryCsv): {
   hojinHoldings: AssetHolding[];
   hojinSnapshots: HojinAssetSnapshot[];
-  personalHoldings: AssetHolding[];
-  personalSnapshots: AssetSnapshot[];
   removedHojin: HojinAssetSnapshot[];
-  removedPersonal: AssetSnapshot[];
 } {
   const nowYM = toYearMonth(new Date());
-  const touchedMonths = new Set<string>([...parsed.hojinGroups.keys(), ...parsed.personalGroups.keys()]);
-
-  // ---- 個人側（実体である個人ストアを更新） ----
-  let personalHoldings = loadPersonalHoldings();
-  let personalSnapshots = loadPersonalSnapshots();
-  let removedPersonal: AssetSnapshot[] = [];
-  if (parsed.personalGroups.size > 0) {
-    const existingDated = personalSnapshots.map((s) => ({ date: s.date, holdings: s.holdings }));
-    const updatedDated = replaceYearMonthGroups(existingDated, parsed.personalGroups);
-    const updated: AssetSnapshot[] = updatedDated.map((d) => ({
-      date: d.date,
-      holdings: d.holdings,
-      totalAmount: d.holdings.reduce((s, h) => s + (h.amount || 0), 0),
-      profileId: 'default',
-    }));
-    const { trimmed, removed } = savePersonalSnapshots(updated);
-    personalSnapshots = trimmed;
-    removedPersonal = removed;
-    const currentGroupRows = parsed.personalGroups.get(nowYM);
-    if (currentGroupRows) {
-      personalHoldings = currentGroupRows;
-      savePersonalHoldings(personalHoldings);
-    }
-  }
-
-  // ---- 法人側 ----
   let hojinHoldings = loadHojinHoldings();
   const existingHojinSnapshots = loadSnapshots();
   let hojinSnapshots = existingHojinSnapshots;
   let removedHojin: HojinAssetSnapshot[] = [];
-  if (touchedMonths.size > 0) {
+
+  if (parsed.hojinGroups.size > 0) {
     const existingByDate = new Map(existingHojinSnapshots.map((s) => [s.date, s]));
     const existingDated = existingHojinSnapshots.map((s) => ({ date: s.date, holdings: s.hojinHoldings }));
     const updatedDated = replaceYearMonthGroups(existingDated, parsed.hojinGroups);
-    // personalGroupsのみで触れた年月（hojinGroupsには無いが、既存の法人スナップショットは
-    // 存在する）も、personalHoldingsフィールドの同期対象に含める。
-    const datedSet = new Set(updatedDated.map((d) => d.date));
-    for (const m of touchedMonths) {
-      if (!datedSet.has(m) && existingByDate.has(m)) {
-        updatedDated.push({ date: m, holdings: existingByDate.get(m)!.hojinHoldings });
-      }
-    }
-    updatedDated.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
     const updated: HojinAssetSnapshot[] = updatedDated.map((d) => {
       const prevPersonal = existingByDate.get(d.date)?.personalHoldings ?? [];
-      const personalForMonth = parsed.personalGroups.get(d.date) ?? prevPersonal;
       return {
         date: d.date,
         hojinHoldings: d.holdings,
-        personalHoldings: personalForMonth,
+        personalHoldings: prevPersonal,
         totalHojinAmount: d.holdings.reduce((s, h) => s + (h.amount || 0), 0),
-        totalPersonalAmount: personalForMonth.reduce((s, h) => s + (h.amount || 0), 0),
+        totalPersonalAmount: prevPersonal.reduce((s, h) => s + (h.amount || 0), 0),
         profileId: 'default',
       };
     });
@@ -323,5 +294,5 @@ export function applyHojinHistoryCsv(parsed: ParsedHojinHistoryCsv): {
     }
   }
 
-  return { hojinHoldings, hojinSnapshots, personalHoldings, personalSnapshots, removedHojin, removedPersonal };
+  return { hojinHoldings, hojinSnapshots, removedHojin };
 }

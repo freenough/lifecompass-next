@@ -66,3 +66,64 @@ export function rowToHolding(fields: {
     updatedAt: fields.updatedAt || new Date().toISOString(),
   };
 }
+
+// 差し戻し対応（remand_csv_date_parsing_and_scope_fix.md 3章）：表計算ソフトでCSVを開いて
+// 保存すると、"2026-08"のような文字列が日付として自動認識され"Aug-26"等の別形式に変換されて
+// しまうことがある。これを検出せず新規グループとして無条件受理すると、同じ月が別グループに
+// 分裂して二重登録される（実機で確認済みの不具合）。対応する形式だけをYYYY-MMへ正規化し、
+// それ以外は「弾く」（新規グループとして受理しない）。曖昧な形式を許容側に倒すことは絶対にしない。
+const MONTH_ABBR_TO_NUM: Record<string, string> = {
+  jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+  jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12',
+};
+
+/** 2桁年を4桁へ変換する（Excel等の一般的な慣例：00-79→2000年代、80-99→1900年代）。 */
+function twoDigitYearTo4(yy: string): string {
+  const n = Number(yy);
+  return String(n <= 79 ? 2000 + n : 1900 + n);
+}
+
+/**
+ * 年月列の値を'YYYY-MM'に正規化する。厳密なYYYY-MM・YYYY/MM、表計算ソフトが生成しがちな
+ * 月名略称+西暦（Aug-26／Aug-2026／Aug/26）、スラッシュ区切りの完全な日付（YYYY/M/D・
+ * M/D/YYYY、日は無視）のみを受理する。それ以外はnullを返し、呼び出し側でインポート自体を
+ * 中断させる（黙って誤った年月として取り込む、または別グループとして分裂させることはしない）。
+ */
+export function normalizeYearMonth(raw: string): string | null {
+  const s = raw.trim();
+
+  let m = /^(\d{4})-(\d{2})$/.exec(s);
+  if (m) return isValidMonth(m[2]) ? `${m[1]}-${m[2]}` : null;
+
+  m = /^(\d{4})\/(\d{2})$/.exec(s);
+  if (m) return isValidMonth(m[2]) ? `${m[1]}-${m[2]}` : null;
+
+  m = /^([A-Za-z]{3})[-/](\d{2}|\d{4})$/.exec(s);
+  if (m) {
+    const mon = MONTH_ABBR_TO_NUM[m[1].toLowerCase()];
+    if (!mon) return null;
+    const year = m[2].length === 2 ? twoDigitYearTo4(m[2]) : m[2];
+    return `${year}-${mon}`;
+  }
+
+  // YYYY/M/D（先頭が4桁＝年、日は無視）
+  m = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(s);
+  if (m) {
+    const mm = String(Number(m[2])).padStart(2, '0');
+    return isValidMonth(mm) ? `${m[1]}-${mm}` : null;
+  }
+
+  // M/D/YYYY（米国式、日は無視）
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+  if (m) {
+    const mm = String(Number(m[1])).padStart(2, '0');
+    return isValidMonth(mm) ? `${m[3]}-${mm}` : null;
+  }
+
+  return null;
+}
+
+function isValidMonth(mm: string): boolean {
+  const n = Number(mm);
+  return n >= 1 && n <= 12;
+}
