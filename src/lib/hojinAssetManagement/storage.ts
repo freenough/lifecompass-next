@@ -138,6 +138,31 @@ export function addSnapshot(
   return { snapshots: trimmed, removed };
 }
 
+/**
+ * csvHistory.tsのapplyGroupsToStoreへ渡す、法人ストア用のアダプタ。personal側storage.tsの
+ * personalStoreAdapterと対称（csv_yyyymm_format_and_import_scope_fix.md 2章）。fromDatedは
+ * personalHoldings/totalPersonalAmount（「記録する」押下時のみ自動キャプチャされる表示用の
+ * 複製）をprevスナップショットからそのまま引き継ぐ、既存のapplyHojinHistoryCsvと同じロジック。
+ */
+export const hojinStoreAdapter = {
+  loadHistory: loadSnapshots,
+  saveHistory: saveSnapshots,
+  toDated: (s: HojinAssetSnapshot) => s.hojinHoldings,
+  fromDated: (date: string, holdings: AssetHolding[], prev: HojinAssetSnapshot | undefined): HojinAssetSnapshot => {
+    const personalHoldings = prev?.personalHoldings ?? [];
+    return {
+      date,
+      hojinHoldings: holdings,
+      personalHoldings,
+      totalHojinAmount: holdings.reduce((s, h) => s + (h.amount || 0), 0),
+      totalPersonalAmount: personalHoldings.reduce((s, h) => s + (h.amount || 0), 0),
+      profileId: prev?.profileId || 'default',
+    };
+  },
+  loadCurrentHoldings: loadHojinHoldings,
+  saveCurrentHoldings: saveHojinHoldings,
+};
+
 export function loadTargetAmount(): number {
   if (typeof window === 'undefined') return 0;
   try {

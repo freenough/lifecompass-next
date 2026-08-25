@@ -139,6 +139,25 @@ export function addSnapshot(holdings: AssetHolding[]): { snapshots: AssetSnapsho
   return { snapshots: trimmed, removed };
 }
 
+/**
+ * csvHistory.tsのapplyGroupsToStoreへ渡す、個人ストア用のアダプタ。personal/hojin両側の
+ * exportImport.tsが「自ストア書き込み」「相互ストアへのクロス書き込み（合算スコープ時）」の
+ * 計2箇所からこれをそのまま再利用する（csv_yyyymm_format_and_import_scope_fix.md 2章）。
+ */
+export const personalStoreAdapter = {
+  loadHistory: loadSnapshots,
+  saveHistory: saveSnapshots,
+  toDated: (s: AssetSnapshot) => s.holdings,
+  fromDated: (date: string, holdings: AssetHolding[], prev: AssetSnapshot | undefined): AssetSnapshot => ({
+    date,
+    holdings,
+    totalAmount: holdings.reduce((s, h) => s + (h.amount || 0), 0),
+    profileId: prev?.profileId || 'default',
+  }),
+  loadCurrentHoldings: loadHoldings,
+  saveCurrentHoldings: saveHoldings,
+};
+
 export function loadTargetAmount(): number {
   if (typeof window === 'undefined') return 0;
   try {

@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { AssetSnapshot } from '@/lib/assetManagement/types';
+import { toYearMonth } from '@/lib/assetManagement/monthlyCheck';
 
 interface AssetSnapshotHistoryProps {
   snapshots: AssetSnapshot[];
+  /** 現在の保有資産合計（ライブ値）。当月のグラフポイントに常に反映する（4章）。 */
+  currentTotal: number;
   onRecord: () => void;
 }
 
@@ -18,10 +21,20 @@ const INITIAL_HISTORY_COUNT = 5;
 // 呼び出せなくなっていた不具合の修正、3章：総資産推移の折れ線グラフ追加）。
 // Rechartsを使うため、呼び出し元（AssetManagementPage.tsx）でnext/dynamic + { ssr: false }
 // による動的importにすること（既存の円グラフ・HeroDemo.tsxと同じパターン）。
-export default function AssetSnapshotHistory({ snapshots, onRecord }: AssetSnapshotHistoryProps) {
+export default function AssetSnapshotHistory({ snapshots, currentTotal, onRecord }: AssetSnapshotHistoryProps) {
   const [expanded, setExpanded] = useState(false);
-  const ascending = [...snapshots].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-  const descending = [...ascending].reverse();
+
+  // 4章：資産推移グラフの当月ポイントは「記録する」を押していなくても常にライブ値を表示する。
+  // 過去月は引き続き記録済みスナップショットのまま。永続化はしない（表示専用の計算）。
+  const nowYM = toYearMonth(new Date());
+  const nowIdx = snapshots.findIndex((s) => s.date === nowYM);
+  const liveCurrentSnapshot: AssetSnapshot =
+    nowIdx >= 0 ? { ...snapshots[nowIdx], totalAmount: currentTotal } : { date: nowYM, holdings: [], totalAmount: currentTotal, profileId: 'default' };
+  const chartSnapshots =
+    nowIdx >= 0 ? snapshots.map((s, i) => (i === nowIdx ? liveCurrentSnapshot : s)) : [...snapshots, liveCurrentSnapshot];
+
+  const ascending = [...chartSnapshots].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const descending = [...snapshots].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)).reverse();
   const visibleRows = expanded ? descending : descending.slice(0, INITIAL_HISTORY_COUNT);
   const hasMore = descending.length > INITIAL_HISTORY_COUNT;
 

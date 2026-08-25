@@ -1,36 +1,46 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import type { AssetDisplayScope } from '@/lib/assetManagement/csvHistory';
 import {
   exportToJson,
   exportToCsv,
   importFromJson,
   parseHojinHistoryCsv,
   applyHojinHistoryCsv,
-  type ExportScope,
 } from '@/lib/hojinAssetManagement/exportImport';
 
 interface HojinAssetExportImportControlsProps {
   hojinHoldings: AssetHolding[];
   personalHoldings: AssetHolding[];
   snapshots: HojinAssetSnapshot[];
+  /**
+   * ページ上の唯一の「表示：個人のみ／合算」トグル（AssetManagementPage.tsxのdisplayScope）を
+   * そのまま受け取る。以前このコンポーネントが独自に持っていた「エクスポート範囲」ローカル
+   * トグルは廃止した（csv_yyyymm_format_and_import_scope_fix.md 2章：新しいスコープ概念を
+   * 作らず、既にある表示トグルをExport/Import両方の判断材料として共有する）。
+   */
+  displayScope: AssetDisplayScope;
   onImported: (hojinHoldings: AssetHolding[], personalHoldings: AssetHolding[], hojinSnapshots?: HojinAssetSnapshot[], personalSnapshots?: AssetSnapshot[]) => void;
   /** 保存上限超過による自動削除が発生したときに呼ばれる（追加実装：保存上限変更）。 */
   onRemoved?: (removedHojin: HojinAssetSnapshot[]) => void;
+  /** combinedスコープのCSVインポートで個人側の記録が保存上限超過により自動削除された場合に呼ばれる。 */
+  onRemovedPersonal?: (removedPersonal: AssetSnapshot[]) => void;
 }
 
-// 個人資産管理ツールのAssetExportImportControls.tsx（ロック対象外）の2ボックス構成を踏襲しつつ、
-// 「法人のみ／合算」の共通トグルを追加（10章）。JSON・CSVの両Exportがこのトグルに従う。
+// 個人資産管理ツールのAssetExportImportControls.tsx（ロック対象外）の2ボックス構成を踏襲。
+// Export/Importのスコープはページ上の表示トグル（displayScope）に従う（10章、2章で刷新）。
 export default function HojinAssetExportImportControls({
   hojinHoldings,
   personalHoldings,
   snapshots,
+  displayScope,
   onImported,
   onRemoved,
+  onRemovedPersonal,
 }: HojinAssetExportImportControlsProps) {
-  const [scope, setScope] = useState<ExportScope>('combined');
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,17 +59,19 @@ export default function HojinAssetExportImportControls({
 
   /**
    * 年月ラベル付きCSVを読み込み、影響を受ける年月の一覧を示す確認ダイアログを挟んで適用する（1-3節）。
-   * 法人セクションでのCSVインポートは法人保有資産（owner:'corporate'の行）のみを対象とし、
-   * 本人/配偶者行が含まれていても個人ツール本体のストアには一切書き込まない（差し戻し対応
-   * remand_csv_date_parsing_and_scope_fix.md 2章）。本人/配偶者行が含まれていた場合は、
-   * 確認ダイアログで「反映されません」と明示する。
+   * スコープはページ上の表示トグル（displayScope）に従う（csv_yyyymm_format_and_import_scope_fix.md
+   * 2章）。personalOnly時：法人セクションでのCSVインポートは法人保有資産（owner:'corporate'の行）
+   * のみを対象とし、本人/配偶者行が含まれていても個人ツール本体のストアには一切書き込まない
+   * （差し戻し対応remand_csv_date_parsing_and_scope_fix.md 2章の制約を維持）。確認ダイアログで
+   * 「反映されません」と明示する。combined時：本人/配偶者行・法人行の両方をそれぞれ正しい
+   * 保存先へ書き込む。個人側のCSVインポートボタンから同じCSVを読み込んだ場合と同じ結果になる。
    */
   const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
-      const parsed = parseHojinHistoryCsv(text);
+      const parsed = parseHojinHistoryCsv(text, displayScope);
       if (parsed.affectedYearMonths.length === 0) {
         alert(
           parsed.ignoredPersonalRowCount > 0
@@ -71,13 +83,18 @@ export default function HojinAssetExportImportControls({
       let message = `${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`;
       if (parsed.ignoredPersonalRowCount > 0) {
         message += '\n\n※本人/配偶者の行は法人インポートでは反映されません';
+      } else if (displayScope === 'combined' && parsed.personalGroups && parsed.personalGroups.size > 0) {
+        message += '\n\n※個人・法人の両方に反映されます';
       }
       const confirmed = window.confirm(message);
       if (!confirmed) return;
       const result = applyHojinHistoryCsv(parsed);
-      onImported(result.hojinHoldings, personalHoldings, result.hojinSnapshots);
+      onImported(result.hojinHoldings, result.personalHoldings ?? personalHoldings, result.hojinSnapshots, result.personalSnapshots);
       if (result.removedHojin.length > 0) {
         onRemoved?.(result.removedHojin);
+      }
+      if (result.removedPersonal && result.removedPersonal.length > 0) {
+        onRemovedPersonal?.(result.removedPersonal);
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'CSVの読み込みに失敗しました');
@@ -88,34 +105,13 @@ export default function HojinAssetExportImportControls({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* 法人のみ／合算 共通トグル（Export時にのみ影響。Importはファイル内容から自動判定） */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-500">エクスポート範囲:</span>
-        <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs">
-          <button
-            type="button"
-            onClick={() => setScope('hojin')}
-            className={`px-3 py-1 ${scope === 'hojin' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
-          >
-            法人のみ
-          </button>
-          <button
-            type="button"
-            onClick={() => setScope('combined')}
-            className={`px-3 py-1 ${scope === 'combined' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
-          >
-            合算
-          </button>
-        </div>
-      </div>
-
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg border border-slate-200 p-3">
           <p className="text-xs font-semibold text-slate-700 mb-1">JSON</p>
           <p className="text-[11px] text-slate-400 mb-2">法人保有資産・記録履歴（合算時は個人資産も含む）の完全バックアップ</p>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => exportToJson(hojinHoldings, personalHoldings, snapshots, scope)}
+              onClick={() => exportToJson(hojinHoldings, personalHoldings, snapshots, displayScope)}
               className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
             >
               JSONでエクスポート
@@ -132,7 +128,7 @@ export default function HojinAssetExportImportControls({
           <p className="text-[11px] text-slate-400 mb-2">保有資産＋記録履歴（年月ラベル付き）。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => exportToCsv(hojinHoldings, personalHoldings, snapshots, scope)}
+              onClick={() => exportToCsv(hojinHoldings, personalHoldings, snapshots, displayScope)}
               className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
             >
               CSVでエクスポート

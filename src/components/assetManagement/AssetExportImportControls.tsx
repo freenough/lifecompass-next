@@ -2,6 +2,8 @@
 
 import { useRef } from 'react';
 import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
+import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import type { AssetDisplayScope } from '@/lib/assetManagement/csvHistory';
 import {
   exportToJson,
   exportToCsv,
@@ -15,12 +17,21 @@ import {
 interface AssetExportImportControlsProps {
   holdings: AssetHolding[];
   snapshots: AssetSnapshot[];
-  onImported: (holdings: AssetHolding[], snapshots: AssetSnapshot[]) => void;
+  /**
+   * ページ上の唯一の「表示：個人のみ／合算」トグル（AssetManagementPage.tsxのdisplayScope）を
+   * そのまま受け取る。CSVインポートのスコープ対称化（csv_yyyymm_format_and_import_scope_fix.md
+   * 2章）：combined時はCSV内の法人行も法人ストアへ書き込む。Export側は変更しない（現状通り
+   * 個人のみを出力）。
+   */
+  displayScope: AssetDisplayScope;
+  onImported: (holdings: AssetHolding[], snapshots: AssetSnapshot[], hojinHoldings?: AssetHolding[], hojinSnapshots?: HojinAssetSnapshot[]) => void;
   /** 保存上限超過による自動削除が発生したときに呼ばれる（追加実装：保存上限変更）。 */
   onRemoved?: (removed: AssetSnapshot[]) => void;
+  /** combinedスコープのCSVインポートで法人側の記録が保存上限超過により自動削除された場合に呼ばれる。 */
+  onRemovedHojin?: (removedHojin: HojinAssetSnapshot[]) => void;
 }
 
-export default function AssetExportImportControls({ holdings, snapshots, onImported, onRemoved }: AssetExportImportControlsProps) {
+export default function AssetExportImportControls({ holdings, snapshots, displayScope, onImported, onRemoved, onRemovedHojin }: AssetExportImportControlsProps) {
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,8 +51,12 @@ export default function AssetExportImportControls({ holdings, snapshots, onImpor
   /**
    * 年月列ありの新形式（記録履歴対応）か、旧6列形式かをヘッダーだけで判定し、
    * 新形式のときのみ「影響を受ける年月ラベル」を示す確認ダイアログを挟む（1-3節）。
-   * 個人セクションでのCSVインポートは個人保有資産のみを対象とし、法人行が含まれていても
-   * 反映しない（investigation_csv_duplicate_bug_and_reset_feature.md バグB対応）。
+   * スコープはページ上の表示トグル（displayScope）に従う（csv_yyyymm_format_and_import_scope_fix.md
+   * 2章）。personalOnly時：個人セクションでのCSVインポートは個人保有資産のみを対象とし、
+   * 法人行が含まれていても反映しない（investigation_csv_duplicate_bug_and_reset_feature.md
+   * バグB対応）。combined時：法人行も法人ストアへ書き込む。法人側のCSVインポートボタンから
+   * 同じCSVを読み込んだ場合と同じ結果になる。旧6列形式（レガシー）は年月概念を持たないため
+   * scopeに関わらず個人ストアのみ更新する（従来通り）。
    */
   const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,7 +73,7 @@ export default function AssetExportImportControls({ holdings, snapshots, onImpor
         onImported(mergedHoldings, snapshots);
         return;
       }
-      const parsed = parseHistoryCsv(text);
+      const parsed = parseHistoryCsv(text, displayScope);
       if (parsed.affectedYearMonths.length === 0) {
         alert(
           parsed.ignoredCorporateRowCount > 0
@@ -70,12 +85,15 @@ export default function AssetExportImportControls({ holdings, snapshots, onImpor
       let message = `${parsed.affectedYearMonths.join('、')} の記録を上書きします。よろしいですか？`;
       if (parsed.ignoredCorporateRowCount > 0) {
         message += '\n\n※法人の行は個人インポートでは反映されません';
+      } else if (displayScope === 'combined' && parsed.hojinGroups && parsed.hojinGroups.size > 0) {
+        message += '\n\n※個人・法人の両方に反映されます';
       }
       const confirmed = window.confirm(message);
       if (!confirmed) return;
       const result = applyHistoryCsv(parsed);
-      onImported(result.holdings, result.snapshots);
+      onImported(result.holdings, result.snapshots, result.hojinHoldings, result.hojinSnapshots);
       if (result.removed.length > 0) onRemoved?.(result.removed);
+      if (result.removedHojin && result.removedHojin.length > 0) onRemovedHojin?.(result.removedHojin);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'CSVの読み込みに失敗しました');
     } finally {

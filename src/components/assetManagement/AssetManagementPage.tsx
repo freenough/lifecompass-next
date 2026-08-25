@@ -12,6 +12,7 @@ import {
 } from '@/lib/assetManagement/categories';
 import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import type { AssetDisplayScope } from '@/lib/assetManagement/csvHistory';
 import {
   loadHoldings,
   saveHoldings,
@@ -84,7 +85,9 @@ export default function AssetManagementPage() {
   const [personalizationRatio, setPersonalizationRatio] = useState<number>(() => loadPersonalizationRatio());
   // 表示：個人のみ／合算。/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す
   // （法人資産管理ツール単体だった頃の「法人のみ／合算」から意味が反転している）。
-  const [displayScopePref, setDisplayScopePref] = useState<'personalOnly' | 'combined'>('combined');
+  // csv_yyyymm_format_and_import_scope_fix.md 2章：CSV Export/Importのスコープ判断も
+  // 新しい概念を作らずこのトグル1つを共有する（AssetDisplayScope型はこの値と同じ型）。
+  const [displayScopePref, setDisplayScopePref] = useState<AssetDisplayScope>('combined');
 
   // 保存上限（MAX_SNAPSHOTS）超過による自動削除の通知バナー（追加実装2章）。
   const [removalNotice, setRemovalNotice] = useState<string | null>(null);
@@ -187,9 +190,16 @@ export default function AssetManagementPage() {
     savePersonalizationRatio(ratio);
   };
 
-  const handleImported = (nextHoldings: AssetHolding[], nextSnapshots: AssetSnapshot[]) => {
+  const handleImported = (
+    nextHoldings: AssetHolding[],
+    nextSnapshots: AssetSnapshot[],
+    nextHojinHoldings?: AssetHolding[],
+    nextHojinSnapshots?: HojinAssetSnapshot[],
+  ) => {
     setHoldings(nextHoldings);
     setSnapshots(nextSnapshots);
+    if (nextHojinHoldings) setHojinHoldings(nextHojinHoldings);
+    if (nextHojinSnapshots) setHojinSnapshots(nextHojinSnapshots);
   };
 
   const handleHojinImported = (
@@ -227,7 +237,11 @@ export default function AssetManagementPage() {
   const hojinTotal = hojinHoldings.reduce((s, h) => s + (h.amount || 0), 0);
   // 法人保有資産が未入力のときは「個人のみ」に固定する（合算しても差が出ないため）。
   const hojinIsEmpty = hojinHoldings.length === 0 || hojinTotal === 0;
-  const displayScope: 'personalOnly' | 'combined' = hojinIsEmpty ? 'personalOnly' : displayScopePref;
+  const displayScope: AssetDisplayScope = hojinIsEmpty ? 'personalOnly' : displayScopePref;
+  // 法人セクションが非表示のときは、CSVインポートが裏で法人ストアへ影響しないようにする
+  // 追加ガード（csv_yyyymm_format_and_import_scope_fix.md 2章）。HojinAssetExportImportControls
+  // は元々includeCorporate時のみレンダーされるため同様のガードは不要。
+  const csvImportScope: AssetDisplayScope = includeCorporate ? displayScope : 'personalOnly';
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12">
@@ -374,9 +388,15 @@ export default function AssetManagementPage() {
 
           <section>
             {includeCorporate ? (
-              <HojinAssetSnapshotHistory snapshots={hojinSnapshots} onRecord={handleRecord} displayScope={displayScope} />
+              <HojinAssetSnapshotHistory
+                snapshots={hojinSnapshots}
+                onRecord={handleRecord}
+                displayScope={displayScope}
+                currentPersonalTotal={totalAmount}
+                currentHojinTotal={hojinTotal}
+              />
             ) : (
-              <AssetSnapshotHistory snapshots={snapshots} onRecord={handleRecord} />
+              <AssetSnapshotHistory snapshots={snapshots} onRecord={handleRecord} currentTotal={totalAmount} />
             )}
           </section>
 
@@ -428,8 +448,10 @@ export default function AssetManagementPage() {
             <AssetExportImportControls
               holdings={holdings}
               snapshots={snapshots}
+              displayScope={csvImportScope}
               onImported={handleImported}
               onRemoved={(removed) => notifyRemoved([removed])}
+              onRemovedHojin={(removedHojin) => notifyRemoved([removedHojin])}
             />
           </section>
 
@@ -440,8 +462,10 @@ export default function AssetManagementPage() {
                 hojinHoldings={hojinHoldings}
                 personalHoldings={holdings}
                 snapshots={hojinSnapshots}
+                displayScope={displayScope}
                 onImported={handleHojinImported}
                 onRemoved={(removedHojin) => notifyRemoved([removedHojin])}
+                onRemovedPersonal={(removedPersonal) => notifyRemoved([removedPersonal])}
               />
             </section>
           )}

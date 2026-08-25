@@ -5,20 +5,36 @@ import {
   saveHojinHoldings,
   loadSnapshots,
   saveSnapshots,
+  hojinStoreAdapter,
 } from './storage';
 import {
   loadHoldings as loadPersonalHoldings,
   saveHoldings as savePersonalHoldings,
+  personalStoreAdapter,
 } from '../assetManagement/storage';
 import { mergeHoldings } from '../assetManagement/exportImport';
 import { toYearMonth } from '../assetManagement/monthlyCheck';
-import { replaceYearMonthGroups, rowToHolding, normalizeYearMonth, mergeById, buildGroupsExcludingOwners } from '../assetManagement/csvHistory';
+import {
+  rowToHolding,
+  normalizeYearMonth,
+  mergeById,
+  buildGroupsExcludingOwners,
+  splitGroupsByOwners,
+  applyGroupsToStore,
+  toCompactYearMonth,
+  type AssetDisplayScope,
+} from '../assetManagement/csvHistory';
 
 // 個人資産管理ツール（exportImport.ts、ロック対象外）のExport/Import機構とは別実装だが、
 // フェーズ1でCSVヘッダー構成を統一した（4章）。ファイル名は個人側と同じ命名規則
 // （英語スネークケース・日付サフィックス・ブランド名を含めない）に揃える。
 
-export type ExportScope = 'hojin' | 'combined';
+// csv_yyyymm_format_and_import_scope_fix.md 2章：法人セクション独自の'hojin'|'combined'
+// スコープは廃止し、ページ上の唯一の「表示：個人のみ／合算」トグル（displayScopePref）と
+// 同じ型を共有する。値'hojin'（自セクションのみ）はAssetDisplayScopeの'personalOnly'に対応する
+// （このexportImport.ts内では常にscope==='combined'かどうかしか分岐していないため、
+// 実質的な意味の変化はない。ファイル名サフィックスにのみ表れる）。
+export type ExportScope = AssetDisplayScope;
 
 interface HojinExportPayload {
   version: 1;
@@ -124,17 +140,18 @@ export function exportToCsv(
   scope: ExportScope,
 ): void {
   const nowYM = toYearMonth(new Date());
-  const currentHojinRows = hojinHoldings.map((h) => [h.id, nowYM, h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt]);
+  const nowYMCompact = toCompactYearMonth(nowYM);
+  const currentHojinRows = hojinHoldings.map((h) => [h.id, nowYMCompact, h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt]);
   const currentPersonalRows = scope === 'combined'
-    ? personalHoldings.map((h) => [h.id, nowYM, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
+    ? personalHoldings.map((h) => [h.id, nowYMCompact, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
     : [];
   const historySnapshots = snapshots.filter((s) => s.date !== nowYM);
   const historyHojinRows = historySnapshots.flatMap((s) =>
-    s.hojinHoldings.map((h) => [h.id, s.date, h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt])
+    s.hojinHoldings.map((h) => [h.id, toCompactYearMonth(s.date), h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt])
   );
   const historyPersonalRows = scope === 'combined'
     ? historySnapshots.flatMap((s) =>
-        s.personalHoldings.map((h) => [h.id, s.date, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
+        s.personalHoldings.map((h) => [h.id, toCompactYearMonth(s.date), h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
       )
     : [];
   const rows = [...currentHojinRows, ...currentPersonalRows, ...historyHojinRows, ...historyPersonalRows];
@@ -195,24 +212,28 @@ function stripBom(text: string): string {
 
 export interface ParsedHojinHistoryCsv {
   hojinGroups: Map<string, AssetHolding[]>;
-  /** 本人/配偶者行が含まれていた件数（法人インポートでは反映しない。確認ダイアログでの注意喚起用）。 */
+  /** combinedスコープ時のみ設定。個人ストアへも書き込む対象（csv_yyyymm_format_and_import_scope_fix.md 2章）。 */
+  personalGroups?: Map<string, AssetHolding[]>;
+  /** 本人/配偶者行が含まれていた件数（personalOnlyスコープ時のみ非0。確認ダイアログでの注意喚起用）。 */
   ignoredPersonalRowCount: number;
   affectedYearMonths: string[];
 }
 
 /**
  * 自社CSV Exportの列構成と完全一致するCSVのみを読み込む。ヘッダーが一致しない場合は
- * 例外を投げる（部分一致・列推測は行わない）。差し戻し対応（remand_csv_date_parsing_and
- * _scope_fix.md 2章）：法人セクションでのCSVインポートは法人保有資産（owner:'corporate'の行）
- * のみを対象とする。本人/配偶者行が含まれていても個人ツール本体のストアには一切書き込まず、
- * 件数だけ数えて呼び出し元の確認ダイアログでの注意喚起に使う（合算表示のためのライブ参照は
- * 読み取り専用であり、法人側の操作が個人の実データを書き換えてよい設計にはなっていないため）。
- * owner除外＋グループ化はcsvHistory.tsのbuildGroupsExcludingOwnersを個人側パーサ
- * （assetManagement/exportImport.tsのparseHistoryCsv）と共用する
- * （investigation_csv_duplicate_bug_and_reset_feature.md バグB：以前は法人側にのみ
- * この除外フィルタがあり、個人側に対称の実装が反映されていなかった）。
+ * 例外を投げる（部分一致・列推測は行わない）。
+ * scopeはページ上の唯一の「表示：個人のみ／合算」トグル（displayScopePref）をそのまま渡す
+ * 想定（csv_yyyymm_format_and_import_scope_fix.md 2章：新しいスコープ概念を作らず共有する）。
+ * personalOnly時：法人セクションでのCSVインポートは法人保有資産（owner:'corporate'の行）
+ * のみを対象とする（差し戻し対応remand_csv_date_parsing_and_scope_fix.md 2章の制約を維持）。
+ * 本人/配偶者行が含まれていても個人ツール本体のストアには一切書き込まず、件数だけ数えて
+ * 呼び出し元の確認ダイアログでの注意喚起に使う。combined時：本人/配偶者行・法人行の両方を
+ * それぞれ正しい保存先へ適用できるようpersonalGroupsも返す。owner除外＋グループ化は
+ * csvHistory.tsのsplitGroupsByOwnersを個人側パーサ（assetManagement/exportImport.tsの
+ * parseHistoryCsv）と共用する（investigation_csv_duplicate_bug_and_reset_feature.md
+ * バグB：以前は法人側にのみこの除外フィルタがあり、個人側に対称の実装が反映されていなかった）。
  */
-export function parseHojinHistoryCsv(text: string): ParsedHojinHistoryCsv {
+export function parseHojinHistoryCsv(text: string, scope: AssetDisplayScope): ParsedHojinHistoryCsv {
   const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
   if (lines.length === 0) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
 
@@ -233,52 +254,53 @@ export function parseHojinHistoryCsv(text: string): ParsedHojinHistoryCsv {
     throw new Error(`年月列を解釈できない行があります: ${badRows.join('、')}。CSVを修正して再度お試しください。`);
   }
 
-  const { groups: hojinGroups, ignoredCount: ignoredPersonalRowCount, affectedYearMonths } =
-    buildGroupsExcludingOwners(allRows, ['personal', 'personal_spouse']);
-
-  return { hojinGroups, ignoredPersonalRowCount, affectedYearMonths };
+  const { ownGroups: hojinGroups, otherGroups: personalGroups } = splitGroupsByOwners(allRows, ['corporate']);
+  if (scope === 'combined') {
+    const affectedYearMonths = Array.from(new Set([...hojinGroups.keys(), ...personalGroups.keys()])).sort();
+    return { hojinGroups, personalGroups, ignoredPersonalRowCount: 0, affectedYearMonths };
+  }
+  const ignoredPersonalRowCount = Array.from(personalGroups.values()).reduce((n, g) => n + g.length, 0);
+  return { hojinGroups, ignoredPersonalRowCount, affectedYearMonths: Array.from(hojinGroups.keys()).sort() };
 }
 
 /**
- * parseHojinHistoryCsvの結果を適用する。法人保有資産（hojinHoldings/hojinSnapshots）のみを
- * 更新し、個人ツール本体のストアには一切触れない。既存の法人スナップショットのpersonalHoldings
- * フィールド（表示用の複製、「記録する」押下時のみ自動キャプチャされる）は変更せずそのまま保持する。
+ * parseHojinHistoryCsvの結果を適用する。personalOnlyスコープ時は法人保有資産
+ * （hojinHoldings/hojinSnapshots）のみを更新し、個人ツール本体のストアには一切触れない
+ * （差し戻し対応remand_csv_date_parsing_and_scope_fix.md 2章の制約を維持）。combinedスコープで
+ * personalGroupsが渡された場合は、個人ストアにも同じ処理（applyGroupsToStore）を適用する
+ * （csv_yyyymm_format_and_import_scope_fix.md 2章）。既存の法人スナップショットの
+ * personalHoldingsフィールド（表示用の複製、「記録する」押下時のみ自動キャプチャされる）は
+ * 変更せずそのまま保持する（hojinStoreAdapter.fromDated参照）。
  */
 export function applyHojinHistoryCsv(parsed: ParsedHojinHistoryCsv): {
   hojinHoldings: AssetHolding[];
   hojinSnapshots: HojinAssetSnapshot[];
   removedHojin: HojinAssetSnapshot[];
+  personalHoldings?: AssetHolding[];
+  personalSnapshots?: AssetSnapshot[];
+  removedPersonal?: AssetSnapshot[];
 } {
   const nowYM = toYearMonth(new Date());
-  let hojinHoldings = loadHojinHoldings();
-  const existingHojinSnapshots = loadSnapshots();
-  let hojinSnapshots = existingHojinSnapshots;
-  let removedHojin: HojinAssetSnapshot[] = [];
+  const { holdings: hojinHoldings, snapshots: hojinSnapshots, removed: removedHojin } = applyGroupsToStore(
+    parsed.hojinGroups,
+    nowYM,
+    hojinStoreAdapter,
+  );
 
-  if (parsed.hojinGroups.size > 0) {
-    const existingByDate = new Map(existingHojinSnapshots.map((s) => [s.date, s]));
-    const existingDated = existingHojinSnapshots.map((s) => ({ date: s.date, holdings: s.hojinHoldings }));
-    const updatedDated = replaceYearMonthGroups(existingDated, parsed.hojinGroups);
-
-    const updated: HojinAssetSnapshot[] = updatedDated.map((d) => {
-      const prevPersonal = existingByDate.get(d.date)?.personalHoldings ?? [];
-      return {
-        date: d.date,
-        hojinHoldings: d.holdings,
-        personalHoldings: prevPersonal,
-        totalHojinAmount: d.holdings.reduce((s, h) => s + (h.amount || 0), 0),
-        totalPersonalAmount: prevPersonal.reduce((s, h) => s + (h.amount || 0), 0),
-        profileId: 'default',
-      };
-    });
-    const { trimmed, removed } = saveSnapshots(updated);
-    hojinSnapshots = trimmed;
-    removedHojin = removed;
-    const currentGroupRows = parsed.hojinGroups.get(nowYM);
-    if (currentGroupRows) {
-      hojinHoldings = currentGroupRows;
-      saveHojinHoldings(hojinHoldings);
-    }
+  if (parsed.personalGroups && parsed.personalGroups.size > 0) {
+    const { holdings: personalHoldings, snapshots: personalSnapshots, removed: removedPersonal } = applyGroupsToStore(
+      parsed.personalGroups,
+      nowYM,
+      personalStoreAdapter,
+    );
+    return {
+      hojinHoldings,
+      hojinSnapshots,
+      removedHojin,
+      personalHoldings,
+      personalSnapshots,
+      removedPersonal: removedPersonal.length ? removedPersonal : undefined,
+    };
   }
 
   return { hojinHoldings, hojinSnapshots, removedHojin };

@@ -1,7 +1,18 @@
 import type { AssetHolding, AssetSnapshot } from './types';
-import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots } from './storage';
+import type { HojinAssetSnapshot } from '../hojinAssetManagement/types';
+import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots, personalStoreAdapter } from './storage';
+import { hojinStoreAdapter } from '../hojinAssetManagement/storage';
 import { toYearMonth } from './monthlyCheck';
-import { replaceYearMonthGroups, rowToHolding, normalizeYearMonth, mergeById, buildGroupsExcludingOwners } from './csvHistory';
+import {
+  rowToHolding,
+  normalizeYearMonth,
+  mergeById,
+  buildGroupsExcludingOwners,
+  splitGroupsByOwners,
+  applyGroupsToStore,
+  toCompactYearMonth,
+  type AssetDisplayScope,
+} from './csvHistory';
 
 interface AssetManagementExportPayload {
   version: 1;
@@ -104,10 +115,10 @@ function parseCsvLine(line: string): string[] {
  */
 export function exportToCsv(holdings: AssetHolding[], snapshots: AssetSnapshot[]): void {
   const nowYM = toYearMonth(new Date());
-  const currentRows = holdings.map((h) => [h.id, nowYM, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt]);
+  const currentRows = holdings.map((h) => [h.id, toCompactYearMonth(nowYM), h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt]);
   const historyRows = snapshots
     .filter((s) => s.date !== nowYM)
-    .flatMap((s) => s.holdings.map((h) => [h.id, s.date, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt]));
+    .flatMap((s) => s.holdings.map((h) => [h.id, toCompactYearMonth(s.date), h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt]));
   const rows = [...currentRows, ...historyRows];
   const bom = '﻿';
   const csv = bom + [CSV_HEADERS, ...rows].map((r) => r.map(csvField).join(',')).join('\n');
@@ -227,21 +238,26 @@ export function importHoldingsFromCsv(file: File): Promise<AssetHolding[]> {
 
 export interface ParsedHistoryCsv {
   groups: Map<string, AssetHolding[]>;
-  /** 法人行が含まれていた件数（個人インポートでは反映しない。確認ダイアログでの注意喚起用）。 */
+  /** combinedスコープ時のみ設定。法人ストアへも書き込む対象（csv_yyyymm_format_and_import_scope_fix.md 2章）。 */
+  hojinGroups?: Map<string, AssetHolding[]>;
+  /** 法人行が含まれていた件数（personalOnlyスコープ時のみ非0。確認ダイアログでの注意喚起用）。 */
   ignoredCorporateRowCount: number;
   affectedYearMonths: string[];
 }
 
 /**
  * 年月列ありの新形式CSVをパースする（適用はまだ行わない。確認ダイアログを挟むための
- * 2段階Import、追加実装：CSV記録履歴対応 1-3節）。個人セクションでのCSVインポートは
- * 個人保有資産（owner:'corporate'以外の行）のみを対象とする。法人行が含まれていても
- * 法人ツール本体のストアには一切書き込まず、件数だけ数えて呼び出し元の確認ダイアログでの
- * 注意喚起に使う（法人側と対称の制約、investigation_csv_duplicate_bug_and_reset_feature.md
- * バグB対応。buildGroupsExcludingOwnersを法人側パーサと共用することで、
- * 「片方だけ直して他方に反映し忘れる」食い違いを構造的に防ぐ）。
+ * 2段階Import、追加実装：CSV記録履歴対応 1-3節）。
+ * scopeはページ上の唯一の「表示：個人のみ／合算」トグル（displayScopePref）をそのまま渡す
+ * 想定（csv_yyyymm_format_and_import_scope_fix.md 2章：新しいスコープ概念を作らず共有する）。
+ * personalOnly時：個人保有資産（owner:'corporate'以外の行）のみを対象とする。法人行が
+ * 含まれていても法人ツール本体のストアには一切書き込まず、件数だけ数えて呼び出し元の
+ * 確認ダイアログでの注意喚起に使う（investigation_csv_duplicate_bug_and_reset_feature.md
+ * バグB対応）。combined時：本人/配偶者行・法人行の両方をそれぞれ正しい保存先へ適用できるよう
+ * hojinGroupsも返す。splitGroupsByOwnersを法人側パーサと共用することで、
+ * 「片方だけ直して他方に反映し忘れる」食い違いを構造的に防ぐ。
  */
-export function parseHistoryCsv(text: string): ParsedHistoryCsv {
+export function parseHistoryCsv(text: string, scope: AssetDisplayScope): ParsedHistoryCsv {
   const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
   if (lines.length === 0) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
   const header = parseCsvLine(lines[0]);
@@ -268,37 +284,41 @@ export function parseHistoryCsv(text: string): ParsedHistoryCsv {
     throw new Error(`年月列を解釈できない行があります: ${badRows.join('、')}。CSVを修正して再度お試しください。`);
   }
 
-  const { groups, ignoredCount, affectedYearMonths } = buildGroupsExcludingOwners(rows, ['corporate']);
-  return { groups, ignoredCorporateRowCount: ignoredCount, affectedYearMonths };
+  const { ownGroups: groups, otherGroups: hojinGroups } = splitGroupsByOwners(rows, ['personal', 'personal_spouse']);
+  if (scope === 'combined') {
+    const affectedYearMonths = Array.from(new Set([...groups.keys(), ...hojinGroups.keys()])).sort();
+    return { groups, hojinGroups, ignoredCorporateRowCount: 0, affectedYearMonths };
+  }
+  const ignoredCorporateRowCount = Array.from(hojinGroups.values()).reduce((n, g) => n + g.length, 0);
+  return { groups, ignoredCorporateRowCount, affectedYearMonths: Array.from(groups.keys()).sort() };
 }
 
 /**
  * parseHistoryCsvの結果を実際に適用する。年月ラベルごとにグループ化された行で、
  * 既存の同一年月の記録を完全に置き換える（削除→挿入）。今月ラベルが含まれる場合は
- * 現在のholdingsと今月のAssetSnapshotの両方を同期させる（1-3節）。
+ * 現在のholdingsと今月のAssetSnapshotの両方を同期させる（1-3節）。combinedスコープで
+ * hojinGroupsが渡された場合は、法人ストアにも同じ処理（applyGroupsToStore）を適用する
+ * （csv_yyyymm_format_and_import_scope_fix.md 2章）。
  */
 export function applyHistoryCsv(parsed: ParsedHistoryCsv): {
   holdings: AssetHolding[];
   snapshots: AssetSnapshot[];
   removed: AssetSnapshot[];
+  hojinHoldings?: AssetHolding[];
+  hojinSnapshots?: HojinAssetSnapshot[];
+  removedHojin?: HojinAssetSnapshot[];
 } {
   const nowYM = toYearMonth(new Date());
-  const existingSnapshots = loadSnapshots();
-  const existingDated = existingSnapshots.map((s) => ({ date: s.date, holdings: s.holdings }));
-  const updatedDated = replaceYearMonthGroups(existingDated, parsed.groups);
+  const { holdings, snapshots, removed } = applyGroupsToStore(parsed.groups, nowYM, personalStoreAdapter);
 
-  const updatedSnapshots: AssetSnapshot[] = updatedDated.map((d) => ({
-    date: d.date,
-    holdings: d.holdings,
-    totalAmount: d.holdings.reduce((s, h) => s + (h.amount || 0), 0),
-    profileId: 'default',
-  }));
+  if (parsed.hojinGroups && parsed.hojinGroups.size > 0) {
+    const { holdings: hojinHoldings, snapshots: hojinSnapshots, removed: removedHojin } = applyGroupsToStore(
+      parsed.hojinGroups,
+      nowYM,
+      hojinStoreAdapter,
+    );
+    return { holdings, snapshots, removed, hojinHoldings, hojinSnapshots, removedHojin: removedHojin.length ? removedHojin : undefined };
+  }
 
-  const { trimmed, removed } = saveSnapshots(updatedSnapshots);
-
-  const currentGroupRows = parsed.groups.get(nowYM);
-  const holdings = currentGroupRows ? currentGroupRows : loadHoldings();
-  if (currentGroupRows) saveHoldings(holdings);
-
-  return { holdings, snapshots: trimmed, removed };
+  return { holdings, snapshots, removed };
 }

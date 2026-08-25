@@ -9,6 +9,14 @@ export interface DatedHoldings {
 }
 
 /**
+ * ページ上の唯一の「表示：個人のみ／合算」トグル（AssetManagementPage.tsxのdisplayScopePref）と
+ * 同じ型をここに集約する。CSV Export/Importのスコープ判断は、セクションごとに別のスコープ概念を
+ * 新設せず、この共有トグルの値を参照する（csv_yyyymm_format_and_import_scope_fix.md 2章、
+ * KENZOさんの方針指定：新しいスコープ概念を作らず既存displayScopePrefを共有する）。
+ */
+export type AssetDisplayScope = 'personalOnly' | 'combined';
+
+/**
  * id一致→上書き、id不一致→新規追加（既存の位置は保持し、新規分は末尾に追加）。
  * JSON Import・旧CSV Import（assetManagement/exportImport.tsのmergeHoldings、
  * hojinAssetManagement/exportImport.tsの旧mergeById）と共通のID一致判定ロジック。
@@ -61,6 +69,60 @@ export function buildGroupsExcludingOwners(
 }
 
 /**
+ * CSV行を「自セクションのowner」と「それ以外」の2グループに分類し、それぞれ年月グループ化する。
+ * personalOnly/combinedスコープ対応（csv_yyyymm_format_and_import_scope_fix.md 2章・3章）：
+ * personalOnly時はownGroupsのみ適用しotherGroupsは無視（buildGroupsExcludingOwnersと同じ結果）、
+ * combined時はownGroups・otherGroupsの両方をそれぞれ正しい保存先へ適用する。
+ */
+export function splitGroupsByOwners(
+  rows: Array<AssetHolding & { yearMonth: string }>,
+  ownOwners: ReadonlyArray<AssetHolding['owner']>,
+): { ownGroups: Map<string, AssetHolding[]>; otherGroups: Map<string, AssetHolding[]> } {
+  const own = rows.filter((r) => ownOwners.includes(r.owner));
+  const other = rows.filter((r) => !ownOwners.includes(r.owner));
+  return { ownGroups: groupRowsByYearMonth(own), otherGroups: groupRowsByYearMonth(other) };
+}
+
+/**
+ * groups（年月ごとのholdings）を、指定したスナップショットストアへ適用する汎用ロジック。
+ * personal/hojin両ストアの「自ストア書き込み」「相互ストアへのクロス書き込み」計4箇所で
+ * このまま共有する（経路ごとに同じ処理を別々に実装しない。investigation_csv_duplicate_bug_and
+ * _reset_feature.mdで確認済みのバグA・バグBと同じパターンを再発させないため）。
+ * 中身はreplaceYearMonthGroups→保存→今月ラベルがgroupsに含まれていれば現在holdingsも同期、
+ * という既存のapplyHistoryCsv/applyHojinHistoryCsvの「ownグループ書き込み」ロジックの一般化。
+ */
+export function applyGroupsToStore<TSnapshot extends { date: string }>(
+  groups: Map<string, AssetHolding[]>,
+  nowYM: string,
+  store: {
+    loadHistory: () => TSnapshot[];
+    saveHistory: (next: TSnapshot[]) => { trimmed: TSnapshot[]; removed: TSnapshot[] };
+    toDated: (s: TSnapshot) => AssetHolding[];
+    fromDated: (date: string, holdings: AssetHolding[], prev: TSnapshot | undefined) => TSnapshot;
+    loadCurrentHoldings: () => AssetHolding[];
+    saveCurrentHoldings: (h: AssetHolding[]) => void;
+  },
+): { holdings: AssetHolding[]; snapshots: TSnapshot[]; removed: TSnapshot[] } {
+  if (groups.size === 0) {
+    return { holdings: store.loadCurrentHoldings(), snapshots: store.loadHistory(), removed: [] };
+  }
+  const existing = store.loadHistory();
+  const existingByDate = new Map(existing.map((s) => [s.date, s]));
+  const existingDated: DatedHoldings[] = existing.map((s) => ({ date: s.date, holdings: store.toDated(s) }));
+  const updatedDated = replaceYearMonthGroups(existingDated, groups);
+  const updated = updatedDated.map((d) => store.fromDated(d.date, d.holdings, existingByDate.get(d.date)));
+  const { trimmed, removed } = store.saveHistory(updated);
+
+  let holdings = store.loadCurrentHoldings();
+  const currentGroupRows = groups.get(nowYM);
+  if (currentGroupRows) {
+    holdings = currentGroupRows;
+    store.saveCurrentHoldings(holdings);
+  }
+  return { holdings, snapshots: trimmed, removed };
+}
+
+/**
  * existingの各要素のうち、groupsに同じdateが存在するものは「その年月のholdingsをCSVの内容だけに
  * 総入れ替え」する（削除→挿入）。groupsにしかないdateは新規追加。groupsに無いdateは一切触れない。
  * 戻り値はdate昇順。
@@ -79,6 +141,11 @@ export function replaceYearMonthGroups(
 /** 確認ダイアログ表示用：groupsに含まれる年月ラベルの一覧（昇順）。 */
 export function sortedYearMonths(groups: Map<string, AssetHolding[]>): string[] {
   return Array.from(groups.keys()).sort();
+}
+
+/** 内部形式'YYYY-MM'をCSV Export用の'YYYYMM'（区切りなし6桁）に変換する。内部データ形式は変更しない。 */
+export function toCompactYearMonth(ym: string): string {
+  return ym.replace('-', '');
 }
 
 let idCounter = 0;
@@ -131,7 +198,14 @@ function twoDigitYearTo4(yy: string): string {
 export function normalizeYearMonth(raw: string): string | null {
   const s = raw.trim();
 
-  let m = /^(\d{4})-(\d{2})$/.exec(s);
+  // YYYYMM（区切りなし6桁）：csv_yyyymm_format_and_import_scope_fix.mdで新しい主形式に採用。
+  // 区切り文字や月名を含まない単純な数字は表計算ソフトが日付として自動認識しにくいため、
+  // Export側はこの形式を出力する（toCompactYearMonth参照）。Import側は後方互換のため、
+  // 以下の旧形式（YYYY-MM等）も引き続き受理する。
+  let m = /^(\d{4})(\d{2})$/.exec(s);
+  if (m) return isValidMonth(m[2]) ? `${m[1]}-${m[2]}` : null;
+
+  m = /^(\d{4})-(\d{2})$/.exec(s);
   if (m) return isValidMonth(m[2]) ? `${m[1]}-${m[2]}` : null;
 
   m = /^(\d{4})\/(\d{2})$/.exec(s);

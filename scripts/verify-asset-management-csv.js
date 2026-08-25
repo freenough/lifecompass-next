@@ -21,6 +21,7 @@ const {
   groupRowsByYearMonth,
   buildGroupsExcludingOwners,
   normalizeYearMonth,
+  toCompactYearMonth,
 } = require('../src/lib/assetManagement/csvHistory');
 const { parseHistoryCsv } = require('../src/lib/assetManagement/exportImport');
 const { parseHojinHistoryCsv } = require('../src/lib/hojinAssetManagement/exportImport');
@@ -159,7 +160,7 @@ console.log('='.repeat(80));
     'row1,2026-08,現金,現金,本人,100,',
     'row1,2026-08,現金,現金,本人,100,',
   ]);
-  const parsed = parseHistoryCsv(text);
+  const parsed = parseHistoryCsv(text, 'personalOnly');
   const g = parsed.groups.get('2026-08');
   record(
     '8. 同一ID行が3回登場するCSVを1回パースしても、結果は1件に収束する',
@@ -171,7 +172,7 @@ console.log('='.repeat(80));
   // 同じCSVを3回連続でパースしても、結果（グループの中身）が変化しないこと
   // （「同じCSVを3回連続でインポートしても行数が変わらない」の純粋関数レベルでの確認）
   const text = csvText(['row1,2026-08,現金,現金,本人,100,', 'row2,2026-08,NISA,全世界株,本人,200,']);
-  const results = [1, 2, 3].map(() => parseHistoryCsv(text).groups.get('2026-08').length);
+  const results = [1, 2, 3].map(() => parseHistoryCsv(text, 'personalOnly').groups.get('2026-08').length);
   record(
     '9. 同一CSVを3回連続でパースしても、グループの行数は常に2件のまま変化しない',
     results.every((n) => n === 2),
@@ -184,7 +185,7 @@ console.log('='.repeat(80));
     'corp1,2026-08,法人預金,現金,法人,999,',
     'pers1,2026-08,現金,現金,本人,100,',
   ]);
-  const parsed = parseHistoryCsv(text);
+  const parsed = parseHistoryCsv(text, 'personalOnly');
   const g = parsed.groups.get('2026-08');
   record(
     '10. 個人側パーサ：法人区分の行は除外され、個人ストアには反映されない（バグB回帰）',
@@ -205,7 +206,7 @@ console.log('='.repeat(80));
     'row1,2026-08,法人預金,現金,法人,300,',
     'row1,2026-08,法人預金,現金,法人,300,',
   ]);
-  const parsed = parseHojinHistoryCsv(text);
+  const parsed = parseHojinHistoryCsv(text, 'personalOnly');
   const g = parsed.hojinGroups.get('2026-08');
   record(
     '11. 法人側パーサ：同一ID行が2回登場するCSVを1回パースしても、結果は1件に収束する（バグA回帰）',
@@ -220,7 +221,7 @@ console.log('='.repeat(80));
     'pers1,2026-08,現金,現金,本人,999,',
     'sp1,2026-08,現金,現金,配偶者,888,',
   ]);
-  const parsed = parseHojinHistoryCsv(text);
+  const parsed = parseHojinHistoryCsv(text, 'personalOnly');
   const g = parsed.hojinGroups.get('2026-08');
   record(
     '12. 法人側パーサ：本人/配偶者区分の行は除外され、法人ストアには反映されない',
@@ -230,7 +231,7 @@ console.log('='.repeat(80));
 }
 {
   const text = csvText(['row1,2026-08,法人預金,現金,法人,300,', 'row2,2026-08,法人証券口座,全世界株,法人,500,']);
-  const results = [1, 2, 3].map(() => parseHojinHistoryCsv(text).hojinGroups.get('2026-08').length);
+  const results = [1, 2, 3].map(() => parseHojinHistoryCsv(text, 'personalOnly').hojinGroups.get('2026-08').length);
   record(
     '13. 法人側：同一CSVを3回連続でパースしても、グループの行数は常に2件のまま変化しない',
     results.every((n) => n === 2),
@@ -246,6 +247,8 @@ console.log('【normalizeYearMonth：年月正規化】');
 console.log('='.repeat(80));
 
 const NORMALIZE_CASES = [
+  ['202608', '2026-08'], // 新しい主形式（YYYYMM、区切りなし6桁）
+  ['202613', null], // 存在しない月（YYYYMM形式）
   ['2026-08', '2026-08'],
   ['2026/08', '2026-08'],
   ['Aug-26', '2026-08'],
@@ -260,6 +263,69 @@ const NORMALIZE_CASES = [
 for (const [input, expected] of NORMALIZE_CASES) {
   const actual = normalizeYearMonth(input);
   record(`14. normalizeYearMonth("${input}") → ${JSON.stringify(expected)}`, actual === expected, `actual=${JSON.stringify(actual)}`);
+}
+
+// ================================================================
+// SECTION 7: toCompactYearMonth（Export時のYYYY-MM→YYYYMM変換）
+// ================================================================
+console.log('\n' + '='.repeat(80));
+console.log('【toCompactYearMonth：Export時の年月表記変換】');
+console.log('='.repeat(80));
+
+{
+  record('15. toCompactYearMonth("2026-08") → "202608"', toCompactYearMonth('2026-08') === '202608', `actual=${toCompactYearMonth('2026-08')}`);
+  record('15. toCompactYearMonth("2026-12") → "202612"', toCompactYearMonth('2026-12') === '202612', `actual=${toCompactYearMonth('2026-12')}`);
+}
+
+// ================================================================
+// SECTION 8: combinedスコープ（Importスコープ対称化の回帰テスト）
+// ================================================================
+console.log('\n' + '='.repeat(80));
+console.log('【combinedスコープ：本人/配偶者行・法人行の両方をそれぞれ正しい保存先へ】');
+console.log('='.repeat(80));
+
+{
+  // 個人側パーサにcombinedスコープを渡すと、本人/配偶者行はgroupsへ、法人行はhojinGroupsへ
+  // 分離される（片方だけに書き込むpersonalOnlyとは異なり、両方とも捨てられない）。
+  const text = csvText([
+    'pers1,2026-08,現金,現金,本人,100,',
+    'sp1,2026-08,現金,現金,配偶者,200,',
+    'corp1,2026-08,法人預金,現金,法人,300,',
+  ]);
+  const parsed = parseHistoryCsv(text, 'combined');
+  const g = parsed.groups.get('2026-08');
+  const hg = parsed.hojinGroups.get('2026-08');
+  record(
+    '16. parseHistoryCsv(combined)：本人/配偶者行はgroupsに、法人行はhojinGroupsに分離される',
+    parsed.ignoredCorporateRowCount === 0 && g.length === 2 && g.every((h) => h.owner !== 'corporate') && hg.length === 1 && hg[0].owner === 'corporate',
+    JSON.stringify({ ignoredCorporateRowCount: parsed.ignoredCorporateRowCount, g, hg })
+  );
+}
+{
+  // 法人側パーサでも対称の結果になる（同じCSVをどちらのボタンから読み込んでも同じ挙動）。
+  const text = csvText([
+    'pers1,2026-08,現金,現金,本人,100,',
+    'sp1,2026-08,現金,現金,配偶者,200,',
+    'corp1,2026-08,法人預金,現金,法人,300,',
+  ]);
+  const parsed = parseHojinHistoryCsv(text, 'combined');
+  const hg = parsed.hojinGroups.get('2026-08');
+  const pg = parsed.personalGroups.get('2026-08');
+  record(
+    '17. parseHojinHistoryCsv(combined)：法人行はhojinGroupsに、本人/配偶者行はpersonalGroupsに分離される（16と対称）',
+    parsed.ignoredPersonalRowCount === 0 && hg.length === 1 && hg[0].owner === 'corporate' && pg.length === 2 && pg.every((h) => h.owner !== 'corporate'),
+    JSON.stringify({ ignoredPersonalRowCount: parsed.ignoredPersonalRowCount, hg, pg })
+  );
+}
+{
+  // personalOnlyスコープでは引き続きhojinGroups/personalGroupsを返さない（Bug B対策の維持確認）。
+  const text = csvText(['pers1,2026-08,現金,現金,本人,100,', 'corp1,2026-08,法人預金,現金,法人,300,']);
+  const parsed = parseHistoryCsv(text, 'personalOnly');
+  record(
+    '18. personalOnlyスコープではhojinGroupsを返さない（法人ストアへの書き込み対象がない）',
+    parsed.hojinGroups === undefined && parsed.ignoredCorporateRowCount === 1,
+    JSON.stringify({ hojinGroups: parsed.hojinGroups, ignoredCorporateRowCount: parsed.ignoredCorporateRowCount })
+  );
 }
 
 // ================================================================
