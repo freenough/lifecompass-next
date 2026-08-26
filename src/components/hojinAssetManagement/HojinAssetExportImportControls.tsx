@@ -17,6 +17,13 @@ interface HojinAssetExportImportControlsProps {
   personalHoldings: AssetHolding[];
   snapshots: HojinAssetSnapshot[];
   /**
+   * 個人ストア自身の真の記録履歴（assetManagement/storage.tsのloadSnapshots()が返すもの）。
+   * combinedスコープのCSV Exportで、法人スナップショットが持つpersonalHoldings（表示用の
+   * 複製、記録タイミングによって歯抜けになりうる）ではなくこちらを使う
+   * （followup_evidence_request_f5ee8f8.md 2章）。
+   */
+  personalSnapshots: AssetSnapshot[];
+  /**
    * ページ上の唯一の「表示：個人のみ／合算」トグル（AssetManagementPage.tsxのdisplayScope）を
    * そのまま受け取る。以前このコンポーネントが独自に持っていた「エクスポート範囲」ローカル
    * トグルは廃止した（csv_yyyymm_format_and_import_scope_fix.md 2章：新しいスコープ概念を
@@ -36,6 +43,7 @@ export default function HojinAssetExportImportControls({
   hojinHoldings,
   personalHoldings,
   snapshots,
+  personalSnapshots,
   displayScope,
   onImported,
   onRemoved,
@@ -128,7 +136,7 @@ export default function HojinAssetExportImportControls({
           <p className="text-[11px] text-slate-400 mb-2">保有資産＋記録履歴（年月ラベル付き）。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => exportToCsv(hojinHoldings, personalHoldings, snapshots, displayScope)}
+              onClick={() => exportToCsv(hojinHoldings, personalHoldings, snapshots, displayScope, personalSnapshots)}
               className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
             >
               CSVでエクスポート

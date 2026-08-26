@@ -132,12 +132,20 @@ function parseCsvLine(line: string): string[] {
 /**
  * 現在の保有資産（今月ラベル）＋保存済みの全記録履歴（今月分と重複する場合は現在値を優先し
  * 履歴側は除外）を年月ラベル付きでCSV出力する（追加実装：CSV記録履歴対応）。
+ *
+ * combinedスコープの個人側過去履歴は、法人スナップショット自身が持つpersonalHoldings
+ * （「記録する」を法人トグルON時に押した月だけ自動キャプチャされる表示用の複製、
+ * 記録が欠けている月がありうる）ではなく、personalSnapshots（個人ストア自身の真の記録履歴、
+ * assetManagement/storage.tsのloadSnapshots()が返すもの）から出力する
+ * （followup_evidence_request_f5ee8f8.md 2章：「合算Export＝完全バックアップ」という
+ * UI文言の期待に対し、前者は記録タイミングによって歯抜けになりうるため見落としと判断し修正）。
  */
 export function exportToCsv(
   hojinHoldings: AssetHolding[],
   personalHoldings: AssetHolding[],
   snapshots: HojinAssetSnapshot[],
   scope: ExportScope,
+  personalSnapshots: AssetSnapshot[],
 ): void {
   const nowYM = toYearMonth(new Date());
   const nowYMCompact = toCompactYearMonth(nowYM);
@@ -145,14 +153,17 @@ export function exportToCsv(
   const currentPersonalRows = scope === 'combined'
     ? personalHoldings.map((h) => [h.id, nowYMCompact, h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
     : [];
-  const historySnapshots = snapshots.filter((s) => s.date !== nowYM);
-  const historyHojinRows = historySnapshots.flatMap((s) =>
-    s.hojinHoldings.map((h) => [h.id, toCompactYearMonth(s.date), h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt])
-  );
+  const historyHojinRows = snapshots
+    .filter((s) => s.date !== nowYM)
+    .flatMap((s) =>
+      s.hojinHoldings.map((h) => [h.id, toCompactYearMonth(s.date), h.accountCategory, h.assetClass, OWNER_LABELS.corporate, h.amount, h.updatedAt])
+    );
   const historyPersonalRows = scope === 'combined'
-    ? historySnapshots.flatMap((s) =>
-        s.personalHoldings.map((h) => [h.id, toCompactYearMonth(s.date), h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
-      )
+    ? personalSnapshots
+        .filter((s) => s.date !== nowYM)
+        .flatMap((s) =>
+          s.holdings.map((h) => [h.id, toCompactYearMonth(s.date), h.accountCategory, h.assetClass, OWNER_LABELS[h.owner] ?? h.owner, h.amount, h.updatedAt])
+        )
     : [];
   const rows = [...currentHojinRows, ...currentPersonalRows, ...historyHojinRows, ...historyPersonalRows];
   const bom = '﻿';

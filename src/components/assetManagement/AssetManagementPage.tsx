@@ -462,6 +462,7 @@ export default function AssetManagementPage() {
                 hojinHoldings={hojinHoldings}
                 personalHoldings={holdings}
                 snapshots={hojinSnapshots}
+                personalSnapshots={snapshots}
                 displayScope={displayScope}
                 onImported={handleHojinImported}
                 onRemoved={(removedHojin) => notifyRemoved([removedHojin])}
