@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import KpiCard from '@/components/simulator/KpiCard';
 import PersonalizationRatioSlider from './PersonalizationRatioSlider';
-import type { AssetHolding } from '@/lib/assetManagement/types';
+import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import { findPersonalSnapshot } from '@/lib/hojinAssetManagement/personalHistory';
 
 interface HojinAssetProgressPanelProps {
   hojinHoldings: AssetHolding[];
@@ -16,6 +17,12 @@ interface HojinAssetProgressPanelProps {
   onChangeRatio: (ratio: number) => void;
   /** 「前回記録比」カードのみ表示トグルに追従する。他（目標までの進捗・積み上げバー等）は追従しない。 */
   displayScope: 'personalOnly' | 'combined';
+  /**
+   * 個人ストア自身の真の記録履歴。「前回記録比」の前回個人側金額は、法人スナップショットが持つ
+   * totalPersonalAmount（記録タイミングによって歯抜けになりうる表示用の複製）ではなく、
+   * こちらを該当年月で優先参照する（simplify_csv_scope_and_fix_graph_history_bug.md 1章）。
+   */
+  personalSnapshots: AssetSnapshot[];
 }
 
 // 個人資産管理ツールのAssetProgressPanel.tsx（ロック対象）のカード3枚構成を踏襲しつつ、
@@ -29,6 +36,7 @@ export default function HojinAssetProgressPanel({
   personalizationRatio,
   onChangeRatio,
   displayScope,
+  personalSnapshots,
 }: HojinAssetProgressPanelProps) {
   const [targetInput, setTargetInput] = useState(targetAmount > 0 ? String(targetAmount) : '');
   useEffect(() => {
@@ -45,8 +53,11 @@ export default function HojinAssetProgressPanel({
   const latest = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
   // フェーズ1：/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す。
   const currentScopedTotal = displayScope === 'combined' ? personalTotal + hojinTotal : personalTotal;
+  // 1章：前回の個人側金額は、個人ストア自身の真の記録履歴を該当年月で優先参照する
+  // （無ければ法人スナップショットの表示用複製totalPersonalAmountへフォールバック）。
+  const lastPersonalTotal = latest ? (findPersonalSnapshot(personalSnapshots, latest.date)?.totalAmount ?? latest.totalPersonalAmount) : null;
   const lastScopedTotal = latest
-    ? (displayScope === 'combined' ? latest.totalPersonalAmount + latest.totalHojinAmount : latest.totalPersonalAmount)
+    ? (displayScope === 'combined' ? (lastPersonalTotal ?? 0) + latest.totalHojinAmount : lastPersonalTotal ?? 0)
     : null;
   const diffFromLast = latest && lastScopedTotal !== null ? currentScopedTotal - lastScopedTotal : null;
   const diffFromLastPct = latest && lastScopedTotal !== null && lastScopedTotal > 0 && diffFromLast !== null

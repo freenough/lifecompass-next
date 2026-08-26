@@ -778,11 +778,11 @@ console.log('='.repeat(100));
 require('./verify-asset-management-loadholdings-dedup.js');
 
 // ================================================================
-// 資産管理ツール：CSVインポートのスコープ対称化（combinedスコープのクロスストア書き込み）
-// csv_yyyymm_format_and_import_scope_fix.md 2章の回帰テスト。localStorageシムを使うため、
+// 資産管理ツール：CSVの中身（区分列）だけで個人・法人ストアへの書き込みが決まることの確認
+// simplify_csv_scope_and_fix_graph_history_bug.md 2章の回帰テスト。localStorageシムを使うため、
 // 他のスクリプトへの影響を避けるためfull-verify.js内で最後に実行する。
 // ================================================================
 console.log('\n' + '='.repeat(100));
-console.log('【資産管理ツール:CSVインポートのスコープ対称化】verify-asset-management-csv-scope-crosswrite.js');
+console.log('【資産管理ツール:CSVの中身だけでストアへの書き込みが決まる】verify-asset-management-csv-cross-store.js');
 console.log('='.repeat(100));
-require('./verify-asset-management-csv-scope-crosswrite.js');
+require('./verify-asset-management-csv-cross-store.js');

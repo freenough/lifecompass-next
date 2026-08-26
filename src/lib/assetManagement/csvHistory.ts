@@ -52,27 +52,13 @@ export function groupRowsByYearMonth(
 }
 
 /**
- * CSV行を、指定したowner（区分）を除外したうえで年月グループ化する。法人セクションのCSV
- * インポートは本人/配偶者行を除外し、個人セクションのCSVインポートは法人行を除外する
- * （調査報告のバグB：以前は法人側にのみ除外フィルタがあり、個人側に対称の実装が
- * 反映されていなかった。同じ種類の処理は両方の呼び出し元がこの1つの関数を共有することで、
- * 今後どちらか一方だけ直して他方に反映し忘れる、という食い違いを構造的に防ぐ）。
- */
-export function buildGroupsExcludingOwners(
-  rows: Array<AssetHolding & { yearMonth: string }>,
-  excludedOwners: ReadonlyArray<AssetHolding['owner']>,
-): { groups: Map<string, AssetHolding[]>; ignoredCount: number; affectedYearMonths: string[] } {
-  const included = rows.filter((r) => !excludedOwners.includes(r.owner));
-  const ignoredCount = rows.length - included.length;
-  const groups = groupRowsByYearMonth(included);
-  return { groups, ignoredCount, affectedYearMonths: sortedYearMonths(groups) };
-}
-
-/**
- * CSV行を「自セクションのowner」と「それ以外」の2グループに分類し、それぞれ年月グループ化する。
- * personalOnly/combinedスコープ対応（csv_yyyymm_format_and_import_scope_fix.md 2章・3章）：
- * personalOnly時はownGroupsのみ適用しotherGroupsは無視（buildGroupsExcludingOwnersと同じ結果）、
- * combined時はownGroups・otherGroupsの両方をそれぞれ正しい保存先へ適用する。
+ * CSV行を、指定したowner（区分）に属するものとそれ以外の2グループに分類し、それぞれ年月
+ * グループ化する。個人ストア向け（本人/配偶者）・法人ストア向け（法人）のどちらのパーサからも
+ * この1つを共有し、常に両方（ownGroups・otherGroups）を返す。以前は「表示トグルの値に応じて
+ * 他方を無視する」スコープ判定をパース関数側に持たせていたが（personalOnly/combined）、
+ * これを廃止しCSVの中身（区分列）だけで判断する設計に単純化した
+ * （simplify_csv_scope_and_fix_graph_history_bug.md 2章）。呼び出し側（parseAssetCsv）は
+ * ownGroups・otherGroupsの両方をそれぞれ正しい保存先へ適用する。
  */
 export function splitGroupsByOwners(
   rows: Array<AssetHolding & { yearMonth: string }>,
@@ -146,6 +132,19 @@ export function sortedYearMonths(groups: Map<string, AssetHolding[]>): string[] 
 /** 内部形式'YYYY-MM'をCSV Export用の'YYYYMM'（区切りなし6桁）に変換する。内部データ形式は変更しない。 */
 export function toCompactYearMonth(ym: string): string {
   return ym.replace('-', '');
+}
+
+/**
+ * 確認ダイアログ表示用：年月ラベルの一覧を、件数に応じて列挙／要約する
+ * （simplify_csv_scope_and_fix_graph_history_bug.md 3章）。totalCountは呼び出し側が
+ * 「個人・法人合わせた合計件数」を渡す想定（合計が6件以上なら、個人・法人それぞれの列挙も
+ * 要約表示に切り替えるため。個別のmonths.lengthでは判定しない）。
+ */
+export function summarizeYearMonths(months: string[], totalCount: number): string {
+  const sorted = [...months].sort();
+  if (sorted.length === 0) return '';
+  if (totalCount <= 5) return sorted.join('、');
+  return `${sorted[0]}〜${sorted[sorted.length - 1]}（${sorted.length}件）`;
 }
 
 let idCounter = 0;

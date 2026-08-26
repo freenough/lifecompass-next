@@ -13,6 +13,7 @@ import {
 import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 import type { AssetDisplayScope } from '@/lib/assetManagement/csvHistory';
+import type { ImportResult } from '@/lib/assetManagement/exportImport';
 import {
   loadHoldings,
   saveHoldings,
@@ -43,7 +44,6 @@ import AssetResetControls, { type ResetScope } from './AssetResetControls';
 import HojinAssetHoldingCard from '@/components/hojinAssetManagement/HojinAssetHoldingCard';
 import HojinAssetProgressPanel from '@/components/hojinAssetManagement/HojinAssetProgressPanel';
 import HojinAssetAllocationChangeTable from '@/components/hojinAssetManagement/HojinAssetAllocationChangeTable';
-import HojinAssetExportImportControls from '@/components/hojinAssetManagement/HojinAssetExportImportControls';
 import HojinTransferHelper from '@/components/hojinAssetManagement/HojinTransferHelper';
 
 // Rechartsコンポーネントは必ずssr:falseの動的importで読み込む（ResponsiveContainerが
@@ -190,28 +190,14 @@ export default function AssetManagementPage() {
     savePersonalizationRatio(ratio);
   };
 
-  const handleImported = (
-    nextHoldings: AssetHolding[],
-    nextSnapshots: AssetSnapshot[],
-    nextHojinHoldings?: AssetHolding[],
-    nextHojinSnapshots?: HojinAssetSnapshot[],
-  ) => {
-    setHoldings(nextHoldings);
-    setSnapshots(nextSnapshots);
-    if (nextHojinHoldings) setHojinHoldings(nextHojinHoldings);
-    if (nextHojinSnapshots) setHojinSnapshots(nextHojinSnapshots);
-  };
-
-  const handleHojinImported = (
-    nextHojinHoldings: AssetHolding[],
-    nextPersonalHoldings: AssetHolding[],
-    nextHojinSnapshots?: HojinAssetSnapshot[],
-    nextPersonalSnapshots?: AssetSnapshot[],
-  ) => {
-    setHojinHoldings(nextHojinHoldings);
-    setHoldings(nextPersonalHoldings);
-    if (nextHojinSnapshots) setHojinSnapshots(nextHojinSnapshots);
-    if (nextPersonalSnapshots) setSnapshots(nextPersonalSnapshots);
+  // simplify_csv_scope_and_fix_graph_history_bug.md 2章：Export/Importが表示トグルと無関係に
+  // なり、個人・法人どちらのストアが更新されたかに関わらず戻り値は常に両ストアの最新状態を
+  // 含むため（ImportResult）、旧来の「個人用」「法人用」2つのハンドラに分ける必要がなくなった。
+  const handleImported = (result: ImportResult) => {
+    setHoldings(result.holdings);
+    setSnapshots(result.snapshots);
+    setHojinHoldings(result.hojinHoldings);
+    setHojinSnapshots(result.hojinSnapshots);
   };
 
   // 全データリセット（追加実装4章）。対象範囲ごとにストレージを削除したうえで、
@@ -238,10 +224,6 @@ export default function AssetManagementPage() {
   // 法人保有資産が未入力のときは「個人のみ」に固定する（合算しても差が出ないため）。
   const hojinIsEmpty = hojinHoldings.length === 0 || hojinTotal === 0;
   const displayScope: AssetDisplayScope = hojinIsEmpty ? 'personalOnly' : displayScopePref;
-  // 法人セクションが非表示のときは、CSVインポートが裏で法人ストアへ影響しないようにする
-  // 追加ガード（csv_yyyymm_format_and_import_scope_fix.md 2章）。HojinAssetExportImportControls
-  // は元々includeCorporate時のみレンダーされるため同様のガードは不要。
-  const csvImportScope: AssetDisplayScope = includeCorporate ? displayScope : 'personalOnly';
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12">
@@ -394,6 +376,7 @@ export default function AssetManagementPage() {
                 displayScope={displayScope}
                 currentPersonalTotal={totalAmount}
                 currentHojinTotal={hojinTotal}
+                personalSnapshots={snapshots}
               />
             ) : (
               <AssetSnapshotHistory snapshots={snapshots} onRecord={handleRecord} currentTotal={totalAmount} />
@@ -412,6 +395,7 @@ export default function AssetManagementPage() {
                 personalizationRatio={personalizationRatio}
                 onChangeRatio={handleChangeRatio}
                 displayScope={displayScope}
+                personalSnapshots={snapshots}
               />
             ) : (
               <AssetProgressPanel
@@ -438,6 +422,7 @@ export default function AssetManagementPage() {
               personalHoldings={holdings}
               snapshots={hojinSnapshots}
               displayScope={displayScope}
+              personalSnapshots={snapshots}
             />
           ) : (
             <AssetAllocationChangeTable holdings={holdings} snapshots={snapshots} />
@@ -448,28 +433,12 @@ export default function AssetManagementPage() {
             <AssetExportImportControls
               holdings={holdings}
               snapshots={snapshots}
-              displayScope={csvImportScope}
+              hojinHoldings={hojinHoldings}
+              hojinSnapshots={hojinSnapshots}
               onImported={handleImported}
-              onRemoved={(removed) => notifyRemoved([removed])}
-              onRemovedHojin={(removedHojin) => notifyRemoved([removedHojin])}
+              onRemoved={(removed) => notifyRemoved([removed.personal, removed.hojin])}
             />
           </section>
-
-          {includeCorporate && (
-            <section>
-              <h2 className="text-sm font-bold text-slate-700 mb-3">法人資産 Export / Import</h2>
-              <HojinAssetExportImportControls
-                hojinHoldings={hojinHoldings}
-                personalHoldings={holdings}
-                snapshots={hojinSnapshots}
-                personalSnapshots={snapshots}
-                displayScope={displayScope}
-                onImported={handleHojinImported}
-                onRemoved={(removedHojin) => notifyRemoved([removedHojin])}
-                onRemovedPersonal={(removedPersonal) => notifyRemoved([removedPersonal])}
-              />
-            </section>
-          )}
 
           <section>
             <AssetResetControls onReset={handleReset} />

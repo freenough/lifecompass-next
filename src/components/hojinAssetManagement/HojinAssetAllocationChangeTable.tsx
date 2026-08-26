@@ -3,7 +3,8 @@
 import { classBreakdown } from '@/lib/hojinAssetManagement/breakdown';
 import { getAssetClassLabel } from '@/lib/assetManagement/categories';
 import { getAssetClassColor } from '@/lib/hojinAssetManagement/classColors';
-import type { AssetHolding } from '@/lib/assetManagement/types';
+import { findPersonalSnapshot } from '@/lib/hojinAssetManagement/personalHistory';
+import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 
 interface HojinAssetAllocationChangeTableProps {
@@ -11,6 +12,12 @@ interface HojinAssetAllocationChangeTableProps {
   personalHoldings: AssetHolding[];
   snapshots: HojinAssetSnapshot[];
   displayScope: 'personalOnly' | 'combined';
+  /**
+   * 個人ストア自身の真の記録履歴。前回列の個人側内訳は、法人スナップショットが持つ
+   * personalHoldings（記録タイミングによって歯抜けになりうる表示用の複製）ではなく、
+   * こちらを該当年月で優先参照する（simplify_csv_scope_and_fix_graph_history_bug.md 1章）。
+   */
+  personalSnapshots: AssetSnapshot[];
 }
 
 // 個人資産管理ツールのAssetAllocationChangeTable.tsx（ロック対象）を複製し、6.3節のトグルに
@@ -20,15 +27,20 @@ export default function HojinAssetAllocationChangeTable({
   personalHoldings,
   snapshots,
   displayScope,
+  personalSnapshots,
 }: HojinAssetAllocationChangeTableProps) {
   const latest = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
   if (!latest) return null;
 
+  // 1章：前回の個人側holdingsは、個人ストア自身の真の記録履歴を該当年月で優先参照する
+  // （無ければ法人スナップショットの表示用複製personalHoldingsへフォールバック）。
+  const lastPersonalHoldings = findPersonalSnapshot(personalSnapshots, latest.date)?.holdings ?? latest.personalHoldings;
+
   // フェーズ1：/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す。
   const currentHoldings = displayScope === 'combined' ? [...personalHoldings, ...hojinHoldings] : personalHoldings;
   const lastHoldings = displayScope === 'combined'
-    ? [...latest.personalHoldings, ...latest.hojinHoldings]
-    : latest.personalHoldings;
+    ? [...lastPersonalHoldings, ...latest.hojinHoldings]
+    : lastPersonalHoldings;
 
   const currentBreakdown = classBreakdown(currentHoldings);
   const lastBreakdown = classBreakdown(lastHoldings);
