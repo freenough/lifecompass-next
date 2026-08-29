@@ -268,12 +268,17 @@ export function parseJsonPayload(text: string): ParsedJsonImport {
  * 設定値は上書き（スカラー値なのでマージという概念が無い）、移転履歴ログはid一致でマージする
  * （mergeTransferLog、既存ログを失わない）。
  */
-export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult {
+export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult & {
+  removed: AssetSnapshot[];
+  removedHojin: HojinAssetSnapshot[];
+} {
   const raw = parsed.raw;
   let holdings = loadHoldings();
   let snapshots = loadSnapshots();
   let hojinHoldings = loadHojinHoldings();
   let hojinSnapshots = loadHojinSnapshots();
+  let removed: AssetSnapshot[] = [];
+  let removedHojin: HojinAssetSnapshot[] = [];
 
   if (parsed.isOldHojinFormat) {
     // 旧法人形式：hojinHoldings必須、snapshotsは法人スナップショット、personalHoldingsは任意。
@@ -282,8 +287,10 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult {
       saveHojinHoldings(hojinHoldings);
     }
     if (Array.isArray(raw.snapshots)) {
-      hojinSnapshots = mergeHojinSnapshots(hojinSnapshots, raw.snapshots as HojinAssetSnapshot[]);
-      saveHojinSnapshots(hojinSnapshots);
+      const merged = mergeHojinSnapshots(hojinSnapshots, raw.snapshots as HojinAssetSnapshot[]);
+      const saved = saveHojinSnapshots(merged);
+      hojinSnapshots = saved.trimmed;
+      removedHojin = saved.removed;
     }
     if (Array.isArray(raw.personalHoldings)) {
       holdings = mergeHoldings(holdings, raw.personalHoldings as AssetHolding[]);
@@ -291,21 +298,27 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult {
     }
   } else {
     // 新形式・旧個人形式共通：存在するキーだけをそれぞれ対応ストアへマージする。
+    // 保存上限（MAX_SNAPSHOTS）超過時、save*Snapshotsの戻り値（trimmed/removed）を必ず
+    // 使う（保存し直された実体と、呼び出し元へ返す値がズレないようにするため）。
     if (Array.isArray(raw.holdings)) {
       holdings = mergeHoldings(holdings, raw.holdings as AssetHolding[]);
       saveHoldings(holdings);
     }
     if (Array.isArray(raw.snapshots)) {
-      snapshots = mergeSnapshots(snapshots, raw.snapshots as AssetSnapshot[]);
-      saveSnapshots(snapshots);
+      const merged = mergeSnapshots(snapshots, raw.snapshots as AssetSnapshot[]);
+      const saved = saveSnapshots(merged);
+      snapshots = saved.trimmed;
+      removed = saved.removed;
     }
     if (Array.isArray(raw.hojinHoldings)) {
       hojinHoldings = mergeById(hojinHoldings, raw.hojinHoldings as AssetHolding[]);
       saveHojinHoldings(hojinHoldings);
     }
     if (Array.isArray(raw.hojinSnapshots)) {
-      hojinSnapshots = mergeHojinSnapshots(hojinSnapshots, raw.hojinSnapshots as HojinAssetSnapshot[]);
-      saveHojinSnapshots(hojinSnapshots);
+      const merged = mergeHojinSnapshots(hojinSnapshots, raw.hojinSnapshots as HojinAssetSnapshot[]);
+      const saved = saveHojinSnapshots(merged);
+      hojinSnapshots = saved.trimmed;
+      removedHojin = saved.removed;
     }
     if (typeof raw.targetAmount === 'number') saveTargetAmount(raw.targetAmount);
     if (typeof raw.hojinTargetAmount === 'number') saveHojinTargetAmount(raw.hojinTargetAmount);
@@ -321,6 +334,8 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult {
     targetAmount: loadTargetAmount(),
     hojinTargetAmount: loadHojinTargetAmount(),
     personalizationRatio: loadPersonalizationRatio(),
+    removed,
+    removedHojin,
   };
 }
 

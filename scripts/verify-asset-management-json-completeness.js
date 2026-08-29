@@ -26,9 +26,10 @@ global.localStorage = {
 };
 
 const { withCorrectedHojinSnapshots, parseJsonPayload, applyJsonPayload } = require('../src/lib/assetManagement/exportImport');
-const { loadTargetAmount } = require('../src/lib/assetManagement/storage');
-const { loadTargetAmount: loadHojinTargetAmount, loadPersonalizationRatio } = require('../src/lib/hojinAssetManagement/storage');
+const { loadTargetAmount, loadSnapshots } = require('../src/lib/assetManagement/storage');
+const { loadTargetAmount: loadHojinTargetAmount, loadPersonalizationRatio, loadSnapshots: loadHojinSnapshots } = require('../src/lib/hojinAssetManagement/storage');
 const { loadTransferLog } = require('../src/lib/hojinAssetManagement/transferLog');
+const { MAX_SNAPSHOTS } = require('../src/lib/assetManagement/config');
 
 let pass = 0, fail = 0;
 const failedCases = [];
@@ -150,6 +151,47 @@ console.log('='.repeat(80));
   const parsed = parseJsonPayload(oldHojin);
   applyJsonPayload(parsed);
   record('11. 旧法人形式のImportでは個人のtargetAmountに一切触れない', loadTargetAmount() === 1234, `actual=${loadTargetAmount()}`);
+}
+
+console.log('\n' + '='.repeat(80));
+console.log('【2章：保存上限（MAX_SNAPSHOTS）超過時、applyJsonPayloadが正しくtrimmed/removedを扱う】');
+console.log('='.repeat(80));
+
+{
+  // JSON ImportはmergeSnapshots（upsert）を使うため、既存件数と合算するとMAX_SNAPSHOTSを
+  // 超えうる。save*Snapshotsの戻り値（trimmed/removed）を使わずローカル変数をそのまま返すと、
+  // 実際に保存された内容（trimmed）と戻り値がズレる／保存上限超過の通知が出せないバグになる
+  // （本テスト作成時に実装から発見・修正）。
+  store = {};
+  // 一意なdateを持つMAX_SNAPSHOTS-3件のダミー個人スナップショットを直接localStorageへ注入する。
+  const dummy = Array.from({ length: MAX_SNAPSHOTS - 3 }, (_, i) => {
+    const y = 1990 + Math.floor(i / 12);
+    const m = String((i % 12) + 1).padStart(2, '0');
+    return { date: `${y}-${m}`, holdings: [], totalAmount: 0, profileId: 'default' };
+  });
+  localStorage.setItem('lifeCompassAssetSnapshots', JSON.stringify(dummy));
+
+  // 既存件数(MAX_SNAPSHOTS-3)に、新規5件（既存と重複しない年月）を追加インポート → 合計が
+  // MAX_SNAPSHOTSを2件超過する（(MAX_SNAPSHOTS-3)+5-MAX_SNAPSHOTS=2）ため、古い方から
+  // 2件が自動削除されるはず。
+  const newSnapshots = Array.from({ length: 5 }, (_, i) => ({
+    date: `2026-${String(i + 1).padStart(2, '0')}`, holdings: [], totalAmount: 100 + i, profileId: 'default',
+  }));
+  const payload = JSON.stringify({ version: 1, holdings: [], snapshots: newSnapshots, hojinHoldings: [], hojinSnapshots: [] });
+  const parsed = parseJsonPayload(payload);
+  const result = applyJsonPayload(parsed);
+
+  record(
+    '12. 保存上限超過時、戻り値のsnapshotsが実際にlocalStorageへ保存された件数（trimmed後）と一致する',
+    result.snapshots.length === MAX_SNAPSHOTS && loadSnapshots().length === MAX_SNAPSHOTS,
+    `result.snapshots.length=${result.snapshots.length}, loadSnapshots().length=${loadSnapshots().length}`
+  );
+  record(
+    '13. 保存上限超過で削除された分がresult.removedとして呼び出し側へ通知される',
+    result.removed.length === 2,
+    `removed.length=${result.removed.length}`
+  );
+  record('14. 法人側は変化していないためremovedHojinは空', result.removedHojin.length === 0, `removedHojin.length=${result.removedHojin.length}`);
 }
 
 console.log('\n' + '='.repeat(80));

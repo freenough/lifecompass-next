@@ -58,7 +58,9 @@ export default function AssetExportImportControls({
         const confirmed = window.confirm('設定値（目標資産額・個人化想定比率）・移転履歴ログも上書きされます。よろしいですか？');
         if (!confirmed) return;
       }
-      onImported(applyJsonPayload(parsed));
+      const result = applyJsonPayload(parsed);
+      onImported(result);
+      onRemoved({ personal: result.removed, hojin: result.removedHojin });
     } catch {
       alert('JSONの読み込みに失敗しました');
     } finally {
