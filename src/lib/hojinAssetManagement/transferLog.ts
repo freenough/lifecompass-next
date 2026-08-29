@@ -48,3 +48,20 @@ export function clearTransferLog(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(TRANSFER_LOG_KEY);
 }
+
+/**
+ * JSON Importで取り込んだ移転履歴ログを、既存のログへid一致→上書き・不一致→追加でマージする
+ * （json_export_completeness_and_history_bug.md 2章：JSON Exportに不足していたデータを追加）。
+ * appendTransferLogは新規id・現在時刻を採番する専用関数のため、Importで受け取った既存の
+ * id・executedAtをそのまま保持できるよう、この関数を別途用意する。
+ */
+export function mergeTransferLog(incoming: TransferLogEntry[]): TransferLogEntry[] {
+  const merged = [...loadTransferLog()];
+  for (const entry of incoming) {
+    const idx = merged.findIndex((e) => e.id === entry.id);
+    if (idx >= 0) merged[idx] = entry;
+    else merged.push(entry);
+  }
+  saveTransferLog(merged);
+  return merged;
+}

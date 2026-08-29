@@ -7,7 +7,8 @@ import { summarizeYearMonths } from '@/lib/assetManagement/csvHistory';
 import {
   exportToJson,
   exportToCsv,
-  importFromJson,
+  parseJsonPayload,
+  applyJsonPayload,
   detectCsvFormat,
   importHoldingsFromCsvText,
   parseAssetCsv,
@@ -42,12 +43,22 @@ export default function AssetExportImportControls({
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * 設定値（目標資産額・個人化想定比率）・移転履歴ログを含むJSONの場合のみ、上書きされることを
+   * 確認ダイアログで明示する（json_export_completeness_and_history_bug.md 2章）。含まない
+   * JSON（保有資産・記録履歴のみ、または旧形式）は従来通り確認なしで取り込む。
+   */
   const handleImportJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const result = await importFromJson(file);
-      onImported(result);
+      const text = await file.text();
+      const parsed = parseJsonPayload(text);
+      if (parsed.includesSettings) {
+        const confirmed = window.confirm('設定値（目標資産額・個人化想定比率）・移転履歴ログも上書きされます。よろしいですか？');
+        if (!confirmed) return;
+      }
+      onImported(applyJsonPayload(parsed));
     } catch {
       alert('JSONの読み込みに失敗しました');
     } finally {
@@ -118,7 +129,7 @@ export default function AssetExportImportControls({
       {/* 左＝JSON：保有資産＋記録履歴を含む完全バックアップ。主導線として先に置く。 */}
       <div className="rounded-lg border border-slate-200 p-3">
         <p className="text-xs font-semibold text-slate-700 mb-1">JSON</p>
-        <p className="text-[11px] text-slate-400 mb-2">個人・法人の保有資産・記録履歴すべてを含む完全バックアップ</p>
+        <p className="text-[11px] text-slate-400 mb-2">個人・法人の保有資産・記録履歴・設定値（目標資産額・個人化想定比率）・移転履歴ログすべてを含む完全バックアップ</p>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => exportToJson(holdings, snapshots, hojinHoldings, hojinSnapshots)}

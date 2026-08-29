@@ -1,7 +1,19 @@
 import type { AssetHolding, AssetSnapshot } from './types';
 import type { HojinAssetSnapshot } from '../hojinAssetManagement/types';
-import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots, personalStoreAdapter } from './storage';
-import { loadHojinHoldings, saveHojinHoldings, loadSnapshots as loadHojinSnapshots, saveSnapshots as saveHojinSnapshots, hojinStoreAdapter } from '../hojinAssetManagement/storage';
+import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots, loadTargetAmount, saveTargetAmount, personalStoreAdapter } from './storage';
+import {
+  loadHojinHoldings,
+  saveHojinHoldings,
+  loadSnapshots as loadHojinSnapshots,
+  saveSnapshots as saveHojinSnapshots,
+  loadTargetAmount as loadHojinTargetAmount,
+  saveTargetAmount as saveHojinTargetAmount,
+  loadPersonalizationRatio,
+  savePersonalizationRatio,
+  hojinStoreAdapter,
+} from '../hojinAssetManagement/storage';
+import { loadTransferLog, mergeTransferLog, type TransferLogEntry } from '../hojinAssetManagement/transferLog';
+import { findPersonalSnapshot } from '../hojinAssetManagement/personalHistory';
 import { toYearMonth } from './monthlyCheck';
 import {
   rowToHolding,
@@ -27,6 +39,11 @@ interface AssetManagementExportPayload {
   snapshots: AssetSnapshot[];
   hojinHoldings: AssetHolding[];
   hojinSnapshots: HojinAssetSnapshot[];
+  // json_export_completeness_and_history_bug.md 2章：「完全バックアップ」の実態に合わせて追加。
+  targetAmount: number;
+  hojinTargetAmount: number;
+  personalizationRatio: number;
+  transferLog: TransferLogEntry[];
 }
 
 const OWNER_LABELS: Record<AssetHolding['owner'], string> = {
@@ -58,7 +75,27 @@ function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-/** 個人・法人の保有資産＋記録履歴すべてを含む完全バックアップを出力する。スコープの概念はない。 */
+/**
+ * hojinSnapshotsが持つpersonalHoldings／totalPersonalAmount（「記録する」を法人トグルON時に
+ * 押した月だけキャプチャされる表示用の複製、記録タイミングによって歯抜けになりうる）を、
+ * 個人ストア自身の真の記録履歴（personalSnapshots）で該当年月ごとに上書きする。一致する
+ * エントリが無い月はそのまま（データを失わない）。CSV Export（exportToCsv）と同じ根本原因の
+ * バグをJSON Exportにも適用する（json_export_completeness_and_history_bug.md 1章）。
+ */
+export function withCorrectedHojinSnapshots(hojinSnapshots: HojinAssetSnapshot[], personalSnapshots: AssetSnapshot[]): HojinAssetSnapshot[] {
+  return hojinSnapshots.map((s) => {
+    const match = findPersonalSnapshot(personalSnapshots, s.date);
+    if (!match) return s;
+    return { ...s, personalHoldings: match.holdings, totalPersonalAmount: match.totalAmount };
+  });
+}
+
+/**
+ * 個人・法人の保有資産＋記録履歴＋設定値（目標資産額・個人化想定比率）＋移転履歴ログすべてを
+ * 含む完全バックアップを出力する。スコープの概念はない。設定値・移転履歴ログはReact stateとして
+ * 引き回されていないため、ストレージから直接読み出す（json_export_completeness_and_history_bug.md
+ * 2章）。
+ */
 export function exportToJson(
   holdings: AssetHolding[],
   snapshots: AssetSnapshot[],
@@ -71,7 +108,11 @@ export function exportToJson(
     holdings,
     snapshots,
     hojinHoldings,
-    hojinSnapshots,
+    hojinSnapshots: withCorrectedHojinSnapshots(hojinSnapshots, snapshots),
+    targetAmount: loadTargetAmount(),
+    hojinTargetAmount: loadHojinTargetAmount(),
+    personalizationRatio: loadPersonalizationRatio(),
+    transferLog: loadTransferLog(),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   downloadBlob(blob, `${FILENAME_PREFIX}_${todayStamp()}.json`);
@@ -183,71 +224,104 @@ export interface ImportResult {
   snapshots: AssetSnapshot[];
   hojinHoldings: AssetHolding[];
   hojinSnapshots: HojinAssetSnapshot[];
+  targetAmount: number;
+  hojinTargetAmount: number;
+  personalizationRatio: number;
+}
+
+export interface ParsedJsonImport {
+  raw: Record<string, unknown>;
+  /** 旧法人形式（scope+hojinHoldingsキーを持つ）か。この形式には設定値・移転ログの概念が無い。 */
+  isOldHojinFormat: boolean;
+  /** 設定値（目標資産額・個人化想定比率）・移転履歴ログのいずれかを含むか（確認ダイアログの出し分け用）。 */
+  includesSettings: boolean;
 }
 
 /**
- * JSON Importはファイルの中身（キーの有無）だけで判断する。新形式（version1の統一payload、
- * holdings/snapshots/hojinHoldings/hojinSnapshotsを含む）はキーごとに対応ストアへマージする。
- * 後方互換で旧2形式も救済する：
+ * JSONファイルをパースするだけで、まだ適用しない（確認ダイアログを挟むための2段階Import、
+ * CSVのparseAssetCsv/applyAssetCsvと同じパターン）。設定値・移転履歴ログを含む場合は、
+ * 呼び出し側が確認ダイアログで影響範囲を明示できるようincludesSettingsで知らせる
+ * （json_export_completeness_and_history_bug.md 2章）。
+ */
+export function parseJsonPayload(text: string): ParsedJsonImport {
+  const raw = JSON.parse(text) as Record<string, unknown>;
+  const isOldHojinFormat = 'scope' in raw;
+  const includesSettings = !isOldHojinFormat && (
+    typeof raw.targetAmount === 'number' ||
+    typeof raw.hojinTargetAmount === 'number' ||
+    typeof raw.personalizationRatio === 'number' ||
+    Array.isArray(raw.transferLog)
+  );
+  return { raw, isOldHojinFormat, includesSettings };
+}
+
+/**
+ * parseJsonPayloadの結果を実際に適用する。ファイルの中身（キーの有無）だけで判断する。
+ * 新形式（version1の統一payload、holdings/snapshots/hojinHoldings/hojinSnapshots＋設定値・
+ * 移転履歴ログを含む）はキーごとに対応ストアへマージする。後方互換で旧2形式も救済する：
  * - 旧個人形式（holdings+snapshotsのみ、scopeキーなし）：新形式のサブセットとして自然に扱える
  * - 旧法人形式（scope+hojinHoldingsキーを持つ）：この形式のsnapshotsキーは
  *   HojinAssetSnapshot[]を指しており、新形式のsnapshots（個人のAssetSnapshot[]）とキー名が
- *   衝突するため、'scope' in parsedで検出した場合のみ専用分岐で処理する
- *   （snapshots→法人ストアへ、personalHoldings（あれば）→個人の現在値のみへ）。
+ *   衝突するため、isOldHojinFormatで検出した場合のみ専用分岐で処理する
+ *   （snapshots→法人ストアへ、personalHoldings（あれば）→個人の現在値のみへ。設定値・移転
+ *   ログはこの形式に存在しないため触れない）。
+ * 設定値は上書き（スカラー値なのでマージという概念が無い）、移転履歴ログはid一致でマージする
+ * （mergeTransferLog、既存ログを失わない）。
  */
-export function importFromJson(file: File): Promise<ImportResult> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const parsed = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
-        let holdings = loadHoldings();
-        let snapshots = loadSnapshots();
-        let hojinHoldings = loadHojinHoldings();
-        let hojinSnapshots = loadHojinSnapshots();
+export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult {
+  const raw = parsed.raw;
+  let holdings = loadHoldings();
+  let snapshots = loadSnapshots();
+  let hojinHoldings = loadHojinHoldings();
+  let hojinSnapshots = loadHojinSnapshots();
 
-        if ('scope' in parsed) {
-          // 旧法人形式：hojinHoldings必須、snapshotsは法人スナップショット、personalHoldingsは任意。
-          if (Array.isArray(parsed.hojinHoldings)) {
-            hojinHoldings = mergeById(hojinHoldings, parsed.hojinHoldings as AssetHolding[]);
-            saveHojinHoldings(hojinHoldings);
-          }
-          if (Array.isArray(parsed.snapshots)) {
-            hojinSnapshots = mergeHojinSnapshots(hojinSnapshots, parsed.snapshots as HojinAssetSnapshot[]);
-            saveHojinSnapshots(hojinSnapshots);
-          }
-          if (Array.isArray(parsed.personalHoldings)) {
-            holdings = mergeHoldings(holdings, parsed.personalHoldings as AssetHolding[]);
-            saveHoldings(holdings);
-          }
-        } else {
-          // 新形式・旧個人形式共通：存在するキーだけをそれぞれ対応ストアへマージする。
-          if (Array.isArray(parsed.holdings)) {
-            holdings = mergeHoldings(holdings, parsed.holdings as AssetHolding[]);
-            saveHoldings(holdings);
-          }
-          if (Array.isArray(parsed.snapshots)) {
-            snapshots = mergeSnapshots(snapshots, parsed.snapshots as AssetSnapshot[]);
-            saveSnapshots(snapshots);
-          }
-          if (Array.isArray(parsed.hojinHoldings)) {
-            hojinHoldings = mergeById(hojinHoldings, parsed.hojinHoldings as AssetHolding[]);
-            saveHojinHoldings(hojinHoldings);
-          }
-          if (Array.isArray(parsed.hojinSnapshots)) {
-            hojinSnapshots = mergeHojinSnapshots(hojinSnapshots, parsed.hojinSnapshots as HojinAssetSnapshot[]);
-            saveHojinSnapshots(hojinSnapshots);
-          }
-        }
+  if (parsed.isOldHojinFormat) {
+    // 旧法人形式：hojinHoldings必須、snapshotsは法人スナップショット、personalHoldingsは任意。
+    if (Array.isArray(raw.hojinHoldings)) {
+      hojinHoldings = mergeById(hojinHoldings, raw.hojinHoldings as AssetHolding[]);
+      saveHojinHoldings(hojinHoldings);
+    }
+    if (Array.isArray(raw.snapshots)) {
+      hojinSnapshots = mergeHojinSnapshots(hojinSnapshots, raw.snapshots as HojinAssetSnapshot[]);
+      saveHojinSnapshots(hojinSnapshots);
+    }
+    if (Array.isArray(raw.personalHoldings)) {
+      holdings = mergeHoldings(holdings, raw.personalHoldings as AssetHolding[]);
+      saveHoldings(holdings);
+    }
+  } else {
+    // 新形式・旧個人形式共通：存在するキーだけをそれぞれ対応ストアへマージする。
+    if (Array.isArray(raw.holdings)) {
+      holdings = mergeHoldings(holdings, raw.holdings as AssetHolding[]);
+      saveHoldings(holdings);
+    }
+    if (Array.isArray(raw.snapshots)) {
+      snapshots = mergeSnapshots(snapshots, raw.snapshots as AssetSnapshot[]);
+      saveSnapshots(snapshots);
+    }
+    if (Array.isArray(raw.hojinHoldings)) {
+      hojinHoldings = mergeById(hojinHoldings, raw.hojinHoldings as AssetHolding[]);
+      saveHojinHoldings(hojinHoldings);
+    }
+    if (Array.isArray(raw.hojinSnapshots)) {
+      hojinSnapshots = mergeHojinSnapshots(hojinSnapshots, raw.hojinSnapshots as HojinAssetSnapshot[]);
+      saveHojinSnapshots(hojinSnapshots);
+    }
+    if (typeof raw.targetAmount === 'number') saveTargetAmount(raw.targetAmount);
+    if (typeof raw.hojinTargetAmount === 'number') saveHojinTargetAmount(raw.hojinTargetAmount);
+    if (typeof raw.personalizationRatio === 'number') savePersonalizationRatio(raw.personalizationRatio);
+    if (Array.isArray(raw.transferLog)) mergeTransferLog(raw.transferLog as TransferLogEntry[]);
+  }
 
-        resolve({ holdings, snapshots, hojinHoldings, hojinSnapshots });
-      } catch (e) {
-        reject(e);
-      }
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsText(file);
-  });
+  return {
+    holdings,
+    snapshots,
+    hojinHoldings,
+    hojinSnapshots,
+    targetAmount: loadTargetAmount(),
+    hojinTargetAmount: loadHojinTargetAmount(),
+    personalizationRatio: loadPersonalizationRatio(),
+  };
 }
 
 function stripBom(text: string): string {
@@ -311,7 +385,16 @@ export function importHoldingsFromCsvText(text: string): ImportResult {
     saveHojinHoldings(hojinHoldings);
   }
 
-  return { holdings, snapshots: loadSnapshots(), hojinHoldings, hojinSnapshots: loadHojinSnapshots() };
+  return {
+    holdings,
+    snapshots: loadSnapshots(),
+    hojinHoldings,
+    hojinSnapshots: loadHojinSnapshots(),
+    // CSVは設定値を一切扱わないため、現在値をそのまま返す（呼び出し側の型を統一するため）。
+    targetAmount: loadTargetAmount(),
+    hojinTargetAmount: loadHojinTargetAmount(),
+    personalizationRatio: loadPersonalizationRatio(),
+  };
 }
 
 /** @deprecated 互換のためFile版も残す。内部でimportHoldingsFromCsvTextを呼ぶだけの薄いラッパー。 */
@@ -385,12 +468,8 @@ export function parseAssetCsv(text: string): ParsedAssetCsv {
  * 削除→挿入、今月ラベルが含まれる場合は現在のholdingsも同期）。戻り値は常に両ストアの
  * 最新状態を含む（呼び出し側で「変化があったかどうか」の分岐は不要）。
  */
-export function applyAssetCsv(parsed: ParsedAssetCsv): {
-  holdings: AssetHolding[];
-  snapshots: AssetSnapshot[];
+export function applyAssetCsv(parsed: ParsedAssetCsv): ImportResult & {
   removed: AssetSnapshot[];
-  hojinHoldings: AssetHolding[];
-  hojinSnapshots: HojinAssetSnapshot[];
   removedHojin: HojinAssetSnapshot[];
 } {
   const nowYM = toYearMonth(new Date());
@@ -404,6 +483,10 @@ export function applyAssetCsv(parsed: ParsedAssetCsv): {
     : { holdings: loadHojinHoldings(), snapshots: loadHojinSnapshots(), removed: [] as HojinAssetSnapshot[] };
 
   return {
+    // CSVは設定値を一切扱わないため、現在値をそのまま返す（呼び出し側の型を統一するため）。
+    targetAmount: loadTargetAmount(),
+    hojinTargetAmount: loadHojinTargetAmount(),
+    personalizationRatio: loadPersonalizationRatio(),
     holdings: personalResult.holdings,
     snapshots: personalResult.snapshots,
     removed: personalResult.removed,

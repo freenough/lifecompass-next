@@ -786,3 +786,13 @@ console.log('\n' + '='.repeat(100));
 console.log('【資産管理ツール:CSVの中身だけでストアへの書き込みが決まる】verify-asset-management-csv-cross-store.js');
 console.log('='.repeat(100));
 require('./verify-asset-management-csv-cross-store.js');
+
+// ================================================================
+// 資産管理ツール：JSON Exportの過去月断面バグ修正・設定値/移転ログの完全性
+// json_export_completeness_and_history_bug.md の回帰テスト。localStorageシムを使うため、
+// 他のスクリプトへの影響を避けるためfull-verify.js内で最後に実行する。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【資産管理ツール:JSON Exportの完全性】verify-asset-management-json-completeness.js');
+console.log('='.repeat(100));
+require('./verify-asset-management-json-completeness.js');

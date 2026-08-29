@@ -198,6 +198,11 @@ export default function AssetManagementPage() {
     setSnapshots(result.snapshots);
     setHojinHoldings(result.hojinHoldings);
     setHojinSnapshots(result.hojinSnapshots);
+    // json_export_completeness_and_history_bug.md 2章：JSON Importで設定値も上書きされうる
+    // ようになったため、ページ側stateも同期する（CSV/legacy経路は現在値の素通しなので無害）。
+    setTargetAmount(result.targetAmount);
+    setHojinTargetAmount(result.hojinTargetAmount);
+    setPersonalizationRatio(result.personalizationRatio);
   };
 
   // 全データリセット（追加実装4章）。対象範囲ごとにストレージを削除したうえで、
