@@ -44,9 +44,11 @@ export default function AssetExportImportControls({
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
   /**
-   * 設定値（目標資産額・個人化想定比率）・移転履歴ログを含むJSONの場合のみ、上書きされることを
-   * 確認ダイアログで明示する（json_export_completeness_and_history_bug.md 2章）。含まない
-   * JSON（保有資産・記録履歴のみ、または旧形式）は従来通り確認なしで取り込む。
+   * JSON Importはペイロードに含まれる範囲を「置き換え」る破壊的操作のため（json_import_replace
+   * _not_merge.md 1章：バックアップ復元は「その時点の状態にすべて戻す」ことを意味し、マージ
+   * （バックアップ後に増えたデータが残り続ける）は誤りだったため変更）、認識可能なデータを
+   * 1つでも含む場合は必ず確認ダイアログで影響範囲を明示する（2章：文言も置き換えである
+   * ことが明確に伝わるものに変更）。
    */
   const handleImportJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -54,8 +56,8 @@ export default function AssetExportImportControls({
     try {
       const text = await file.text();
       const parsed = parseJsonPayload(text);
-      if (parsed.includesSettings) {
-        const confirmed = window.confirm('設定値（目標資産額・個人化想定比率）・移転履歴ログも上書きされます。よろしいですか？');
+      if (parsed.hasContent) {
+        const confirmed = window.confirm('現在のデータは、このファイルの内容に完全に置き換わります（ファイルに存在しない過去の記録は削除されます）。よろしいですか？');
         if (!confirmed) return;
       }
       const result = applyJsonPayload(parsed);

@@ -12,7 +12,7 @@ import {
   savePersonalizationRatio,
   hojinStoreAdapter,
 } from '../hojinAssetManagement/storage';
-import { loadTransferLog, mergeTransferLog, type TransferLogEntry } from '../hojinAssetManagement/transferLog';
+import { loadTransferLog, replaceTransferLog, type TransferLogEntry } from '../hojinAssetManagement/transferLog';
 import { findPersonalSnapshot } from '../hojinAssetManagement/personalHistory';
 import { toYearMonth } from './monthlyCheck';
 import {
@@ -191,32 +191,13 @@ export function exportToCsv(
 
 /**
  * id一致→上書き、id不一致→新規追加（既存の位置は保持し、新規分は末尾に追加）。
- * 実体はcsvHistory.tsのmergeById（CSV記録履歴インポートの重複排除と共通のロジック）。
+ * 実体はcsvHistory.tsのmergeById。旧6列CSV Import（importHoldingsFromCsvText）専用の
+ * 後方互換パスでのみ使う（json_import_replace_not_merge.md 1章：JSON Importは
+ * 「バックアップ時点の状態に戻す」操作のため置き換え方式に変更したが、CSVの役割
+ * （表計算ソフトで一部だけ編集して戻す）は変わらないためこちらはマージのまま）。
  */
 export function mergeHoldings(existing: AssetHolding[], incoming: AssetHolding[]): AssetHolding[] {
   return mergeById(existing, incoming);
-}
-
-/** date（'YYYY-MM'）一致→上書き、不一致→新規追加。マージ後はdate昇順に並べ直す。 */
-export function mergeSnapshots(existing: AssetSnapshot[], incoming: AssetSnapshot[]): AssetSnapshot[] {
-  const merged = [...existing];
-  for (const s of incoming) {
-    const idx = merged.findIndex((e) => e.date === s.date);
-    if (idx >= 0) merged[idx] = s;
-    else merged.push(s);
-  }
-  return merged.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-}
-
-/** mergeSnapshotsの法人スナップショット版（HojinAssetSnapshot[]、dateキーで同じロジック）。 */
-function mergeHojinSnapshots(existing: HojinAssetSnapshot[], incoming: HojinAssetSnapshot[]): HojinAssetSnapshot[] {
-  const merged = [...existing];
-  for (const s of incoming) {
-    const idx = merged.findIndex((e) => e.date === s.date);
-    if (idx >= 0) merged[idx] = s;
-    else merged.push(s);
-  }
-  return merged.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
 export interface ImportResult {
@@ -233,40 +214,45 @@ export interface ParsedJsonImport {
   raw: Record<string, unknown>;
   /** 旧法人形式（scope+hojinHoldingsキーを持つ）か。この形式には設定値・移転ログの概念が無い。 */
   isOldHojinFormat: boolean;
-  /** 設定値（目標資産額・個人化想定比率）・移転履歴ログのいずれかを含むか（確認ダイアログの出し分け用）。 */
-  includesSettings: boolean;
+  /** ペイロードが認識可能なキーを1つでも含むか（確認ダイアログを出すかどうかの判定用）。 */
+  hasContent: boolean;
 }
 
 /**
  * JSONファイルをパースするだけで、まだ適用しない（確認ダイアログを挟むための2段階Import、
- * CSVのparseAssetCsv/applyAssetCsvと同じパターン）。設定値・移転履歴ログを含む場合は、
- * 呼び出し側が確認ダイアログで影響範囲を明示できるようincludesSettingsで知らせる
- * （json_export_completeness_and_history_bug.md 2章）。
+ * CSVのparseAssetCsv/applyAssetCsvと同じパターン）。json_import_replace_not_merge.md 1章：
+ * JSON Importはペイロードに含まれる範囲を「置き換え」る破壊的操作になったため、認識可能な
+ * データを1つでも含む場合は必ず確認ダイアログを挟む（hasContent、以前は設定値の有無だけで
+ * 判定していたincludesSettingsを置き換えた）。
  */
 export function parseJsonPayload(text: string): ParsedJsonImport {
   const raw = JSON.parse(text) as Record<string, unknown>;
   const isOldHojinFormat = 'scope' in raw;
-  const includesSettings = !isOldHojinFormat && (
-    typeof raw.targetAmount === 'number' ||
-    typeof raw.hojinTargetAmount === 'number' ||
-    typeof raw.personalizationRatio === 'number' ||
-    Array.isArray(raw.transferLog)
-  );
-  return { raw, isOldHojinFormat, includesSettings };
+  const hasContent = isOldHojinFormat
+    ? Array.isArray(raw.hojinHoldings) || Array.isArray(raw.snapshots) || Array.isArray(raw.personalHoldings)
+    : (
+      Array.isArray(raw.holdings) || Array.isArray(raw.snapshots) ||
+      Array.isArray(raw.hojinHoldings) || Array.isArray(raw.hojinSnapshots) ||
+      typeof raw.targetAmount === 'number' || typeof raw.hojinTargetAmount === 'number' ||
+      typeof raw.personalizationRatio === 'number' || Array.isArray(raw.transferLog)
+    );
+  return { raw, isOldHojinFormat, hasContent };
 }
 
 /**
  * parseJsonPayloadの結果を実際に適用する。ファイルの中身（キーの有無）だけで判断する。
- * 新形式（version1の統一payload、holdings/snapshots/hojinHoldings/hojinSnapshots＋設定値・
- * 移転履歴ログを含む）はキーごとに対応ストアへマージする。後方互換で旧2形式も救済する：
+ * json_import_replace_not_merge.md 1章：ペイロードに含まれるキーは、既存データとマージせず
+ * 完全に「置き換え」る（＝「バックアップ時点の状態に戻す」という復元の意味を正しく持たせる）。
+ * ペイロードに含まれていないキーには一切触れない（例：個人のみのJSONなら法人データは
+ * 変更しない）。
  * - 旧個人形式（holdings+snapshotsのみ、scopeキーなし）：新形式のサブセットとして自然に扱える
  * - 旧法人形式（scope+hojinHoldingsキーを持つ）：この形式のsnapshotsキーは
  *   HojinAssetSnapshot[]を指しており、新形式のsnapshots（個人のAssetSnapshot[]）とキー名が
  *   衝突するため、isOldHojinFormatで検出した場合のみ専用分岐で処理する
- *   （snapshots→法人ストアへ、personalHoldings（あれば）→個人の現在値のみへ。設定値・移転
- *   ログはこの形式に存在しないため触れない）。
- * 設定値は上書き（スカラー値なのでマージという概念が無い）、移転履歴ログはid一致でマージする
- * （mergeTransferLog、既存ログを失わない）。
+ *   （snapshots→法人ストアを置換、personalHoldings（あれば）→個人の現在値を置換。設定値・
+ *   移転ログはこの形式に存在しないため触れない）。
+ * 設定値は元々上書き（スカラー値なのでマージという概念が無い、変更不要）。移転履歴ログも
+ * replaceTransferLogで全置換に変更した（以前はid一致マージだった）。
  */
 export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult & {
   removed: AssetSnapshot[];
@@ -283,47 +269,44 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult & {
   if (parsed.isOldHojinFormat) {
     // 旧法人形式：hojinHoldings必須、snapshotsは法人スナップショット、personalHoldingsは任意。
     if (Array.isArray(raw.hojinHoldings)) {
-      hojinHoldings = mergeById(hojinHoldings, raw.hojinHoldings as AssetHolding[]);
+      hojinHoldings = raw.hojinHoldings as AssetHolding[];
       saveHojinHoldings(hojinHoldings);
     }
     if (Array.isArray(raw.snapshots)) {
-      const merged = mergeHojinSnapshots(hojinSnapshots, raw.snapshots as HojinAssetSnapshot[]);
-      const saved = saveHojinSnapshots(merged);
+      const saved = saveHojinSnapshots(raw.snapshots as HojinAssetSnapshot[]);
       hojinSnapshots = saved.trimmed;
       removedHojin = saved.removed;
     }
     if (Array.isArray(raw.personalHoldings)) {
-      holdings = mergeHoldings(holdings, raw.personalHoldings as AssetHolding[]);
+      holdings = raw.personalHoldings as AssetHolding[];
       saveHoldings(holdings);
     }
   } else {
-    // 新形式・旧個人形式共通：存在するキーだけをそれぞれ対応ストアへマージする。
+    // 新形式・旧個人形式共通：存在するキーだけをそれぞれ対応ストアへ「置き換え」る。
     // 保存上限（MAX_SNAPSHOTS）超過時、save*Snapshotsの戻り値（trimmed/removed）を必ず
     // 使う（保存し直された実体と、呼び出し元へ返す値がズレないようにするため）。
     if (Array.isArray(raw.holdings)) {
-      holdings = mergeHoldings(holdings, raw.holdings as AssetHolding[]);
+      holdings = raw.holdings as AssetHolding[];
       saveHoldings(holdings);
     }
     if (Array.isArray(raw.snapshots)) {
-      const merged = mergeSnapshots(snapshots, raw.snapshots as AssetSnapshot[]);
-      const saved = saveSnapshots(merged);
+      const saved = saveSnapshots(raw.snapshots as AssetSnapshot[]);
       snapshots = saved.trimmed;
       removed = saved.removed;
     }
     if (Array.isArray(raw.hojinHoldings)) {
-      hojinHoldings = mergeById(hojinHoldings, raw.hojinHoldings as AssetHolding[]);
+      hojinHoldings = raw.hojinHoldings as AssetHolding[];
       saveHojinHoldings(hojinHoldings);
     }
     if (Array.isArray(raw.hojinSnapshots)) {
-      const merged = mergeHojinSnapshots(hojinSnapshots, raw.hojinSnapshots as HojinAssetSnapshot[]);
-      const saved = saveHojinSnapshots(merged);
+      const saved = saveHojinSnapshots(raw.hojinSnapshots as HojinAssetSnapshot[]);
       hojinSnapshots = saved.trimmed;
       removedHojin = saved.removed;
     }
     if (typeof raw.targetAmount === 'number') saveTargetAmount(raw.targetAmount);
     if (typeof raw.hojinTargetAmount === 'number') saveHojinTargetAmount(raw.hojinTargetAmount);
     if (typeof raw.personalizationRatio === 'number') savePersonalizationRatio(raw.personalizationRatio);
-    if (Array.isArray(raw.transferLog)) mergeTransferLog(raw.transferLog as TransferLogEntry[]);
+    if (Array.isArray(raw.transferLog)) replaceTransferLog(raw.transferLog as TransferLogEntry[]);
   }
 
   return {
