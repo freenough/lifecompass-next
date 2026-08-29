@@ -68,7 +68,7 @@ export default function HojinTransferHelper({
       resultingHojinCash = -amount;
       nextHojinHoldings = [
         ...hojinHoldings,
-        { id: newId(), owner: 'corporate', accountCategory: '法人預金', assetClass: CASH_ASSET_CLASS, amount: resultingHojinCash, updatedAt: nowIso },
+        { id: newId(), owner: 'corporate', accountCategory: '法人預金', assetClass: CASH_ASSET_CLASS, amount: resultingHojinCash, updatedAt: nowIso, profileId: 'default' },
       ];
     }
 
@@ -82,7 +82,7 @@ export default function HojinTransferHelper({
     } else {
       nextPersonalHoldings = [
         ...personalHoldings,
-        { id: newId(), owner: 'personal', accountCategory: '現金', assetClass: CASH_ASSET_CLASS, amount: personalDelta, updatedAt: nowIso },
+        { id: newId(), owner: 'personal', accountCategory: '現金', assetClass: CASH_ASSET_CLASS, amount: personalDelta, updatedAt: nowIso, profileId: 'default' },
       ];
     }
 

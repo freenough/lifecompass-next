@@ -257,6 +257,72 @@ console.log('='.repeat(80));
 }
 
 console.log('\n' + '='.repeat(80));
+console.log('【instruction_assetholding_profileid.md：旧形式（profileId欠損）JSON Import直後の後方互換補完】');
+console.log('='.repeat(80));
+
+{
+  // AssetHoldingにprofileIdを追加する前にExportされたバックアップ（holdings/hojinHoldings行に
+  // profileIdキーが無い）をImportした直後（loadHoldings()を経由するリロード等を挟まず）、
+  // applyJsonPayloadの戻り値・localStorageの両方でprofileId='default'が補完されていることを
+  // 確認する。raw.holdingsを直接saveHoldingsするだけではloadHoldings()の自己修復を経由しない
+  // ため、実機確認で「インポート直後はprofileIdが欠けたまま」であることが発見された不具合の回帰テスト。
+  store = {};
+  const oldFormatPayload = JSON.stringify({
+    version: 1,
+    holdings: [{ id: 'oldPers1', owner: 'personal', accountCategory: '現金', assetClass: '現金', amount: 555, updatedAt: '2026-01-01T00:00:00.000Z' }],
+    snapshots: [],
+    hojinHoldings: [{ id: 'oldCorp1', owner: 'corporate', accountCategory: '法人預金', assetClass: '現金', amount: 777, updatedAt: '2026-01-01T00:00:00.000Z' }],
+    hojinSnapshots: [],
+  });
+  const result = applyJsonPayload(parseJsonPayload(oldFormatPayload));
+
+  record(
+    '20. 戻り値のholdingsに、Import直後の時点でprofileId=\'default\'が補完されている（リロード不要）',
+    result.holdings.length === 1 && result.holdings[0].profileId === 'default',
+    JSON.stringify(result.holdings)
+  );
+  record(
+    '21. localStorage（lifeCompassAssetHoldings）自体もImport直後の時点でprofileId補完済みで保存されている',
+    JSON.parse(localStorage.getItem('lifeCompassAssetHoldings'))[0].profileId === 'default',
+    localStorage.getItem('lifeCompassAssetHoldings')
+  );
+  record(
+    '22. 戻り値のhojinHoldingsにも、Import直後の時点でprofileId=\'default\'が補完されている',
+    result.hojinHoldings.length === 1 && result.hojinHoldings[0].profileId === 'default',
+    JSON.stringify(result.hojinHoldings)
+  );
+  record(
+    '23. localStorage（hojinAssetHoldings）自体もImport直後の時点でprofileId補完済みで保存されている',
+    JSON.parse(localStorage.getItem('hojinAssetHoldings'))[0].profileId === 'default',
+    localStorage.getItem('hojinAssetHoldings')
+  );
+}
+
+{
+  // 旧法人形式（scope+hojinHoldings、personalHoldingsも旧形式で任意）の専用分岐についても同様に確認する。
+  store = {};
+  const oldHojinFormatPayload = JSON.stringify({
+    version: 1,
+    scope: 'combined',
+    hojinHoldings: [{ id: 'oldCorp2', owner: 'corporate', accountCategory: '法人預金', assetClass: '現金', amount: 300, updatedAt: '' }],
+    personalHoldings: [{ id: 'oldPers2', owner: 'personal', accountCategory: '現金', assetClass: '現金', amount: 400, updatedAt: '' }],
+    snapshots: [],
+  });
+  const result = applyJsonPayload(parseJsonPayload(oldHojinFormatPayload));
+
+  record(
+    '24. 旧法人形式：hojinHoldingsにもImport直後の時点でprofileId=\'default\'が補完されている',
+    result.hojinHoldings.length === 1 && result.hojinHoldings[0].profileId === 'default',
+    JSON.stringify(result.hojinHoldings)
+  );
+  record(
+    '25. 旧法人形式：personalHoldings経由のholdingsにもImport直後の時点でprofileId=\'default\'が補完されている',
+    result.holdings.length === 1 && result.holdings[0].profileId === 'default',
+    JSON.stringify(result.holdings)
+  );
+}
+
+console.log('\n' + '='.repeat(80));
 console.log(`総合結果: ${pass} PASS / ${fail} FAIL`);
 if (fail === 0) {
   console.log('検証成功: JSON Exportの完全性・過去月断面バグ修正・Importの置き換え方式を確認しました。');

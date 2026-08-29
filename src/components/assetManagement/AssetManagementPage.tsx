@@ -117,6 +117,7 @@ export default function AssetManagementPage() {
       assetClass: defaultAssetClass,
       amount: 0,
       updatedAt: new Date().toISOString(),
+      profileId: 'default',
     };
     updateHoldings([...holdings, holding]);
   };
@@ -146,6 +147,7 @@ export default function AssetManagementPage() {
       assetClass: defaultAssetClass,
       amount: 0,
       updatedAt: new Date().toISOString(),
+      profileId: 'default',
     };
     updateHojinHoldings([...hojinHoldings, holding]);
   };

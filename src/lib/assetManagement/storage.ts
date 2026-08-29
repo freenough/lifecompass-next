@@ -10,12 +10,22 @@ const TARGET_KEY    = 'lifeCompassAssetTarget';
 
 export { MAX_SNAPSHOTS };
 
+// フェーズ1でAssetHoldingにprofileIdを追加したことに伴う後方互換マイグレーション
+// （欠落しているデータは'default'で補完する。AssetSnapshot側のwithDefaultProfileIdと同じ
+// パターン。将来のプロファイル機能の下地、機能自体は未実装。instruction_assetholding_profileid.md）。
+// exportImport.tsのJSON Import（raw.holdingsを直接cast・保存する経路）はloadHoldings()の
+// 自己修復を経由しないため、そちらからも呼べるようexportする
+// （インポート直後・リロード前にprofileIdが欠けたままlocalStorageへ保存されてしまう不具合の修正）。
+export function withDefaultHoldingProfileId(holdings: AssetHolding[]): AssetHolding[] {
+  return holdings.map((h) => (h.profileId ? h : { ...h, profileId: 'default' }));
+}
+
 /**
  * これまでの一連の修正（CSVインポート時のmergeById重複排除等）が入る前にHOLDINGS_KEYへ
  * 書き込まれてしまった重複データ（同一idが複数件）は、新規の書き込みが起きない限り
  * 永久に残り続ける。loadSnapshotsが持つ自己修復パターン（読み込みのたびに正規化し、
  * 変化があれば保存し直す）と同じ考え方で、読み込みのたびにmergeByIdで重複排除する
- * （fix_loadHoldings_missing_dedup.md）。
+ * （fix_loadHoldings_missing_dedup.md）。profileId欠損の後方互換補完も同時に行う。
  */
 export function loadHoldings(): AssetHolding[] {
   if (typeof window === 'undefined') return [];
@@ -23,7 +33,7 @@ export function loadHoldings(): AssetHolding[] {
     const raw = localStorage.getItem(HOLDINGS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as AssetHolding[];
-    const deduped = mergeById([], parsed); // id一致→後勝ちで1件に収束（既存のmergeByIdを再利用）
+    const deduped = mergeById([], withDefaultHoldingProfileId(parsed)); // id一致→後勝ちで1件に収束（既存のmergeByIdを再利用）
     if (JSON.stringify(deduped) !== JSON.stringify(parsed)) {
       saveHoldings(deduped);
     }

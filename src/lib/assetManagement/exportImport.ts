@@ -1,6 +1,9 @@
 import type { AssetHolding, AssetSnapshot } from './types';
 import type { HojinAssetSnapshot } from '../hojinAssetManagement/types';
-import { loadHoldings, saveHoldings, loadSnapshots, saveSnapshots, loadTargetAmount, saveTargetAmount, personalStoreAdapter } from './storage';
+import {
+  loadHoldings, saveHoldings, loadSnapshots, saveSnapshots, loadTargetAmount, saveTargetAmount,
+  personalStoreAdapter, withDefaultHoldingProfileId,
+} from './storage';
 import {
   loadHojinHoldings,
   saveHojinHoldings,
@@ -11,6 +14,7 @@ import {
   loadPersonalizationRatio,
   savePersonalizationRatio,
   hojinStoreAdapter,
+  withDefaultHoldingProfileId as withDefaultHojinHoldingProfileId,
 } from '../hojinAssetManagement/storage';
 import { loadTransferLog, replaceTransferLog, type TransferLogEntry } from '../hojinAssetManagement/transferLog';
 import { findPersonalSnapshot } from '../hojinAssetManagement/personalHistory';
@@ -269,7 +273,10 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult & {
   if (parsed.isOldHojinFormat) {
     // 旧法人形式：hojinHoldings必須、snapshotsは法人スナップショット、personalHoldingsは任意。
     if (Array.isArray(raw.hojinHoldings)) {
-      hojinHoldings = raw.hojinHoldings as AssetHolding[];
+      // raw.hojinHoldingsをそのまま保存するとloadHojinHoldings()の自己修復を経由しないため、
+      // profileId欠損（この型追加より前のバックアップファイル）をここで明示的に補完する
+      // （instruction_assetholding_profileid.md実装時の見落とし・実機確認で発見）。
+      hojinHoldings = withDefaultHojinHoldingProfileId(raw.hojinHoldings as AssetHolding[]);
       saveHojinHoldings(hojinHoldings);
     }
     if (Array.isArray(raw.snapshots)) {
@@ -278,7 +285,7 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult & {
       removedHojin = saved.removed;
     }
     if (Array.isArray(raw.personalHoldings)) {
-      holdings = raw.personalHoldings as AssetHolding[];
+      holdings = withDefaultHoldingProfileId(raw.personalHoldings as AssetHolding[]);
       saveHoldings(holdings);
     }
   } else {
@@ -286,7 +293,9 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult & {
     // 保存上限（MAX_SNAPSHOTS）超過時、save*Snapshotsの戻り値（trimmed/removed）を必ず
     // 使う（保存し直された実体と、呼び出し元へ返す値がズレないようにするため）。
     if (Array.isArray(raw.holdings)) {
-      holdings = raw.holdings as AssetHolding[];
+      // 同上：raw.holdingsを直接saveHoldingsするとprofileId欠損データがそのまま
+      // localStorageへ書き込まれてしまう（loadHoldings()の自己修復はここを経由しない）。
+      holdings = withDefaultHoldingProfileId(raw.holdings as AssetHolding[]);
       saveHoldings(holdings);
     }
     if (Array.isArray(raw.snapshots)) {
@@ -295,7 +304,7 @@ export function applyJsonPayload(parsed: ParsedJsonImport): ImportResult & {
       removed = saved.removed;
     }
     if (Array.isArray(raw.hojinHoldings)) {
-      hojinHoldings = raw.hojinHoldings as AssetHolding[];
+      hojinHoldings = withDefaultHojinHoldingProfileId(raw.hojinHoldings as AssetHolding[]);
       saveHojinHoldings(hojinHoldings);
     }
     if (Array.isArray(raw.hojinSnapshots)) {
@@ -366,6 +375,7 @@ export function importHoldingsFromCsvText(text: string): ImportResult {
       assetClass,
       amount: Number(amountStr) || 0,
       updatedAt,
+      profileId: 'default',
     };
   });
 

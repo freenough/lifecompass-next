@@ -8,6 +8,9 @@ export interface AssetHolding {
   assetClass: string;      // categories.tsのASSET_CLASSES参照
   amount: number;          // 万円単位
   updatedAt: string;       // ISO日付文字列
+  // AssetSnapshot/HojinAssetSnapshotと同じ、フェーズ2以降のプロファイル機能に備えたスキーマ下地
+  // （フェーズ1では常に'default'固定。関連するUI・切替ロジックはフェーズ1では実装しない）。
+  profileId: string;
 }
 
 export interface AssetSnapshot {

@@ -14,10 +14,19 @@ const DEFAULT_PERSONALIZATION_RATIO = 70; // 7章：デフォルト70%を仮置�
 // 個人側と共通の上限件数（追加実装でsrc/lib/assetManagement/config.tsに一元化）。
 export { MAX_SNAPSHOTS };
 
+// フェーズ1でAssetHoldingにprofileIdを追加したことに伴う後方互換マイグレーション（個人側
+// storage.tsのwithDefaultHoldingProfileIdと対称。instruction_assetholding_profileid.md）。
+// exportImport.tsのJSON Import（raw.hojinHoldingsを直接cast・保存する経路）はloadHojinHoldings()の
+// 自己修復を経由しないため、そちらからも呼べるようexportする。
+export function withDefaultHoldingProfileId(holdings: AssetHolding[]): AssetHolding[] {
+  return holdings.map((h) => (h.profileId ? h : { ...h, profileId: 'default' }));
+}
+
 /**
  * 個人版storage.tsのloadHoldingsと同一の構造上の欠陥（fix_loadHoldings_missing_dedup.md）：
  * loadSnapshotsは読み込みのたびに自己修復するが、loadHojinHoldingsにはそれが無く、
  * mergeById導入前に書き込まれた重複データが永久に残り続けていた。同じ自己修復パターンを適用する。
+ * profileId欠損の後方互換補完も同時に行う。
  */
 export function loadHojinHoldings(): AssetHolding[] {
   if (typeof window === 'undefined') return [];
@@ -25,7 +34,7 @@ export function loadHojinHoldings(): AssetHolding[] {
     const raw = localStorage.getItem(HOJIN_HOLDINGS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as AssetHolding[];
-    const deduped = mergeById([], parsed);
+    const deduped = mergeById([], withDefaultHoldingProfileId(parsed));
     if (JSON.stringify(deduped) !== JSON.stringify(parsed)) {
       saveHojinHoldings(deduped);
     }

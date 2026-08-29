@@ -43,10 +43,14 @@ function record(label, ok, detail) {
 }
 
 const dup = (id, amount) => ({
-  id, owner: 'personal', accountCategory: '現金', assetClass: '現金', amount, updatedAt: '2026-08-01T00:00:00.000Z',
+  id, owner: 'personal', accountCategory: '現金', assetClass: '現金', amount, updatedAt: '2026-08-01T00:00:00.000Z', profileId: 'default',
 });
 const dupCorp = (id, amount) => ({
-  id, owner: 'corporate', accountCategory: '法人預金', assetClass: '現金', amount, updatedAt: '2026-08-01T00:00:00.000Z',
+  id, owner: 'corporate', accountCategory: '法人預金', assetClass: '現金', amount, updatedAt: '2026-08-01T00:00:00.000Z', profileId: 'default',
+});
+// profileId欠損（instruction_assetholding_profileid.md以前に書き込まれた想定）のデータ。
+const dupNoProfileId = (id, amount) => ({
+  id, owner: 'personal', accountCategory: '現金', assetClass: '現金', amount, updatedAt: '2026-08-01T00:00:00.000Z',
 });
 
 // ================================================================
@@ -128,6 +132,58 @@ console.log('='.repeat(80));
   record(
     '8. 元々重複の無いクリーンなデータはそのまま変化しない',
     result.length === 1 && JSON.stringify(result) === JSON.stringify(clean),
+    JSON.stringify(result)
+  );
+}
+
+// ================================================================
+// SECTION 3: profileId欠損の後方互換補完（instruction_assetholding_profileid.md）
+// ================================================================
+console.log('\n' + '='.repeat(80));
+console.log('【profileId欠損データの後方互換補完】');
+console.log('='.repeat(80));
+
+{
+  store = {};
+  // AssetHoldingにprofileIdを追加する前に書き込まれた想定の、profileId欠損データを直接注入。
+  localStorage.setItem('lifeCompassAssetHoldings', JSON.stringify([dupNoProfileId('n1', 100), dupNoProfileId('n2', 200)]));
+
+  const result = loadHoldings();
+  record(
+    '9. profileId欠損データをloadHoldings()するだけで、全件profileId=\'default\'が補完される',
+    result.length === 2 && result.every((h) => h.profileId === 'default'),
+    JSON.stringify(result)
+  );
+
+  const persisted = JSON.parse(localStorage.getItem('lifeCompassAssetHoldings'));
+  record(
+    '10. 追加のsaveHoldings()呼び出しなしに、localStorage自体もprofileId補完済みの状態で保存し直されている',
+    persisted.every((h) => h.profileId === 'default'),
+    JSON.stringify(persisted)
+  );
+}
+
+{
+  store = {};
+  localStorage.setItem('hojinAssetHoldings', JSON.stringify([{ id: 'c1', owner: 'corporate', accountCategory: '法人預金', assetClass: '現金', amount: 500, updatedAt: '' }]));
+
+  const result = loadHojinHoldings();
+  record(
+    '11. 法人側（loadHojinHoldings）も同様にprofileId=\'default\'が補完される',
+    result.length === 1 && result[0].profileId === 'default',
+    JSON.stringify(result)
+  );
+}
+
+{
+  store = {};
+  // 新規追加されるデータ（handleAdd等が生成する想定）は最初からprofileId='default'を持つ。
+  const alreadyTagged = [dup('t1', 100)];
+  saveHoldings(alreadyTagged);
+  const result = loadHoldings();
+  record(
+    '12. 元からprofileIdを持つクリーンなデータは変化しない',
+    JSON.stringify(result) === JSON.stringify(alreadyTagged),
     JSON.stringify(result)
   );
 }

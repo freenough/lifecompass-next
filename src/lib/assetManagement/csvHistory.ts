@@ -169,6 +169,8 @@ export function rowToHolding(fields: {
     assetClass: fields.assetClass,
     amount: fields.amount,
     updatedAt: fields.updatedAt || new Date().toISOString(),
+    // CSVに「プロファイルID」列は無い（フェーズ2スコープ）。フェーズ1では常に'default'固定。
+    profileId: 'default',
   };
 }
 
