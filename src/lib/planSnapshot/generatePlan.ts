@@ -74,11 +74,17 @@ export function generateMcPercentiles(
 
 export function generatePlan(
   rawProfile: ProfileV3,
-  opts: { profileId: string; simulatorProfileId: number; name?: string; trials?: number },
+  opts: { profileId: string; simulatorProfileId: number; name?: string; trials?: number; extraEvents?: LifeEvent[] },
 ): PlanSnapshot {
   const profile = normalizeSimulatorProfile(rawProfile);
   const p = profileToSimParams(profile);
-  const evs = profile.events;
+  // claude_instruction_extraEvents_toggle_implementation.md：呼び出し元が明示的に渡した
+  // opts.extraEvents（保存ボタン押下時点のsimulatorStore.extraEventsのライブ値）とだけマージする。
+  // このファイル自体はuseSimulatorStoreを一切importしない設計を維持する
+  // （simulatorStore.tsのrunAll()と同一の結合パターン）。
+  const evs = opts.extraEvents && opts.extraEvents.length > 0
+    ? [...profile.events, ...opts.extraEvents]
+    : profile.events;
   const strategy = (profile.ui.activeStrategies[0] ?? 'proportional') as WithdrawalStrategy;
 
   const snaps = simulate(p, evs, strategy);
