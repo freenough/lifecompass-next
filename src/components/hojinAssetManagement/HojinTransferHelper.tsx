@@ -12,6 +12,9 @@ interface HojinTransferHelperProps {
   personalizationRatio: number;
   onUpdateHojinHoldings: (next: AssetHolding[]) => void;
   onUpdatePersonalHoldings: (next: AssetHolding[]) => void;
+  // 新規作成するcash行に設定するprofileId（instruction_phase2_profile_foundation.md 5節：
+  // 固定の'default'ではなく、資産管理ツール側で現在選択中のプロファイルを使う）。
+  currentProfileId: string;
 }
 
 type TransferMode = 'withdrawal' | 'salary';
@@ -31,6 +34,7 @@ export default function HojinTransferHelper({
   personalizationRatio,
   onUpdateHojinHoldings,
   onUpdatePersonalHoldings,
+  currentProfileId,
 }: HojinTransferHelperProps) {
   const [amountInput, setAmountInput] = useState('');
   const [mode, setMode] = useState<TransferMode | null>(null);
@@ -68,7 +72,7 @@ export default function HojinTransferHelper({
       resultingHojinCash = -amount;
       nextHojinHoldings = [
         ...hojinHoldings,
-        { id: newId(), owner: 'corporate', accountCategory: '法人預金', assetClass: CASH_ASSET_CLASS, amount: resultingHojinCash, updatedAt: nowIso, profileId: 'default' },
+        { id: newId(), owner: 'corporate', accountCategory: '法人預金', assetClass: CASH_ASSET_CLASS, amount: resultingHojinCash, updatedAt: nowIso, profileId: currentProfileId },
       ];
     }
 
@@ -82,7 +86,7 @@ export default function HojinTransferHelper({
     } else {
       nextPersonalHoldings = [
         ...personalHoldings,
-        { id: newId(), owner: 'personal', accountCategory: '現金', assetClass: CASH_ASSET_CLASS, amount: personalDelta, updatedAt: nowIso, profileId: 'default' },
+        { id: newId(), owner: 'personal', accountCategory: '現金', assetClass: CASH_ASSET_CLASS, amount: personalDelta, updatedAt: nowIso, profileId: currentProfileId },
       ];
     }
 

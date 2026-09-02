@@ -39,19 +39,30 @@ export const ASSET_CLASSES: { key: string; mu: number; sigma: number; group: str
   { key: '日本REIT',    mu: 4.5,  sigma: 16.2,  group: 'reit_jp'  },
   { key: 'ゴールド',    mu: 4.80, sigma: 15.29, group: 'gold'     },
   { key: '短期債・MMF', mu: 2.41, sigma:  1.54, group: 'cash'     },
+  { key: '不動産',      mu: 4.5,  sigma: 16.2,  group: 'reit_jp'  },
+  // 暗号資産：期待リターン・σの前提は業界内でも大きく割れており（例：Bitwise社は10年
+  // CAGR28.3%、VanEck社は25年ベースケース15%〈弱気2%〜強気29%〉を提唱するが、いずれも
+  // 暗号資産運用会社自身による予測であり中立的な前提とは言えない）、他の資産クラスと
+  // 同列に既定値を置かない。mu/sigmaは0のダミー値とし、この資産クラスをPFに含めた口座は
+  // 6.3節のバリデーションにより手動入力への切替を促す。
+  { key: '暗号資産',    mu: 0,    sigma: 0,     group: 'crypto'   },
 ];
 
 const ASSET_MU:    Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.mu]));
 const ASSET_SIGMA: Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.sigma]));
 const ASSET_GROUP: Record<string, string> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.group]));
 
+// 6節：暗号資産（cryptoグループ）を追加。相関係数はBitwise社の過去10年実績ベースの値を
+// 暫定採用（出典：Bitwise Asset Management, "Crypto's Role in a Diversified Portfolio"）。
+// 既存5グループの各行にもcrypto列を対称に追加する。
 export const ASSET_CORR: Record<string, Record<string, number>> = {
-  stock:    { stock: 1.0, bond: 0.1, reit_dev: 0.7, reit_jp: 0.5, gold: 0.0, cash: 0.0 },
-  bond:     { stock: 0.1, bond: 1.0, reit_dev: 0.1, reit_jp: 0.0, gold: 0.1, cash: 0.0 },
-  reit_dev: { stock: 0.7, bond: 0.1, reit_dev: 1.0, reit_jp: 0.4, gold: 0.1, cash: 0.0 },
-  reit_jp:  { stock: 0.5, bond: 0.0, reit_dev: 0.4, reit_jp: 1.0, gold: 0.0, cash: 0.0 },
-  gold:     { stock: 0.0, bond: 0.1, reit_dev: 0.1, reit_jp: 0.0, gold: 1.0, cash: 0.0 },
-  cash:     { stock: 0.0, bond: 0.0, reit_dev: 0.0, reit_jp: 0.0, gold: 0.0, cash: 0.0 },
+  stock:    { stock: 1.0, bond: 0.1, reit_dev: 0.7, reit_jp: 0.5, gold: 0.0, cash: 0.0, crypto: 0.3  },
+  bond:     { stock: 0.1, bond: 1.0, reit_dev: 0.1, reit_jp: 0.0, gold: 0.1, cash: 0.0, crypto: 0.0  },
+  reit_dev: { stock: 0.7, bond: 0.1, reit_dev: 1.0, reit_jp: 0.4, gold: 0.1, cash: 0.0, crypto: 0.15 },
+  reit_jp:  { stock: 0.5, bond: 0.0, reit_dev: 0.4, reit_jp: 1.0, gold: 0.0, cash: 0.0, crypto: 0.15 },
+  gold:     { stock: 0.0, bond: 0.1, reit_dev: 0.1, reit_jp: 0.0, gold: 1.0, cash: 0.0, crypto: 0.07 },
+  cash:     { stock: 0.0, bond: 0.0, reit_dev: 0.0, reit_jp: 0.0, gold: 0.0, cash: 0.0, crypto: 0.0  },
+  crypto:   { stock: 0.3, bond: 0.0, reit_dev: 0.15, reit_jp: 0.15, gold: 0.07, cash: 0.0, crypto: 1.0 },
 };
 
 export function calcMu(weights: AssetRow[]): number {
@@ -335,6 +346,39 @@ export function getUnconfiguredAccounts(profile: ProfileV3): string[] {
   }
 
   return issues;
+}
+
+/**
+ * instruction_phase2_companystate_rearchitecture.md 6.3節：暗号資産をPFに含めた口座が
+ * 「PF計算値を使う（自動）」のままになっている場合の手動入力誘導。getUnconfiguredAccounts()の
+ * check()（行数0のアクティブ口座を検出）とは条件が異なる（行はあるが暗号資産を含み自動モード）
+ * ため、別関数として追加する。返り値はそのまま画面表示できる完成済みの文（getUnconfiguredAccounts
+ * のようにラベルだけ返して呼び出し側で共通の接尾辞を付ける形式にすると、この警告文とは
+ * 文意が噛み合わなくなるため）。
+ */
+export function getCryptoManualWarnings(profile: ProfileV3): string[] {
+  const p = profile.params;
+  const pf = profile.portfolio;
+  const flags = p.pfManualFlags;
+  const warnings: string[] = [];
+
+  const checkCrypto = (label: string, active: boolean, rows: AssetRow[], manualFlagKey: string) => {
+    if (active && rows.some(r => r.assetClass === '暗号資産') && !flags[manualFlagKey]) {
+      warnings.push(`暗号資産は既定の期待リターンを設定していません。${label}を手動入力に切り替えて、ご自身の想定利回りを入力してください。`);
+    }
+  };
+
+  checkCrypto('NISA（積立期）',   isAcctActive(p.bNisa,  p.cNisa,  p.cNisaTo  || p.retAge, p.curAge), pf.working.nisa,  'rWNisa');
+  checkCrypto('iDeCo（積立期）',  isAcctActive(p.bIdeco, p.cIdeco, p.cIdecoTo || 60,        p.curAge), pf.working.ideco, 'rWIdeco');
+  checkCrypto('特定口座（積立期）', isAcctActive(p.bTax,   p.cTax,   p.cTaxTo   || p.retAge, p.curAge), pf.working.tax,   'rWTax');
+
+  if (!p.rateSameAsWorking && !pf.retirement.sameAsWorking) {
+    checkCrypto('NISA（取崩期）',   isAcctActive(p.bNisa,  p.cNisa,  p.cNisaTo  || p.retAge, p.curAge), pf.retirement.nisa,  'rRNisa');
+    checkCrypto('iDeCo（取崩期）',  isAcctActive(p.bIdeco, p.cIdeco, p.cIdecoTo || 60,        p.curAge), pf.retirement.ideco, 'rRIdeco');
+    checkCrypto('特定口座（取崩期）', isAcctActive(p.bTax,   p.cTax,   p.cTaxTo   || p.retAge, p.curAge), pf.retirement.tax,   'rRTax');
+  }
+
+  return warnings;
 }
 
 /**

@@ -30,14 +30,19 @@ export const ASSET_CLASSES: AssetClassDef[] = [
   { key: '日本REIT',    mu: 4.5,  sigma: 16.2,  group: 'reit_jp'  },
   { key: 'ゴールド',    mu: 4.80, sigma: 15.29, group: 'gold'     },
   { key: '短期債・MMF', mu: 2.41, sigma:  1.54, group: 'cash'     },
-  // このツール専用の追加（既存シミュレーター側のASSET_CLASSESには追加しない、別タスク）。
-  // 将来予測を行わないため期待リターン・ボラティリティ・相関係数の設定が不要で追加コストが低い。
-  { key: '不動産' },
+  // instruction_phase2_companystate_rearchitecture.md 6節：法人側portfolioMath.tsが
+  // このASSET_CLASSESを実際のμ/σ計算に使っている（コメント冒頭の「参照・計算に使わない」は
+  // このツール自身のUI表示についての説明であり、法人シミュレーター側からの利用は対象外）。
+  // 不動産はprofile.ts側の追加値（mu4.5/sigma16.2/group reit_jp）と揃える。
+  { key: '不動産', mu: 4.5, sigma: 16.2, group: 'reit_jp' },
   // 旧・修正指示（display_and_snapshot）で「その他（暗号資産・保険等）」として1つに
   // まとめていたが、暗号資産・保険は将来profile.ts側へ反映する際に期待リターン・
   // ボラティリティの前提が大きく異なるため、今回（trend_chart_and_asset_split 5章）で
   // 独立した選択肢に分割した。内部値'その他'は変更せず、汎用の受け皿として残す。
-  { key: '暗号資産' },
+  // 暗号資産：mu/sigmaはprofile.ts側と同じくダミー（未設定）のまま維持するが、groupだけは
+  // 'crypto'を補完する（未設定のままだと portfolioMath.ts の `a.group ?? 'cash'` フォールバックで
+  // 現金と同じ相関として扱われてしまい、ボラティリティの高い資産の相関を誤って過小評価するため）。
+  { key: '暗号資産', group: 'crypto' },
   { key: '保険' },
   { key: 'その他' },
 ];

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import { SAMPLE_PROFILE, getEffectiveRW, getEffectiveRR, getEffectiveMcStd, getEffectiveMcStdR } from '@/lib/profile';
 import type { ProfileV3 } from '@/lib/profile';
@@ -12,6 +12,8 @@ import PortfolioPanel from '@/components/simulator/PortfolioPanel';
 import LifeEventTimeline from '@/components/simulator/LifeEventTimeline';
 import SampleDataBanner from '@/components/simulator/SampleDataBanner';
 import CorporateSettingsSection from '@/components/hojinCompanyState/CorporateSettingsSection';
+import { useAssetManagerProfileStore } from '@/lib/assetManagement/profileStore';
+import { importFromAssetManagementPersonal } from '@/lib/importFromAssetManagementPersonal';
 
 type RateFieldKey = 'rWNisa' | 'rWIdeco' | 'rWTax' | 'rRNisa' | 'rRIdeco' | 'rRTax' | 'mcStd' | 'mcStdR';
 
@@ -315,9 +317,27 @@ function Divider() {
 }
 
 export default function SimulatorForm() {
-  const { profile, updateProfile, loadProfile, setRateSameAsWorking, setSigmaSameAsWorking } = useSimulatorStore();
+  const { profile, updateProfile, loadProfile, setRateSameAsWorking, setSigmaSameAsWorking, importPersonalAssets } = useSimulatorStore();
   const p = profile.params;
   const up = (patch: Partial<typeof p>) => updateProfile(patch);
+
+  // instruction_phase2_companystate_rearchitecture.md 5.2節：個人側①現在PFにも、法人側と同じ
+  // 「資産管理ツールから今の資産をインポート」を追加する（PortfolioPanel.tsx自体はロックのため、
+  // このコンポーネント側にボタン・セレクターを配置する）。選んでも即座に何も切り替わらず、
+  // インポート実行時にのみその選択を使う。
+  // claude_instruction_phase2_yojitsu_hydration_fix.md：assetProfilesはuseAssetManagerProfileStore
+  // （localStorageから同期的に初期化されるZustandストア）由来のため、SSR（常にwindow未定義→
+  // profiles=[]）とクライアント初回レンダー（実データあり）で<select>内の<option>構成が食い違い、
+  // Reactのハイドレーションエラーになる（AssetManagerProfilePanel.tsxで発見・修正した同種パターン）。
+  // マウント完了までは常にSSRと同じ空配列（「プロファイルなし」表示）に固定する。
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const assetProfilesRaw = useAssetManagerProfileStore(s => s.profiles);
+  const assetProfiles = mounted ? assetProfilesRaw : [];
+  const [importSourceId, setImportSourceId] = useState(() => useAssetManagerProfileStore.getState().currentProfileId);
+  const handleImportPersonalAssets = () => {
+    importPersonalAssets(importFromAssetManagementPersonal(importSourceId));
+  };
   // 利回り側「取崩期は積立期と同じ利回りを使う」。PF側・σ側のsameAsWorkingとは独立したフラグ。
   const rateSameAsWorking = p.rateSameAsWorking;
   // MC設定側「取崩期は積立期と同じ標準偏差を使う」。PF側・利回り側のsameAsWorkingとは独立したフラグ。
@@ -588,6 +608,35 @@ export default function SimulatorForm() {
 
       {/* ④ 運用方針・リスク */}
       <Section title="運用方針・リスク">
+        <div className="flex flex-col gap-1 mb-2">
+          <div className="flex items-center gap-1">
+            <select
+              value={importSourceId}
+              onChange={e => setImportSourceId(e.target.value)}
+              disabled={assetProfiles.length === 0}
+              className="text-[10px] text-slate-600 border border-slate-200 rounded px-1 py-0.5 flex-1 min-w-0 disabled:bg-slate-50 disabled:text-slate-400"
+            >
+              {assetProfiles.length === 0 ? (
+                <option value="">プロファイルなし</option>
+              ) : (
+                assetProfiles.map(ap => (
+                  <option key={ap.id} value={ap.id}>{ap.name}</option>
+                ))
+              )}
+            </select>
+            <button
+              onClick={handleImportPersonalAssets}
+              disabled={assetProfiles.length === 0}
+              className="text-[11px] border border-blue-300 text-blue-600 rounded-full px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              資産管理ツールからインポート
+            </button>
+          </div>
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            選択したプロファイルの保有資産で①現在PFを一括上書きします。以後は自動同期されません
+            （再度インポートするまで、資産管理ツール側の変更は反映されません）。
+          </p>
+        </div>
         <PortfolioPanel />
 
         <Section

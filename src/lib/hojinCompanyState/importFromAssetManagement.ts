@@ -19,8 +19,11 @@ export interface ImportedCorporateAssets {
   cashBalance: number;
 }
 
-export function importFromAssetManagement(): ImportedCorporateAssets {
-  const holdings: AssetHolding[] = loadHojinHoldings();
+// instruction_phase2_companystate_rearchitecture.md 5.1節：資産管理ツール側の"今アクティブな"
+// プロファイルを暗黙参照せず、呼び出し側（CorporatePortfolioPanel.tsxのインポート元セレクター）が
+// 選んだprofileIdを明示的に受け取る。
+export function importFromAssetManagement(profileId: string): ImportedCorporateAssets {
+  const holdings: AssetHolding[] = loadHojinHoldings().filter((h) => h.profileId === profileId);
 
   const investedHoldings = holdings.filter(h => INVESTED_CATEGORIES.has(h.accountCategory));
   const cashHoldings = holdings.filter(h => CASH_CATEGORIES.has(h.accountCategory));
@@ -37,6 +40,7 @@ export function importFromAssetManagement(): ImportedCorporateAssets {
     ? Array.from(amountByClass.entries()).map(([assetClass, amount]) => ({
         assetClass,
         pct: Math.round((amount / investedBalance) * 1000) / 10,
+        amount,
       }))
     : [];
 

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { IconMenu2, IconX, IconSearch } from '@tabler/icons-react';
 import { withBasePath } from '@/lib/siteConfig';
 import SearchModal from '@/components/search/SearchModal';
+import { useUnsavedChanges } from '@/lib/UnsavedChangesContext';
 
 const NAV_ITEMS: { label: string; href: string; external?: boolean }[] = [
   { label: 'シミュレーター', href: '/app' },
@@ -20,12 +21,19 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   // ハンバーガーメニューのopenとは独立して管理する(implementation_site_search.md 4節)
   const [searchOpen, setSearchOpen] = useState(false);
+  // instruction_phase2_ui_followup.md 2節：Next.jsのクライアントサイド遷移（<Link>）は
+  // beforeunloadが発火しないため、内部リンククリック時に未保存の変更を確認する最小限のガード。
+  // ヘッダー自体のレイアウト・デザイン・他の挙動は変更しない（onClickを追加するのみ）。
+  const { confirmNavigation } = useUnsavedChanges();
+  const handleNavClick = (e: React.MouseEvent) => {
+    if (!confirmNavigation()) e.preventDefault();
+  };
 
   return (
     <>
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight">
+        <Link href="/" onClick={handleNavClick} className="flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight">
           <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
           資産シミュレーター
         </Link>
@@ -39,7 +47,7 @@ export default function Header() {
                   {item.label}
                 </a>
               ) : (
-                <Link key={item.label} href={item.href} className="hover:text-slate-900 transition-colors">
+                <Link key={item.label} href={item.href} onClick={handleNavClick} className="hover:text-slate-900 transition-colors">
                   {item.label}
                 </Link>
               )
@@ -93,6 +101,7 @@ export default function Header() {
               <Link
                 key={item.label}
                 href={item.href}
+                onClick={handleNavClick}
                 className="border-b border-slate-100 py-3 text-sm text-slate-600 last:border-b-0 hover:text-slate-900"
               >
                 {item.label}

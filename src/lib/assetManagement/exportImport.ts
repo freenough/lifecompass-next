@@ -360,7 +360,7 @@ export function detectCsvFormat(text: string): CsvFormat {
  * 扱う（スナップショットには一切触れない、従来通り）。「区分」列の値で個人／法人へ振り分ける
  * （2章の設計方針：CSVの中身だけで判断する、を旧形式にも適用する）。
  */
-export function importHoldingsFromCsvText(text: string): ImportResult {
+export function importHoldingsFromCsvText(text: string, profileId: string): ImportResult {
   const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
   if (lines.length === 0) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
   const header = parseCsvLine(lines[0]);
@@ -375,7 +375,7 @@ export function importHoldingsFromCsvText(text: string): ImportResult {
       assetClass,
       amount: Number(amountStr) || 0,
       updatedAt,
-      profileId: 'default',
+      profileId,
     };
   });
 
@@ -406,12 +406,12 @@ export function importHoldingsFromCsvText(text: string): ImportResult {
 }
 
 /** @deprecated 互換のためFile版も残す。内部でimportHoldingsFromCsvTextを呼ぶだけの薄いラッパー。 */
-export function importHoldingsFromCsv(file: File): Promise<ImportResult> {
+export function importHoldingsFromCsv(file: File, profileId: string): Promise<ImportResult> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        resolve(importHoldingsFromCsvText(ev.target?.result as string));
+        resolve(importHoldingsFromCsvText(ev.target?.result as string, profileId));
       } catch (e) {
         reject(e instanceof Error ? e : new Error(CSV_IMPORT_ERROR_MESSAGE));
       }
@@ -434,7 +434,7 @@ export interface ParsedAssetCsv {
  * 法人行はhojinGroupsへ、常に両方分類する（investigation_csv_duplicate_bug_and_reset_feature.md
  * バグB対応・simplify_csv_scope_and_fix_graph_history_bug.md 2章：CSVの中身だけで判断する）。
  */
-export function parseAssetCsv(text: string): ParsedAssetCsv {
+export function parseAssetCsv(text: string, profileId: string): ParsedAssetCsv {
   const lines = stripBom(text).split(/\r?\n/).filter((l) => l.length > 0);
   if (lines.length === 0) throw new Error(CSV_IMPORT_ERROR_MESSAGE);
   const header = parseCsvLine(lines[0]);
@@ -452,6 +452,7 @@ export function parseAssetCsv(text: string): ParsedAssetCsv {
       assetClass,
       amount: Number(amountStr) || 0,
       updatedAt,
+      profileId,
     });
     return { ...holding, yearMonth: yearMonth ?? '' };
   });
@@ -476,18 +477,18 @@ export function parseAssetCsv(text: string): ParsedAssetCsv {
  * 削除→挿入、今月ラベルが含まれる場合は現在のholdingsも同期）。戻り値は常に両ストアの
  * 最新状態を含む（呼び出し側で「変化があったかどうか」の分岐は不要）。
  */
-export function applyAssetCsv(parsed: ParsedAssetCsv): ImportResult & {
+export function applyAssetCsv(parsed: ParsedAssetCsv, profileId: string): ImportResult & {
   removed: AssetSnapshot[];
   removedHojin: HojinAssetSnapshot[];
 } {
   const nowYM = toYearMonth(new Date());
 
   const personalResult = parsed.personalGroups.size > 0
-    ? applyGroupsToStore(parsed.personalGroups, nowYM, personalStoreAdapter)
+    ? applyGroupsToStore(parsed.personalGroups, nowYM, personalStoreAdapter, profileId)
     : { holdings: loadHoldings(), snapshots: loadSnapshots(), removed: [] as AssetSnapshot[] };
 
   const hojinResult = parsed.hojinGroups.size > 0
-    ? applyGroupsToStore(parsed.hojinGroups, nowYM, hojinStoreAdapter)
+    ? applyGroupsToStore(parsed.hojinGroups, nowYM, hojinStoreAdapter, profileId)
     : { holdings: loadHojinHoldings(), snapshots: loadHojinSnapshots(), removed: [] as HojinAssetSnapshot[] };
 
   return {

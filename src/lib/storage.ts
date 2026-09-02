@@ -1,5 +1,8 @@
 import type { ProfileV3 } from './profile';
 import { getEffectiveRW, getEffectiveRR, getEffectiveMcStd, getEffectiveMcStdR } from './profile';
+import { useSimulatorStore } from '../store/simulatorStore';
+import { useCompanyStateStore } from './hojinCompanyState/companyStateStore';
+import { saveCompanyStateForProfile } from './hojinCompanyState/storageByProfile';
 
 const STORAGE_KEY = 'lifeCompassProfiles';
 const MAX_PROFILES = 10;
@@ -44,6 +47,16 @@ export function saveProfile(profile: ProfileV3): void {
   }
   if (profiles.length > MAX_PROFILES) profiles.splice(0, profiles.length - MAX_PROFILES);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+  // instruction_phase2_profile_linking.md 1節：ProfileDrawer.tsx（変更禁止）はこの関数を経由して
+  // 保存するため、新規/上書き問わずここでcurrentProfileIdを確定済みのidに同期する。
+  if (typeof window !== 'undefined') {
+    useSimulatorStore.setState({ currentProfileId: synced.id });
+    // instruction_phase2_companystate_rearchitecture.md 1.2節：CompanyStateもこのプロファイルの
+    // 保存操作に相乗りする。新規保存・上書き保存いずれの場合も、その時点でメモリ上にある
+    // CompanyStateをそのまま対象idへ書き込む（別名保存で新IDに現在の値がコピーされる、という
+    // 個人側portfolio.currentと同じ挙動を自然に満たす）。
+    saveCompanyStateForProfile(synced.id, useCompanyStateStore.getState().state);
+  }
 }
 
 export function deleteProfile(id: number): void {

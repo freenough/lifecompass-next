@@ -5,6 +5,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { SITE_URL } from '@/lib/siteConfig';
+import { UnsavedChangesProvider } from '@/lib/UnsavedChangesContext';
 
 // 旧HTML版から引き継ぐ測定ID（新規プロパティは作成しない）
 const GA_MEASUREMENT_ID = 'G-KQNTWNKPJ7';
@@ -52,9 +53,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <UnsavedChangesProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </UnsavedChangesProvider>
       </body>
     </html>
   );

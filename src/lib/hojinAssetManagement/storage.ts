@@ -48,10 +48,16 @@ export function saveHojinHoldings(holdings: AssetHolding[]): void {
   localStorage.setItem(HOJIN_HOLDINGS_KEY, JSON.stringify(holdings));
 }
 
-// dateを自然キーとしてsnapshotsを一意化する（後勝ち）。個人側storage.tsと同じ考え方を複製。
+// (date, profileId)を自然キーとしてsnapshotsを一意化する（後勝ち）。個人側storage.tsと同じ考え方
+// を複製。instruction_phase2_profile_foundation.md 3節（実装時発見）：dateのみのキーだと複数
+// プロファイルが同月に記録を持つ場合に他プロファイルの記録が消えるため複合キーに変更した。
+function snapshotKey(date: string, profileId: string | undefined): string {
+  return `${date}::${profileId || 'default'}`;
+}
+
 function dedupeSnapshotsByDate(snapshots: HojinAssetSnapshot[]): HojinAssetSnapshot[] {
   const map = new Map<string, HojinAssetSnapshot>();
-  for (const s of snapshots) map.set(s.date, s);
+  for (const s of snapshots) map.set(snapshotKey(s.date, s.profileId), s);
   return Array.from(map.values()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
@@ -73,7 +79,9 @@ function migrateBadDateLabels(snapshots: HojinAssetSnapshot[]): HojinAssetSnapsh
   const bad = snapshots.filter((s) => !isValid(s.date));
   if (bad.length === 0) return snapshots;
 
-  const byDate = new Map<string, HojinAssetSnapshot>(snapshots.filter((s) => isValid(s.date)).map((s) => [s.date, s]));
+  const byDate = new Map<string, HojinAssetSnapshot>(
+    snapshots.filter((s) => isValid(s.date)).map((s) => [snapshotKey(s.date, s.profileId), s]),
+  );
   const unmigratable: HojinAssetSnapshot[] = [];
   for (const s of bad) {
     const fixedDate = normalizeYearMonth(s.date);
@@ -81,10 +89,11 @@ function migrateBadDateLabels(snapshots: HojinAssetSnapshot[]): HojinAssetSnapsh
       unmigratable.push(s);
       continue;
     }
-    const existing = byDate.get(fixedDate);
+    const key = snapshotKey(fixedDate, s.profileId);
+    const existing = byDate.get(key);
     const hojinHoldings = existing ? mergeById(s.hojinHoldings, existing.hojinHoldings) : s.hojinHoldings;
     const personalHoldings = existing ? mergeById(s.personalHoldings, existing.personalHoldings) : s.personalHoldings;
-    byDate.set(fixedDate, {
+    byDate.set(key, {
       date: fixedDate,
       hojinHoldings,
       personalHoldings,
@@ -131,6 +140,7 @@ export function saveSnapshots(snapshots: HojinAssetSnapshot[]): { trimmed: Hojin
 export function addSnapshot(
   hojinHoldings: AssetHolding[],
   personalHoldings: AssetHolding[],
+  profileId: string = 'default',
 ): { snapshots: HojinAssetSnapshot[]; removed: HojinAssetSnapshot[] } {
   const snapshot: HojinAssetSnapshot = {
     date: toYearMonth(new Date()),
@@ -138,10 +148,12 @@ export function addSnapshot(
     personalHoldings,
     totalHojinAmount: hojinHoldings.reduce((s, h) => s + h.amount, 0),
     totalPersonalAmount: personalHoldings.reduce((s, h) => s + h.amount, 0),
-    profileId: 'default',
+    profileId,
   };
+  // instruction_phase2_profile_foundation.md 3節（実装時発見）：「同月なら上書き」判定は
+  // (date, profileId)の両方一致でなければならない（date一致だけだと別プロファイルの同月記録を誤って上書きする）。
   const existing = loadSnapshots();
-  const idx = existing.findIndex((s) => s.date === snapshot.date);
+  const idx = existing.findIndex((s) => s.date === snapshot.date && s.profileId === snapshot.profileId);
   const next = idx >= 0 ? existing.map((s, i) => (i === idx ? snapshot : s)) : [...existing, snapshot];
   const { trimmed, removed } = saveSnapshots(next);
   return { snapshots: trimmed, removed };

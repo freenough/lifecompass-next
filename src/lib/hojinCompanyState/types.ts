@@ -16,6 +16,7 @@ export interface CorporateLifeEvent {
 export interface CorporatePortfolioRow {
   assetClass: string;
   pct: number;
+  amount?: number; // ①現在PFのみ使用。単位：万円（個人側AssetRowのamountと同じ考え方）
 }
 
 export interface CorporatePortfolioPhase {

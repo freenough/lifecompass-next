@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSimulatorStore } from '@/store/simulatorStore';
 import type { ScenarioKey } from '@/store/simulatorStore';
 import { decodeProfileUrl } from '@/lib/storage';
-import { profileToSimParams, getUnconfiguredAccounts, getRetirementAgeWarnings } from '@/lib/profile';
+import { profileToSimParams, getUnconfiguredAccounts, getRetirementAgeWarnings, getCryptoManualWarnings } from '@/lib/profile';
 import { BASE_PATH } from '@/lib/siteConfig';
 import type { WithdrawalStrategy } from '@/lib/types';
 import { useInView } from '@/hooks/useInView';
@@ -98,6 +98,7 @@ export default function SimulatorPage() {
   const p            = profileToSimParams(profile);
   const unconfiguredAccounts = getUnconfiguredAccounts(profile);
   const retirementAgeWarnings = getRetirementAgeWarnings(profile);
+  const cryptoManualWarnings = getCryptoManualWarnings(profile);
   // 最終資産KPIの黄/緑判定用：最終年（インフレ調整後・名目）の年間支出
   const lastExpense  = baseSnaps.length > 0 ? baseSnaps[baseSnaps.length - 1].expense : 0;
   // 退職時充足率（詳細アコーディオン用）：退職時点のスナップショットで資産÷(支出×25)を計算
@@ -226,6 +227,12 @@ export default function SimulatorPage() {
           {retirementAgeWarnings.length > 0 && (
             <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
               {retirementAgeWarnings.map((w, i) => <p key={i}>{w}</p>)}
+            </div>
+          )}
+
+          {cryptoManualWarnings.length > 0 && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
+              {cryptoManualWarnings.map((w, i) => <p key={i}>{w}</p>)}
             </div>
           )}
 

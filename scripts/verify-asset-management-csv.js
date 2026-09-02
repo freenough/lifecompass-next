@@ -167,7 +167,7 @@ console.log('='.repeat(80));
     'row1,2026-08,現金,現金,本人,100,',
     'row1,2026-08,現金,現金,本人,100,',
   ]);
-  const parsed = parseAssetCsv(text);
+  const parsed = parseAssetCsv(text, 'default');
   const g = parsed.personalGroups.get('2026-08');
   record(
     '8. 同一ID行が3回登場するCSVを1回パースしても、結果は1件に収束する',
@@ -178,7 +178,7 @@ console.log('='.repeat(80));
 {
   // 同じCSVを3回連続でパースしても、結果（グループの中身）が変化しないこと
   const text = csvText(['row1,2026-08,現金,現金,本人,100,', 'row2,2026-08,NISA,全世界株,本人,200,']);
-  const results = [1, 2, 3].map(() => parseAssetCsv(text).personalGroups.get('2026-08').length);
+  const results = [1, 2, 3].map(() => parseAssetCsv(text, 'default').personalGroups.get('2026-08').length);
   record(
     '9. 同一CSVを3回連続でパースしても、グループの行数は常に2件のまま変化しない',
     results.every((n) => n === 2),
@@ -193,7 +193,7 @@ console.log('='.repeat(80));
     'corp1,2026-08,法人預金,現金,法人,999,',
     'pers1,2026-08,現金,現金,本人,100,',
   ]);
-  const parsed = parseAssetCsv(text);
+  const parsed = parseAssetCsv(text, 'default');
   const personal = parsed.personalGroups.get('2026-08');
   const hojin = parsed.hojinGroups.get('2026-08');
   record(
@@ -205,7 +205,7 @@ console.log('='.repeat(80));
 {
   // 法人行のみのCSV：personalGroupsは空、hojinGroupsのみ埋まる（片方しか無ければ片方だけ）。
   const text = csvText(['corp1,2026-08,法人預金,現金,法人,300,', 'corp2,2026-08,法人証券口座,全世界株,法人,500,']);
-  const parsed = parseAssetCsv(text);
+  const parsed = parseAssetCsv(text, 'default');
   record(
     '11. 法人行のみのCSV：personalGroupsは空、hojinGroupsのみ2件埋まる',
     parsed.personalGroups.size === 0 && parsed.hojinGroups.get('2026-08').length === 2,
@@ -214,7 +214,7 @@ console.log('='.repeat(80));
 }
 {
   const text = csvText(['row1,2026-08,法人預金,現金,法人,300,', 'row1,2026-08,法人預金,現金,法人,300,']);
-  const results = [1, 2, 3].map(() => parseAssetCsv(text).hojinGroups.get('2026-08').length);
+  const results = [1, 2, 3].map(() => parseAssetCsv(text, 'default').hojinGroups.get('2026-08').length);
   record(
     '12. 法人側：同一ID行が2回登場するCSVを3回連続パースしても、常に1件に収束する（バグA回帰）',
     results.every((n) => n === 1),

@@ -24,6 +24,8 @@ interface AssetExportImportControlsProps {
   onImported: (result: ImportResult) => void;
   /** 保存上限超過による自動削除が発生したときに呼ばれる（追加実装：保存上限変更）。 */
   onRemoved: (removed: { personal: AssetSnapshot[]; hojin: HojinAssetSnapshot[] }) => void;
+  /** CSVインポートが書き込むprofileId（csv_profile_scope_fix.md 1節：以前は'default'固定だった）。 */
+  currentProfileId: string;
 }
 
 /**
@@ -39,6 +41,7 @@ export default function AssetExportImportControls({
   hojinSnapshots,
   onImported,
   onRemoved,
+  currentProfileId,
 }: AssetExportImportControlsProps) {
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
@@ -108,17 +111,17 @@ export default function AssetExportImportControls({
         return;
       }
       if (format === 'legacy') {
-        onImported(importHoldingsFromCsvText(text));
+        onImported(importHoldingsFromCsvText(text, currentProfileId));
         return;
       }
-      const parsed = parseAssetCsv(text);
+      const parsed = parseAssetCsv(text, currentProfileId);
       if (parsed.personalYearMonths.length === 0 && parsed.hojinYearMonths.length === 0) {
         alert('インポートできる内容がありませんでした。');
         return;
       }
       const confirmed = window.confirm(buildConfirmMessage(parsed.personalYearMonths, parsed.hojinYearMonths));
       if (!confirmed) return;
-      const result = applyAssetCsv(parsed);
+      const result = applyAssetCsv(parsed, currentProfileId);
       onImported(result);
       onRemoved({ personal: result.removed, hojin: result.removedHojin });
     } catch (err) {
@@ -128,43 +131,29 @@ export default function AssetExportImportControls({
     }
   };
 
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {/* 左＝JSON：保有資産＋記録履歴を含む完全バックアップ。主導線として先に置く。 */}
-      <div className="rounded-lg border border-slate-200 p-3">
-        <p className="text-xs font-semibold text-slate-700 mb-1">JSON</p>
-        <p className="text-[11px] text-slate-400 mb-2">個人・法人の保有資産・記録履歴・設定値（目標資産額・個人化想定比率）・移転履歴ログすべてを含む完全バックアップ</p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => exportToJson(holdings, snapshots, hojinHoldings, hojinSnapshots)}
-            className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
-          >
-            JSONでエクスポート
-          </button>
-          <label className="cursor-pointer text-xs border border-dashed border-slate-300 rounded-lg px-3 py-1.5 text-slate-500 hover:border-slate-400">
-            JSONをインポート
-            <input ref={jsonFileInputRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
-          </label>
-        </div>
-      </div>
+  // instruction_phase2_ui_alignment.md 4節：ProfileDrawer.tsxと同じ縦積みボタン列スタイルに
+  // 統一し、並び順をCSVでエクスポート→CSVをインポート→JSONでエクスポート→JSONをインポート
+  // に固定する（呼び出し元のAssetManagerProfilePanel.tsxが、名前欄・保存ボタンの直後にこの
+  // コンポーネントを配置し、その下に保存済みプロファイル一覧を続ける）。
+  const buttonClass = 'w-full rounded-lg border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50';
+  const importLabelClass = 'w-full cursor-pointer rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 text-center hover:border-slate-400';
 
-      {/* 右＝CSV：保有資産＋記録履歴（年月ラベル付き）。表計算ソフトで編集してサイトに戻すための導線。 */}
-      <div className="rounded-lg border border-slate-200 p-3">
-        <p className="text-xs font-semibold text-slate-700 mb-1">CSV</p>
-        <p className="text-[11px] text-slate-400 mb-2">個人・法人の保有資産＋記録履歴（年月ラベル付き）。表計算ソフトで編集し、この形式のまま読み込み直せます</p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => exportToCsv(holdings, snapshots, hojinHoldings, hojinSnapshots)}
-            className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-50"
-          >
-            CSVでエクスポート
-          </button>
-          <label className="cursor-pointer text-xs border border-dashed border-slate-300 rounded-lg px-3 py-1.5 text-slate-500 hover:border-slate-400">
-            CSVをインポート
-            <input ref={csvFileInputRef} type="file" accept=".csv" onChange={handleImportCsv} className="hidden" />
-          </label>
-        </div>
-      </div>
+  return (
+    <div className="flex flex-col gap-2">
+      <button onClick={() => exportToCsv(holdings, snapshots, hojinHoldings, hojinSnapshots)} className={buttonClass}>
+        CSVでエクスポート
+      </button>
+      <label className={importLabelClass}>
+        CSVをインポート
+        <input ref={csvFileInputRef} type="file" accept=".csv" onChange={handleImportCsv} className="hidden" />
+      </label>
+      <button onClick={() => exportToJson(holdings, snapshots, hojinHoldings, hojinSnapshots)} className={buttonClass}>
+        JSONでエクスポート
+      </button>
+      <label className={importLabelClass}>
+        JSONをインポート
+        <input ref={jsonFileInputRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
+      </label>
     </div>
   );
 }

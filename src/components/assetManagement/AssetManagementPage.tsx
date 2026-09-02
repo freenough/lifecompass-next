@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ACCOUNT_CATEGORIES,
   ALLOWED_ASSET_CLASSES_BY_CATEGORY,
@@ -14,6 +14,7 @@ import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 import type { AssetDisplayScope } from '@/lib/assetManagement/csvHistory';
 import type { ImportResult } from '@/lib/assetManagement/exportImport';
+import { useAssetManagerProfileStore } from '@/lib/assetManagement/profileStore';
 import {
   loadHoldings,
   saveHoldings,
@@ -35,12 +36,15 @@ import {
   resetAll as resetHojinAll,
 } from '@/lib/hojinAssetManagement/storage';
 import { clearTransferLog } from '@/lib/hojinAssetManagement/transferLog';
+import { useUnsavedChangesGuard } from '@/lib/UnsavedChangesContext';
+import type { PlanSnapshot } from '@/lib/planSnapshot/types';
+import { listPlans } from '@/lib/planSnapshot/storage';
 import AssetHoldingCard from './AssetHoldingCard';
 import AssetProgressPanel from './AssetProgressPanel';
 import AssetAllocationChangeTable from './AssetAllocationChangeTable';
 import MonthlyRecordBanner from './MonthlyRecordBanner';
-import AssetExportImportControls from './AssetExportImportControls';
 import AssetResetControls, { type ResetScope } from './AssetResetControls';
+import AssetManagerProfilePanel from './AssetManagerProfilePanel';
 import HojinAssetHoldingCard from '@/components/hojinAssetManagement/HojinAssetHoldingCard';
 import HojinAssetProgressPanel from '@/components/hojinAssetManagement/HojinAssetProgressPanel';
 import HojinAssetAllocationChangeTable from '@/components/hojinAssetManagement/HojinAssetAllocationChangeTable';
@@ -52,15 +56,34 @@ const AssetAllocationChart = dynamic(() => import('./AssetAllocationChart'), { s
 const AssetSnapshotHistory = dynamic(() => import('./AssetSnapshotHistory'), { ssr: false });
 const HojinAssetAllocationChart = dynamic(() => import('@/components/hojinAssetManagement/HojinAssetAllocationChart'), { ssr: false });
 const HojinAssetSnapshotHistory = dynamic(() => import('@/components/hojinAssetManagement/HojinAssetSnapshotHistory'), { ssr: false });
+const PlanComparisonSection = dynamic(() => import('./PlanComparisonSection'), { ssr: false });
 
 function newId(): string {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export default function AssetManagementPage() {
-  const [holdings, setHoldings] = useState<AssetHolding[]>(() => loadHoldings());
-  const [snapshots, setSnapshots] = useState<AssetSnapshot[]>(() => loadSnapshots());
-  const [targetAmount, setTargetAmount] = useState<number>(() => loadTargetAmount());
+  // フェーズ2（instruction_phase2_profile_foundation.md 7節）：資産管理ツールのプロファイル。
+  // holdings/snapshots等のstateは常に「全プロファイル分」を保持し（loadHoldings()等は
+  // profileIdで絞り込まない）、表示・子コンポーネントへ渡す値だけをcurrentProfileIdで
+  // フィルタする。書き込み時は「他プロファイル分＋現在プロファイルの新データ」にマージしてから
+  // 保存する（フィルタ後の配列をそのまま保存すると他プロファイルのデータが消えるため）。
+  const currentProfileId = useAssetManagerProfileStore((s) => s.currentProfileId);
+  const linkedSimulatorProfileId = useAssetManagerProfileStore(
+    (s) => s.profiles.find((p) => p.id === currentProfileId)?.linkedSimulatorProfileId ?? null
+  );
+
+  // 実機確認（instruction_phase2_profile_foundation.md 11節）で発見：loadHoldings()等を
+  // useStateの初期化関数に直接使うと、サーバー側（window未定義＝常に空配列）とクライアント側
+  // （実データあり）でレンダー結果が食い違い、Reactのハイドレーションエラーになる（下のincludeCorporate
+  // と同じ理由、既存コメント参照）。フェーズ1から存在した潜在バグで、保有資産・記録履歴が
+  // 空でない状態でこのページへ直接アクセスすると再現する（このタスクの実機確認で新規に発見・
+  // 修正。プロファイル機能自体が原因ではないが、同一ページの実機確認を進める上で放置できないため
+  // 修正した）。他のuseState初期化と同じ「サーバーと一致する空値で始め、マウント後のuseEffectで
+  // 読み込む」パターンに統一する。
+  const [allHoldings, setAllHoldings] = useState<AssetHolding[]>([]);
+  const [allSnapshots, setAllSnapshots] = useState<AssetSnapshot[]>([]);
+  const [targetAmount, setTargetAmount] = useState<number>(0);
   // モバイル（lg:未満）のみ有効な「入力を編集」トグル。lg:以上は常時展開
   // （既存シミュレーター本体のformOpenパターンを参照して踏襲、7章）。
   const [formOpen, setFormOpen] = useState(false);
@@ -77,17 +100,68 @@ export default function AssetManagementPage() {
   // 条件分岐でDOM構造ごと変わるためReactのハイドレーションエラーになる）。
   const [includeCorporate, setIncludeCorporate] = useState(false);
   useEffect(() => {
-    if (loadHojinHoldings().length > 0) setIncludeCorporate(true);
+    // プロファイル切替のたびに再判定する（切替先プロファイルに法人データがあれば自動でON。
+    // 既存の「一度ONになったら自動でOFFにはしない」という一方向の挙動は維持する）。
+    if (loadHojinHoldings().some((h) => h.profileId === currentProfileId)) setIncludeCorporate(true);
+  }, [currentProfileId]);
+  const [allHojinHoldings, setAllHojinHoldings] = useState<AssetHolding[]>([]);
+  const [allHojinSnapshots, setAllHojinSnapshots] = useState<HojinAssetSnapshot[]>([]);
+  const [hojinTargetAmount, setHojinTargetAmount] = useState<number>(0);
+  const [personalizationRatio, setPersonalizationRatio] = useState<number>(0);
+
+  // 予実比較機能V1（計画）：現在プロファイル分のみを保持する（AssetSnapshot等の「全プロファイル分＋
+  // useMemoで絞り込む」パターンとは異なり、storage.ts側のlistPlans()が既にprofileIdで絞り込んで返すため
+  // そのままstateに持てる）。
+  const [plans, setPlans] = useState<PlanSnapshot[]>([]);
+  const refreshPlans = () => setPlans(listPlans(currentProfileId));
+  useEffect(() => {
+    refreshPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentProfileId]);
+
+  // マウント後に一度だけ、全プロファイル分のデータを読み込む（上記コメント参照）。
+  useEffect(() => {
+    setAllHoldings(loadHoldings());
+    setAllSnapshots(loadSnapshots());
+    setTargetAmount(loadTargetAmount());
+    setAllHojinHoldings(loadHojinHoldings());
+    setAllHojinSnapshots(loadHojinSnapshots());
+    setHojinTargetAmount(loadHojinTargetAmount());
+    setPersonalizationRatio(loadPersonalizationRatio());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const [hojinHoldings, setHojinHoldings] = useState<AssetHolding[]>(() => loadHojinHoldings());
-  const [hojinSnapshots, setHojinSnapshots] = useState<HojinAssetSnapshot[]>(() => loadHojinSnapshots());
-  const [hojinTargetAmount, setHojinTargetAmount] = useState<number>(() => loadHojinTargetAmount());
-  const [personalizationRatio, setPersonalizationRatio] = useState<number>(() => loadPersonalizationRatio());
   // 表示：個人のみ／合算。/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す
   // （法人資産管理ツール単体だった頃の「法人のみ／合算」から意味が反転している）。
   // csv_yyyymm_format_and_import_scope_fix.md 2章：CSV Export/Importのスコープ判断も
   // 新しい概念を作らずこのトグル1つを共有する（AssetDisplayScope型はこの値と同じ型）。
   const [displayScopePref, setDisplayScopePref] = useState<AssetDisplayScope>('combined');
+
+  // 現在プロファイルでフィルタした表示用の派生値（子コンポーネント・集計はすべてこちらを使う）。
+  const holdings = useMemo(() => allHoldings.filter((h) => h.profileId === currentProfileId), [allHoldings, currentProfileId]);
+  const snapshots = useMemo(() => allSnapshots.filter((s) => s.profileId === currentProfileId), [allSnapshots, currentProfileId]);
+  const hojinHoldings = useMemo(() => allHojinHoldings.filter((h) => h.profileId === currentProfileId), [allHojinHoldings, currentProfileId]);
+  const hojinSnapshots = useMemo(() => allHojinSnapshots.filter((s) => s.profileId === currentProfileId), [allHojinSnapshots, currentProfileId]);
+
+  // instruction_phase2_ui_alignment.md 1節：保有資産編集を「ページ単位の明示保存」方式に変更。
+  // 追加・編集・削除操作は即座にはlocalStorageへ書き込まず、allHoldings/allHojinHoldings
+  // （React state＝下書き）だけを更新する。保存は「保存」ボタン（handleSaveHoldings）を押した
+  // ときのみ確定する。「記録する」（handleRecord）は指示書通り対象外（下書きも含めてそのまま
+  // スナップショットする、という既存の挙動を維持）。
+  // instruction_phase2_ui_followup.md 2節：dirtyフラグはこのページのローカルstateではなく
+  // 共有Context（UnsavedChangesContext）を単一の情報源として使う。useUnsavedChangesGuardが
+  // Header.tsxのSPA内遷移ガード用にContextへ同期しつつ、beforeunload登録・アンマウント時の
+  // クリーンアップ（他ページへ状態を残さない）もまとめて行う。
+  const [holdingsDirty, setHoldingsDirty] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
+  useUnsavedChangesGuard(holdingsDirty);
+
+  const handleSaveHoldings = () => {
+    saveHoldings(allHoldings);
+    saveHojinHoldings(allHojinHoldings);
+    setHoldingsDirty(false);
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 2000);
+  };
 
   // 保存上限（MAX_SNAPSHOTS）超過による自動削除の通知バナー（追加実装2章）。
   const [removalNotice, setRemovalNotice] = useState<string | null>(null);
@@ -101,9 +175,15 @@ export default function AssetManagementPage() {
     setRemovalNotice(`保存上限のため、${range}の記録を自動削除しました`);
   };
 
-  const updateHoldings = (next: AssetHolding[]) => {
-    setHoldings(next);
-    saveHoldings(next);
+  // 現在プロファイルの編集結果（nextForCurrentProfile）を、他プロファイル分と合わせて下書き
+  // stateに反映する（instruction_phase2_profile_foundation.md 7節：フィルタ後の配列をそのまま
+  // 保存すると他プロファイルのデータが消えるため）。instruction_phase2_ui_alignment.md 1節：
+  // ここではlocalStorageへは書き込まない（下書き）。確定は「保存」ボタン
+  // （handleSaveHoldings）でのみ行う。
+  const updateHoldings = (nextForCurrentProfile: AssetHolding[]) => {
+    const merged = [...allHoldings.filter((h) => h.profileId !== currentProfileId), ...nextForCurrentProfile];
+    setAllHoldings(merged);
+    setHoldingsDirty(true);
   };
 
   const handleAdd = (category: string) => {
@@ -117,7 +197,7 @@ export default function AssetManagementPage() {
       assetClass: defaultAssetClass,
       amount: 0,
       updatedAt: new Date().toISOString(),
-      profileId: 'default',
+      profileId: currentProfileId,
     };
     updateHoldings([...holdings, holding]);
   };
@@ -132,9 +212,10 @@ export default function AssetManagementPage() {
     updateHoldings(holdings.filter((h) => h.id !== id));
   };
 
-  const updateHojinHoldings = (next: AssetHolding[]) => {
-    setHojinHoldings(next);
-    saveHojinHoldings(next);
+  const updateHojinHoldings = (nextForCurrentProfile: AssetHolding[]) => {
+    const merged = [...allHojinHoldings.filter((h) => h.profileId !== currentProfileId), ...nextForCurrentProfile];
+    setAllHojinHoldings(merged);
+    setHoldingsDirty(true);
   };
 
   const handleAddHojin = (category: string) => {
@@ -147,7 +228,7 @@ export default function AssetManagementPage() {
       assetClass: defaultAssetClass,
       amount: 0,
       updatedAt: new Date().toISOString(),
-      profileId: 'default',
+      profileId: currentProfileId,
     };
     updateHojinHoldings([...hojinHoldings, holding]);
   };
@@ -163,14 +244,17 @@ export default function AssetManagementPage() {
   };
 
   // 「記録する」押下時：個人資産は常に記録し、法人資産を含めるトグルON時は、その瞬間の
-  // 個人holdings state（=まさに今ライブ表示している値）をそのまま法人スナップショットにも
-  // 自動的に書き込む。手動の「個人データをインポート」操作は不要（フェーズ1の核心）。
+  // 個人holdings state（=まさに今ライブ表示している値、現在プロファイル分のみ）をそのまま
+  // 法人スナップショットにも自動的に書き込む。手動の「個人データをインポート」操作は不要
+  // （フェーズ1の核心）。addSnapshot()はloadSnapshots()（全プロファイル分）を内部で読み直して
+  // 保存し直すため、戻り値のsnapshotsは既に全プロファイル分の最新状態になっている
+  // （このページ側でのマージは不要）。
   const handleRecord = () => {
-    const { snapshots: nextSnapshots, removed } = addSnapshot(holdings);
-    setSnapshots(nextSnapshots);
+    const { snapshots: nextSnapshots, removed } = addSnapshot(holdings, currentProfileId);
+    setAllSnapshots(nextSnapshots);
     if (includeCorporate) {
-      const { snapshots: nextHojinSnapshots, removed: removedHojin } = addHojinSnapshot(hojinHoldings, holdings);
-      setHojinSnapshots(nextHojinSnapshots);
+      const { snapshots: nextHojinSnapshots, removed: removedHojin } = addHojinSnapshot(hojinHoldings, holdings, currentProfileId);
+      setAllHojinSnapshots(nextHojinSnapshots);
       notifyRemoved([removed, removedHojin]);
     } else {
       notifyRemoved([removed]);
@@ -195,35 +279,119 @@ export default function AssetManagementPage() {
   // simplify_csv_scope_and_fix_graph_history_bug.md 2章：Export/Importが表示トグルと無関係に
   // なり、個人・法人どちらのストアが更新されたかに関わらず戻り値は常に両ストアの最新状態を
   // 含むため（ImportResult）、旧来の「個人用」「法人用」2つのハンドラに分ける必要がなくなった。
+  // CSV/JSON自体はまだプロファイル非対応（次指示書スコープ）のため、常に全プロファイル分を
+  // 対象にした戻り値をそのままallHoldings等へ反映する。
   const handleImported = (result: ImportResult) => {
-    setHoldings(result.holdings);
-    setSnapshots(result.snapshots);
-    setHojinHoldings(result.hojinHoldings);
-    setHojinSnapshots(result.hojinSnapshots);
+    setAllHoldings(result.holdings);
+    setAllSnapshots(result.snapshots);
+    setAllHojinHoldings(result.hojinHoldings);
+    setAllHojinSnapshots(result.hojinSnapshots);
     // json_export_completeness_and_history_bug.md 2章：JSON Importで設定値も上書きされうる
     // ようになったため、ページ側stateも同期する（CSV/legacy経路は現在値の素通しなので無害）。
     setTargetAmount(result.targetAmount);
     setHojinTargetAmount(result.hojinTargetAmount);
     setPersonalizationRatio(result.personalizationRatio);
+    // CSV/JSON Importは既にlocalStorageへ直接書き込み済みのため、未保存の下書きは無い状態になる。
+    setHoldingsDirty(false);
+  };
+
+  // instruction_phase2_ui_alignment.md 2節：「新規保存」時、現在アクティブなプロファイルの
+  // 保有資産・法人設定を新プロファイルへコピーする。「今画面に表示されている内容
+  // （下書きも含む）」をコピー対象とするため、allHoldings/allHojinHoldings（React state）を
+  // そのまま使う（storageの再読み込みはしない）。新規プロファイル作成という明示的な保存操作
+  // のため、保留中の下書き全体もこの時点でまとめて確定する（データロス防止）。
+  // instruction_phase2_companystate_rearchitecture.md 1節：CompanyStateは資産管理ツール側
+  // プロファイルと無関係になったため、ここでのコピーは不要（削除済み）。
+  const handleCreateProfileFromCurrent = (name: string) => {
+    const created = useAssetManagerProfileStore.getState().createProfile({ name, birthDate: null, linkedSimulatorProfileId: null });
+
+    const copiedHoldings = holdings.map((h) => ({ ...h, id: newId(), profileId: created.id }));
+    const copiedHojinHoldings = hojinHoldings.map((h) => ({ ...h, id: newId(), profileId: created.id }));
+    const nextAllHoldings = [...allHoldings, ...copiedHoldings];
+    const nextAllHojinHoldings = [...allHojinHoldings, ...copiedHojinHoldings];
+
+    saveHoldings(nextAllHoldings);
+    saveHojinHoldings(nextAllHojinHoldings);
+    setAllHoldings(nextAllHoldings);
+    setAllHojinHoldings(nextAllHojinHoldings);
+    setHoldingsDirty(false);
+
+    useAssetManagerProfileStore.getState().switchProfile(created.id);
+  };
+
+  // instruction_phase2_ui_safety_hardening.md 1節：未保存の下書きがある状態で「読込」（プロファイル
+  // 切替）が確認された（破棄して続行）場合、AssetManagerProfilePanel.tsxから呼ばれる。
+  // allHoldings/allHojinHoldingsをstorageの内容で上書きし、現在プロファイル分の下書き編集を破棄する。
+  const handleDiscardHoldingsDraft = () => {
+    setAllHoldings(loadHoldings());
+    setAllHojinHoldings(loadHojinHoldings());
+    setHoldingsDirty(false);
+  };
+
+  // instruction_phase2_ui_safety_hardening.md 2節：「上書き保存」は対象プロファイル（現在
+  // アクティブか、名前が一致した別プロファイルか）の保有資産を、今画面に表示されている
+  // 内容（下書き含む）で実際に置き換える（従来はメタ情報＝名前のリネームのみだったが、確認
+  // ダイアログが「内容が置き換わる」と明示する以上、実際にそうする）。対象が現在アクティブな
+  // プロファイルの場合はholdingsDirtyを確定し、非アクティブな別プロファイル
+  // の場合は現在の下書きには一切触れない（アクティブなプロファイルの切替は行わない）。
+  // instruction_phase2_companystate_rearchitecture.md 1節：CompanyStateは資産管理ツール側
+  // プロファイルと無関係になったため、ここでのCompanyState保存処理は削除済み。
+  //
+  // 実機確認で発見した不具合の修正：対象が非アクティブな別プロファイルのとき、
+  // allHoldings（現在アクティブなプロファイル自身の未保存下書きを含みうる）をベースに
+  // saveHoldings()すると、保存ボタンを押していない現在プロファイルの下書きまで一緒に
+  // localStorageへ書き込まれてしまう（「確認なしに自動保存される経路を残さない」という
+  // 1節の方針に反する）。対象が非アクティブな場合はloadHoldings()（storageの最新保存済み
+  // 状態）をベースにし、現在プロファイルの下書きはReact state上にのみ残す。
+  const handleOverwriteProfile = (targetProfileId: string, name: string) => {
+    const copiedHoldings = holdings.map((h) => ({ ...h, id: newId(), profileId: targetProfileId }));
+    const copiedHojinHoldings = hojinHoldings.map((h) => ({ ...h, id: newId(), profileId: targetProfileId }));
+    const isTargetActive = targetProfileId === currentProfileId;
+    const baseHoldings = isTargetActive ? allHoldings : loadHoldings();
+    const baseHojinHoldings = isTargetActive ? allHojinHoldings : loadHojinHoldings();
+    const nextAllHoldings = [...baseHoldings.filter((h) => h.profileId !== targetProfileId), ...copiedHoldings];
+    const nextAllHojinHoldings = [...baseHojinHoldings.filter((h) => h.profileId !== targetProfileId), ...copiedHojinHoldings];
+
+    saveHoldings(nextAllHoldings);
+    saveHojinHoldings(nextAllHojinHoldings);
+
+    if (isTargetActive) {
+      setAllHoldings(nextAllHoldings);
+      setAllHojinHoldings(nextAllHojinHoldings);
+      setHoldingsDirty(false);
+    } else {
+      // 現在プロファイルの下書き（React state）はそのまま維持しつつ、対象プロファイル分の
+      // 保存済み内容だけをstateにも反映する（storageと表示の整合を保つため）。
+      setAllHoldings((prev) => [...prev.filter((h) => h.profileId !== targetProfileId), ...copiedHoldings]);
+      setAllHojinHoldings((prev) => [...prev.filter((h) => h.profileId !== targetProfileId), ...copiedHojinHoldings]);
+    }
+
+    useAssetManagerProfileStore.getState().renameProfile(targetProfileId, name);
   };
 
   // 全データリセット（追加実装4章）。対象範囲ごとにストレージを削除したうえで、
   // 各stateをストレージから読み直す（削除後は空配列・デフォルト設定値になる）。
+  // instruction_phase2_profile_foundation.md 9節：リセット機能のプロファイルスコープ選択
+  // （現在のプロファイルのみ／全プロファイル）は今回のスコープ外のため、従来通り常に
+  // 全プロファイル分を削除する（AssetResetControls.tsxの文言も個人/法人/両方の範囲のみで、
+  // プロファイルには言及していないため矛盾はない）。
   const handleReset = (scope: ResetScope, includeSettings: boolean) => {
     if (scope === 'personal' || scope === 'both') {
       resetPersonalAll({ includeSettings });
-      setHoldings(loadHoldings());
-      setSnapshots(loadSnapshots());
+      setAllHoldings(loadHoldings());
+      setAllSnapshots(loadSnapshots());
       setTargetAmount(loadTargetAmount());
     }
     if (scope === 'hojin' || scope === 'both') {
       resetHojinAll({ includeSettings });
       clearTransferLog();
-      setHojinHoldings(loadHojinHoldings());
-      setHojinSnapshots(loadHojinSnapshots());
+      setAllHojinHoldings(loadHojinHoldings());
+      setAllHojinSnapshots(loadHojinSnapshots());
       setHojinTargetAmount(loadHojinTargetAmount());
       setPersonalizationRatio(loadPersonalizationRatio());
     }
+    // リセットは即座にlocalStorageへ反映されるため、未保存の下書きは無い状態になる。
+    setHoldingsDirty(false);
   };
 
   const totalAmount = holdings.reduce((s, h) => s + (h.amount || 0), 0);
@@ -238,6 +406,27 @@ export default function AssetManagementPage() {
         <h1 className="text-2xl font-bold text-[#0F2A4A] mb-2">資産管理</h1>
         <p className="text-sm text-slate-500">保有資産を記録して、毎月のFIRE進捗を確認します。</p>
       </div>
+
+      <div className="mb-6">
+        <AssetManagerProfilePanel
+          allHoldings={allHoldings}
+          allSnapshots={allSnapshots}
+          allHojinHoldings={allHojinHoldings}
+          allHojinSnapshots={allHojinSnapshots}
+          onImported={handleImported}
+          onRemoved={(removed) => notifyRemoved([removed.personal, removed.hojin])}
+          onCreateProfileFromCurrent={handleCreateProfileFromCurrent}
+          onOverwriteProfile={handleOverwriteProfile}
+          holdingsDirty={holdingsDirty}
+          onDiscardHoldingsDraft={handleDiscardHoldingsDraft}
+        />
+      </div>
+
+      {saveToast && (
+        <div className="fixed bottom-4 right-4 z-50 rounded-lg bg-slate-800 text-white text-xs px-4 py-2 shadow-lg">
+          保存しました
+        </div>
+      )}
 
       <div className="mb-6">
         <MonthlyRecordBanner snapshots={snapshots} onRecord={handleRecord} />
@@ -267,6 +456,21 @@ export default function AssetManagementPage() {
             <h2 className="text-sm font-bold text-slate-700">保有資産</h2>
             <span className="text-sm font-bold text-slate-800">合計 {totalAmount.toLocaleString()}万円</span>
           </div>
+
+          {/* instruction_phase2_ui_alignment.md 1節：保有資産編集は下書き→明示保存方式。
+              未保存の変更がある間はここに表示し、「保存」ボタンで確定する。 */}
+          {holdingsDirty && (
+            <div className="mb-3 flex items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
+              <span className="text-xs text-amber-700">未保存の変更があります</span>
+              <button
+                type="button"
+                onClick={handleSaveHoldings}
+                className="shrink-0 rounded-lg bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-700"
+              >
+                保存
+              </button>
+            </div>
+          )}
 
           {/* モバイルのみの開閉トグル（既存シミュレーターの「入力を編集/閉じる」ボタンの
               ラベル・矢印表現を参照して踏襲。フォーム全体がfixed配置される独自スクロール構成は
@@ -338,6 +542,7 @@ export default function AssetManagementPage() {
                     personalizationRatio={personalizationRatio}
                     onUpdateHojinHoldings={updateHojinHoldings}
                     onUpdatePersonalHoldings={updateHoldings}
+                    currentProfileId={currentProfileId}
                   />
                 </div>
               )}
@@ -390,6 +595,14 @@ export default function AssetManagementPage() {
             )}
           </section>
 
+          <PlanComparisonSection
+            plans={plans}
+            personalSnapshots={snapshots}
+            onPlansChanged={refreshPlans}
+            currentProfileId={currentProfileId}
+            linkedSimulatorProfileId={linkedSimulatorProfileId}
+          />
+
           <section>
             <h2 className="text-sm font-bold text-slate-700 mb-3">FIRE進捗</h2>
             {includeCorporate ? (
@@ -434,18 +647,6 @@ export default function AssetManagementPage() {
           ) : (
             <AssetAllocationChangeTable holdings={holdings} snapshots={snapshots} />
           )}
-
-          <section>
-            <h2 className="text-sm font-bold text-slate-700 mb-3">Export / Import</h2>
-            <AssetExportImportControls
-              holdings={holdings}
-              snapshots={snapshots}
-              hojinHoldings={hojinHoldings}
-              hojinSnapshots={hojinSnapshots}
-              onImported={handleImported}
-              onRemoved={(removed) => notifyRemoved([removed.personal, removed.hojin])}
-            />
-          </section>
 
           <section>
             <AssetResetControls onReset={handleReset} />

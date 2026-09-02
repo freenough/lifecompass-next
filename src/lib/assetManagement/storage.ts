@@ -47,12 +47,19 @@ export function saveHoldings(holdings: AssetHolding[]): void {
   localStorage.setItem(HOLDINGS_KEY, JSON.stringify(holdings));
 }
 
-// dateを自然キーとしてsnapshotsを一意化する（後勝ち＝同じdateは最後の値を残す）。
+// (date, profileId)を自然キーとしてsnapshotsを一意化する（後勝ち＝同じキーは最後の値を残す）。
 // mergeSnapshots（exportImport.ts）と同じ「date一致→上書き」の考え方をここでも使う
 // （storage.tsからexportImport.tsを逆importすると循環参照になるため、この3行は複製している）。
+// instruction_phase2_profile_foundation.md 3節（実装時発見）：dateのみのキーだと、複数プロファイル
+// が同じ月に記録を持つ場合、読み込みのたびに他プロファイルの記録が消えてしまうため
+// (date, profileId)の複合キーに変更した。
+function snapshotKey(date: string, profileId: string | undefined): string {
+  return `${date}::${profileId || 'default'}`;
+}
+
 function dedupeSnapshotsByDate(snapshots: AssetSnapshot[]): AssetSnapshot[] {
   const map = new Map<string, AssetSnapshot>();
-  for (const s of snapshots) map.set(s.date, s);
+  for (const s of snapshots) map.set(snapshotKey(s.date, s.profileId), s);
   return Array.from(map.values()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
@@ -78,7 +85,9 @@ function migrateBadDateLabels(snapshots: AssetSnapshot[]): AssetSnapshot[] {
   const bad = snapshots.filter((s) => !isValid(s.date));
   if (bad.length === 0) return snapshots;
 
-  const byDate = new Map<string, AssetSnapshot>(snapshots.filter((s) => isValid(s.date)).map((s) => [s.date, s]));
+  const byDate = new Map<string, AssetSnapshot>(
+    snapshots.filter((s) => isValid(s.date)).map((s) => [snapshotKey(s.date, s.profileId), s]),
+  );
   const unmigratable: AssetSnapshot[] = [];
   for (const s of bad) {
     const fixedDate = normalizeYearMonth(s.date);
@@ -86,9 +95,10 @@ function migrateBadDateLabels(snapshots: AssetSnapshot[]): AssetSnapshot[] {
       unmigratable.push(s);
       continue;
     }
-    const existing = byDate.get(fixedDate);
+    const key = snapshotKey(fixedDate, s.profileId);
+    const existing = byDate.get(key);
     const holdings = existing ? mergeById(s.holdings, existing.holdings) : s.holdings;
-    byDate.set(fixedDate, {
+    byDate.set(key, {
       date: fixedDate,
       holdings,
       totalAmount: holdings.reduce((sum, h) => sum + (h.amount || 0), 0),
@@ -134,16 +144,19 @@ export function saveSnapshots(snapshots: AssetSnapshot[]): { trimmed: AssetSnaps
  * ユーザーが能動的に「記録する」を押したときだけ呼ぶ（自動保存・定期保存は行わない）。
  * 同月内に複数回押された場合はdateが一致するため上書きする（4章バグ修正：以前は
  * 無条件にpushしていたため、同じ月に複数回押すと重複行が生まれていた）。
+ * instruction_phase2_profile_foundation.md 3節（実装時発見）：「同月なら上書き」判定は
+ * (date, profileId)の両方一致でなければならない（date一致だけだと、別プロファイルの
+ * 同月記録を誤って上書きしてしまう）。
  */
-export function addSnapshot(holdings: AssetHolding[]): { snapshots: AssetSnapshot[]; removed: AssetSnapshot[] } {
+export function addSnapshot(holdings: AssetHolding[], profileId: string = 'default'): { snapshots: AssetSnapshot[]; removed: AssetSnapshot[] } {
   const snapshot: AssetSnapshot = {
     date: toYearMonth(new Date()),
     holdings,
     totalAmount: holdings.reduce((s, h) => s + h.amount, 0),
-    profileId: 'default',
+    profileId,
   };
   const existing = loadSnapshots();
-  const idx = existing.findIndex((s) => s.date === snapshot.date);
+  const idx = existing.findIndex((s) => s.date === snapshot.date && s.profileId === snapshot.profileId);
   const next = idx >= 0 ? existing.map((s, i) => (i === idx ? snapshot : s)) : [...existing, snapshot];
   const { trimmed, removed } = saveSnapshots(next);
   return { snapshots: trimmed, removed };

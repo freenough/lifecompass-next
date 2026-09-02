@@ -12,13 +12,15 @@
 // 個人側と同じ構造（独立セクション＋RateField行）に作り直した。資産クラス配分カード側からは
 // μ・σの手入力UIを完全に除去し、常に自動算出値のみを読み取り専用表示する。
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ASSET_CLASSES } from '@/lib/assetManagement/categories';
 import {
   getEffectivePhaseMetrics, calcPortfolioMetrics, getEffectiveRetirementMu, getEffectiveRetirementSigma,
+  getCorporateCryptoWarnings,
 } from '@/lib/hojinCompanyState/portfolioMath';
 import { useCompanyStateStore } from '@/lib/hojinCompanyState/companyStateStore';
 import { importFromAssetManagement } from '@/lib/hojinCompanyState/importFromAssetManagement';
+import { useAssetManagerProfileStore } from '@/lib/assetManagement/profileStore';
 import type { CorporatePortfolioPhase, CorporatePortfolioRow } from '@/lib/hojinCompanyState/types';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 import { UNIT_WIDTH_CLASS, INPUT_WIDTH_CLASS } from '@/components/simulator/formLayout';
@@ -36,12 +38,19 @@ interface AssetCardProps {
 
 function AssetCard({ phase, data }: AssetCardProps) {
   const updatePortfolioPhase = useCompanyStateStore(s => s.updatePortfolioPhase);
+  // instruction_phase2_companystate_rearchitecture.md 4節：①現在PFのみ金額（amount）ベースの
+  // 入力・表示にする（個人側PortfolioPanel.tsxのisCurrent分岐と同じパターン）。②③は従来通り％配分。
+  const isCurrent = phase === 'current';
   const rows = data.rows;
 
   const update = (newRows: CorporatePortfolioRow[]) => updatePortfolioPhase(phase, newRows);
-  const setClass = (i: number, val: string) => update(rows.map((r, idx) => idx === i ? { ...r, assetClass: val } : r));
-  const setPct   = (i: number, val: number) => update(rows.map((r, idx) => idx === i ? { ...r, pct: val } : r));
-  const addRow   = () => update([...rows, { assetClass: '全世界株', pct: 0 }]);
+  const setClass  = (i: number, val: string) => update(rows.map((r, idx) => idx === i ? { ...r, assetClass: val } : r));
+  const setPct    = (i: number, val: number) => update(rows.map((r, idx) => idx === i ? { ...r, pct: val } : r));
+  const setAmount = (i: number, val: number) => update(rows.map((r, idx) => idx === i ? { ...r, amount: val } : r));
+  const addRow    = () => update([...rows, isCurrent
+    ? { assetClass: '全世界株', pct: 0, amount: 0 }
+    : { assetClass: '全世界株', pct: 0 }
+  ]);
   const delRow   = (i: number) => update(rows.filter((_, idx) => idx !== i));
 
   // PortfolioPanel.tsx（個人側、ロック対象）のdisplayMu（`const displayMu = calcMu(rows);`、
@@ -51,14 +60,19 @@ function AssetCard({ phase, data }: AssetCardProps) {
   // （2026-08-21最終監査で判明：以前はgetEffectivePhaseMetricsを使っており、手入力ON中は
   // カード見出しにも手入力値が表示されてしまっていた＝個人側の設計と不一致だった）。
   // 見出しはμのみ表示する（個人側PortfolioPanel.tsxのAssetCardと同じ、σは表示しない。
-  // 2026-08-21最終チェックリスト1番で修正：以前はσも表示していた）。
+  // 2026-08-21最終チェックリスト1番で修正：以前はσも表示していた）。①現在PFはμのかわりに
+  // 行の金額合計を表示する（個人側PortfolioPanel.tsxの「合計:」表示と同じパターン）。
   const { mu } = calcPortfolioMetrics(rows);
+  const totalAmount = isCurrent ? rows.reduce((s, r) => s + (r.amount ?? 0), 0) : 0;
 
   return (
     <div className="rounded-lg border border-slate-200 p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-600">法人資産（投資分）</span>
-        <span className="text-sm font-bold text-slate-800">μ: {mu.toFixed(1)}%</span>
+        {isCurrent
+          ? <span className="text-xs text-slate-400">合計: {totalAmount.toLocaleString()}万円</span>
+          : <span className="text-sm font-bold text-slate-800">μ: {mu.toFixed(1)}%</span>
+        }
       </div>
 
       {rows.map((row, i) => (
@@ -72,22 +86,44 @@ function AssetCard({ phase, data }: AssetCardProps) {
               <option key={a.key} value={a.key}>{a.key}</option>
             ))}
           </select>
-          <input
-            type="number"
-            value={row.pct}
-            onFocus={e => clearZeroOrSelect(e.currentTarget)}
-            onClick={e => clearZeroOrSelect(e.currentTarget)}
-            onChange={e => {
-              const cleaned = stripLeadingZero(e.target.value);
-              if (cleaned !== e.target.value) e.target.value = cleaned;
-              const n = e.target.valueAsNumber;
-              setPct(i, isNaN(n) ? 0 : n);
-            }}
-            min={0}
-            max={100}
-            className="w-14 text-xs border border-slate-300 rounded px-1 py-1 text-right"
-          />
-          <span className="text-xs text-slate-400">%</span>
+          {isCurrent ? (
+            <>
+              <input
+                type="number"
+                value={row.amount ?? 0}
+                onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                onClick={e => clearZeroOrSelect(e.currentTarget)}
+                onChange={e => {
+                  const cleaned = stripLeadingZero(e.target.value);
+                  if (cleaned !== e.target.value) e.target.value = cleaned;
+                  const n = e.target.valueAsNumber;
+                  setAmount(i, isNaN(n) ? 0 : n);
+                }}
+                min={0}
+                className="w-16 text-xs border border-slate-300 rounded px-1 py-1 text-right"
+              />
+              <span className="text-xs text-slate-400">万円</span>
+            </>
+          ) : (
+            <>
+              <input
+                type="number"
+                value={row.pct}
+                onFocus={e => clearZeroOrSelect(e.currentTarget)}
+                onClick={e => clearZeroOrSelect(e.currentTarget)}
+                onChange={e => {
+                  const cleaned = stripLeadingZero(e.target.value);
+                  if (cleaned !== e.target.value) e.target.value = cleaned;
+                  const n = e.target.valueAsNumber;
+                  setPct(i, isNaN(n) ? 0 : n);
+                }}
+                min={0}
+                max={100}
+                className="w-14 text-xs border border-slate-300 rounded px-1 py-1 text-right"
+              />
+              <span className="text-xs text-slate-400">%</span>
+            </>
+          )}
           <button onClick={() => delRow(i)} className="text-red-400 hover:text-red-600 text-xs px-1">×</button>
         </div>
       ))}
@@ -287,7 +323,6 @@ export default function CorporatePortfolioPanel() {
   const portfolio = useCompanyStateStore(s => s.state.portfolio);
   const investedBalance = useCompanyStateStore(s => s.state.settings.investedBalance);
   const cashBalance = useCompanyStateStore(s => s.state.settings.cashBalance);
-  const setInvestedBalance = useCompanyStateStore(s => s.setInvestedBalance);
   const setCashBalance = useCompanyStateStore(s => s.setCashBalance);
   const setRetirementSameAsWorking = useCompanyStateStore(s => s.setRetirementSameAsWorking);
   const setRateSameAsWorking = useCompanyStateStore(s => s.setRateSameAsWorking);
@@ -315,10 +350,26 @@ export default function CorporatePortfolioPanel() {
   const muR = getEffectiveRetirementMu(portfolio, muW);
   const sigmaR = getEffectiveRetirementSigma(portfolio, sigmaW);
 
+  // instruction_phase2_companystate_rearchitecture.md 3節：資産管理ツールプロファイルの
+  // セレクターは「切替」ではなく「インポート元の選択」に転用する。選んでも即座に何も
+  // 切り替わらず、インポート実行時にのみその選択を使う（switchAssetManagerProfileGuardedは
+  // この用途では不要になったため撤去済み）。
+  // claude_instruction_phase2_yojitsu_hydration_fix.md：assetProfilesはuseAssetManagerProfileStore
+  // （localStorageから同期的に初期化されるZustandストア）由来のため、SSR（常にwindow未定義→
+  // profiles=[]）とクライアント初回レンダー（実データあり）で<select>内の<option>構成が食い違い、
+  // Reactのハイドレーションエラーになる（AssetManagerProfilePanel.tsxで発見・修正した同種パターン）。
+  // マウント完了までは常にSSRと同じ空配列（「プロファイルなし」表示）に固定する。
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const assetProfilesRaw = useAssetManagerProfileStore(s => s.profiles);
+  const assetProfiles = mounted ? assetProfilesRaw : [];
+  const [importSourceId, setImportSourceId] = useState(() => useAssetManagerProfileStore.getState().currentProfileId);
   const handleImport = () => {
-    const { rows, investedBalance: importedInvested, cashBalance: importedCash } = importFromAssetManagement();
+    const { rows, investedBalance: importedInvested, cashBalance: importedCash } = importFromAssetManagement(importSourceId);
     setImportedAssets(importedInvested, importedCash, rows);
   };
+
+  const cryptoWarnings = getCorporateCryptoWarnings(portfolio);
 
   // 利回り設定・MC設定のトグル：ON(linked)=PF計算値を使う、OFF=手入力（個人側RateFieldと同じ極性）。
   // 手入力に切り替えた瞬間は、その時点の実効値をシードする（個人側SimulatorForm.tsxのsetLinkedと同じUX）。
@@ -342,14 +393,45 @@ export default function CorporatePortfolioPanel() {
 
   return (
     <div className="flex flex-col gap-1">
+      {cryptoWarnings.length > 0 && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 mb-1">
+          {cryptoWarnings.map((w, i) => (
+            <p key={i} className="text-[11px] text-amber-700">{w}</p>
+          ))}
+        </div>
+      )}
       <PhaseSection label="現在のPF" badge="① 現在" badgeColor="bg-slate-100 text-slate-600">
-        <button
-          onClick={handleImport}
-          className="text-[11px] border border-blue-300 text-blue-600 rounded-full px-2 py-1 hover:bg-blue-50 self-start"
-        >
-          資産管理ツールからインポート
-        </button>
-        <BalanceInput label="投資分（残高）" value={investedBalance} onChange={setInvestedBalance} />
+        <div className="flex items-center gap-1">
+          <select
+            value={importSourceId}
+            onChange={e => setImportSourceId(e.target.value)}
+            disabled={assetProfiles.length === 0}
+            className="text-[10px] text-slate-600 border border-slate-200 rounded px-1 py-0.5 flex-1 min-w-0 disabled:bg-slate-50 disabled:text-slate-400"
+          >
+            {assetProfiles.length === 0 ? (
+              <option value="">プロファイルなし</option>
+            ) : (
+              assetProfiles.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))
+            )}
+          </select>
+          <button
+            onClick={handleImport}
+            disabled={assetProfiles.length === 0}
+            className="text-[11px] border border-blue-300 text-blue-600 rounded-full px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          >
+            インポート
+          </button>
+        </div>
+        <p className="text-[10px] text-slate-400 leading-relaxed">
+          選択したプロファイルの保有資産で①現在PFを一括上書きします。以後は自動同期されません
+          （再度インポートするまで、資産管理ツール側の変更は反映されません）。
+        </p>
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-xs text-slate-500">投資分（残高）</span>
+          <span className="text-xs text-slate-700">{investedBalance.toLocaleString()}万円（行の金額合計）</span>
+        </div>
         <BalanceInput label="現金分（残高）" value={cashBalance} onChange={setCashBalance} />
         <AssetCard phase="current" data={portfolio.current} />
       </PhaseSection>

@@ -43,6 +43,10 @@ export function runMonteCarloWithCorporateAwareness(): void {
 }
 
 export default function CorporateSettingsSection() {
+  // instruction_phase2_companystate_rearchitecture.md 1〜2節：CompanyStateはシミュレーター
+  // プロファイル自体の一部として保存・切替される（simulatorStore.loadProfile()経由）。資産管理
+  // ツール側プロファイルとは無関係。専用の保存UI（未保存バナー・保存ボタン）も撤去済み——保存は
+  // シミュレーター側の通常の保存操作（ProfileDrawer）にそのまま相乗りする。
   const includeInPersonalSimulator = useCompanyStateStore(s => s.state.settings.includeInPersonalSimulator);
   const setIncludeInPersonalSimulator = useCompanyStateStore(s => s.setIncludeInPersonalSimulator);
   const events = useCompanyStateStore(s => s.state.events);

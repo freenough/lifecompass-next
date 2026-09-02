@@ -796,3 +796,52 @@ console.log('\n' + '='.repeat(100));
 console.log('【資産管理ツール:JSON Exportの完全性】verify-asset-management-json-completeness.js');
 console.log('='.repeat(100));
 require('./verify-asset-management-json-completeness.js');
+
+// ================================================================
+// 資産管理ツール：フェーズ2プロファイル基盤・移行処理
+// instruction_phase2_profile_foundation.md の回帰テスト。Zustandストア（profileStore）の
+// モジュール単位の状態を使うため、他のスクリプトへの影響を避けるべくfull-verify.js内で
+// 最後に実行する。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【資産管理ツール:プロファイル基盤】verify-asset-manager-profile-migration.js');
+console.log('='.repeat(100));
+require('./verify-asset-manager-profile-migration.js');
+
+// ================================================================
+// CompanyStateの再設計：シミュレータープロファイル単位への移行
+// instruction_phase2_companystate_rearchitecture.md の回帰テスト。同じくZustandストアの
+// モジュール単位の状態を使うため、他のスクリプトへの影響を避けるべくfull-verify.js内で
+// 最後に実行する。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【CompanyStateの再設計】verify-companystate-rearchitecture.js');
+console.log('='.repeat(100));
+require('./verify-companystate-rearchitecture.js');
+
+// ================================================================
+// 予実比較機能V1（個人のみ・計画保存＋比較表示）
+// claude_instruction_phase2_yojitsu_v1_plan_and_compare.md の回帰テスト。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【予実比較機能V1】verify-plan-snapshot.js');
+console.log('='.repeat(100));
+require('./verify-plan-snapshot.js');
+
+// ================================================================
+// プロファイル連携UI（手動リンクのみ）
+// claude_instruction_phase2_yojitsu_link_ui.md の回帰テスト。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【プロファイル連携UI】verify-profile-link-ui.js');
+console.log('='.repeat(100));
+require('./verify-profile-link-ui.js');
+
+// ================================================================
+// CSVインポートのプロファイルスコープ不整合バグ修正
+// claude_instruction_phase2_yojitsu_csv_profile_scope_fix.md の回帰テスト。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【CSVインポート:プロファイルスコープ修正】verify-csv-profile-scope-fix.js');
+console.log('='.repeat(100));
+require('./verify-csv-profile-scope-fix.js');

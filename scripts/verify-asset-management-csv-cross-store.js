@@ -63,8 +63,8 @@ console.log('='.repeat(80));
     `pers1,${nowYM},現金,現金,本人,100,`,
     `corp1,${nowYM},法人預金,現金,法人,300,`,
   ]);
-  const parsed = parseAssetCsv(text);
-  const result = applyAssetCsv(parsed);
+  const parsed = parseAssetCsv(text, 'default');
+  const result = applyAssetCsv(parsed, 'default');
 
   record(
     '1. applyAssetCsvの戻り値に個人・法人両方の更新結果が含まれる',
@@ -91,8 +91,8 @@ console.log('='.repeat(80));
   store = {};
   const nowYM = currentYearMonth();
   const text = csvText([`corp1,${nowYM},法人預金,現金,法人,500,`]);
-  const parsed = parseAssetCsv(text);
-  const result = applyAssetCsv(parsed);
+  const parsed = parseAssetCsv(text, 'default');
+  const result = applyAssetCsv(parsed, 'default');
 
   record(
     '4. personalGroupsが空のCSVでも、applyAssetCsvは個人ストアの現在状態（空）をそのまま返す（例外を投げない）',
@@ -119,8 +119,8 @@ console.log('='.repeat(80));
   store = {};
   const nowYM = currentYearMonth();
   const text = csvText([`pers1,${nowYM},現金,現金,本人,100,`, `sp1,${nowYM},現金,現金,配偶者,200,`]);
-  const parsed = parseAssetCsv(text);
-  applyAssetCsv(parsed);
+  const parsed = parseAssetCsv(text, 'default');
+  applyAssetCsv(parsed, 'default');
 
   record(
     '7. 本人/配偶者行のみのCSVでは法人ストアに一切書き込まれない',

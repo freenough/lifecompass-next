@@ -77,7 +77,7 @@ export function splitGroupsByOwners(
  * 中身はreplaceYearMonthGroups→保存→今月ラベルがgroupsに含まれていれば現在holdingsも同期、
  * という既存のapplyHistoryCsv/applyHojinHistoryCsvの「ownグループ書き込み」ロジックの一般化。
  */
-export function applyGroupsToStore<TSnapshot extends { date: string }>(
+export function applyGroupsToStore<TSnapshot extends { date: string; profileId: string }>(
   groups: Map<string, AssetHolding[]>,
   nowYM: string,
   store: {
@@ -88,21 +88,36 @@ export function applyGroupsToStore<TSnapshot extends { date: string }>(
     loadCurrentHoldings: () => AssetHolding[];
     saveCurrentHoldings: (h: AssetHolding[]) => void;
   },
+  profileId: string,
 ): { holdings: AssetHolding[]; snapshots: TSnapshot[]; removed: TSnapshot[] } {
   if (groups.size === 0) {
     return { holdings: store.loadCurrentHoldings(), snapshots: store.loadHistory(), removed: [] };
   }
+  // loadHistory()/loadCurrentHoldings()は全プロファイル分がフラットに入ったグローバル配列を返す。
+  // 以前はこれを丸ごと置換していたため、他プロファイル（インポートを実行した当人のプロファイル
+  // 含む、profileIdの取り違えがあれば）のデータを巻き込んで消してしまっていた（csv_profile_scope
+  // _fix.md 2節）。現在アクティブなプロファイルに属する行だけを置換対象にし、他プロファイルの
+  // 行には一切触れない。
   const existing = store.loadHistory();
-  const existingByDate = new Map(existing.map((s) => [s.date, s]));
-  const existingDated: DatedHoldings[] = existing.map((s) => ({ date: s.date, holdings: store.toDated(s) }));
+  const ownExisting = existing.filter((s) => s.profileId === profileId);
+  const otherExisting = existing.filter((s) => s.profileId !== profileId);
+  const existingByDate = new Map(ownExisting.map((s) => [s.date, s]));
+  const existingDated: DatedHoldings[] = ownExisting.map((s) => ({ date: s.date, holdings: store.toDated(s) }));
   const updatedDated = replaceYearMonthGroups(existingDated, groups);
-  const updated = updatedDated.map((d) => store.fromDated(d.date, d.holdings, existingByDate.get(d.date)));
+  // fromDatedのprofileIdフォールバック（'default'固定）に頼らず、ここで確実に現在の
+  // アクティブプロファイルIDを設定する。
+  const updatedOwn = updatedDated.map((d) => ({
+    ...store.fromDated(d.date, d.holdings, existingByDate.get(d.date)),
+    profileId,
+  }));
+  const updated = [...otherExisting, ...updatedOwn].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   const { trimmed, removed } = store.saveHistory(updated);
 
   let holdings = store.loadCurrentHoldings();
   const currentGroupRows = groups.get(nowYM);
   if (currentGroupRows) {
-    holdings = currentGroupRows;
+    const otherHoldings = holdings.filter((h) => h.profileId !== profileId);
+    holdings = [...otherHoldings, ...currentGroupRows];
     store.saveCurrentHoldings(holdings);
   }
   return { holdings, snapshots: trimmed, removed };
@@ -153,7 +168,12 @@ function generateId(): string {
   return `${Date.now()}_${idCounter}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/** CSV行の各フィールドからAssetHoldingを構築する。IDが空文字なら新規id、更新日が空なら現在時刻で補完。 */
+/**
+ * CSV行の各フィールドからAssetHoldingを構築する。IDが空文字なら新規id、更新日が空なら現在時刻で補完。
+ * profileIdはCSVの列ではなく、呼び出し元が渡す「実際に現在アクティブなプロファイルのid」を使う
+ * （csv_profile_scope_fix.md 1節：以前は常に'default'固定だったため、'default'以外のプロファイル
+ * でインポートするとデータが自分のプロファイルから見えなくなるバグがあった）。
+ */
 export function rowToHolding(fields: {
   id: string;
   owner: AssetHolding['owner'];
@@ -161,6 +181,7 @@ export function rowToHolding(fields: {
   assetClass: string;
   amount: number;
   updatedAt: string;
+  profileId: string;
 }): AssetHolding {
   return {
     id: fields.id || generateId(),
@@ -169,8 +190,7 @@ export function rowToHolding(fields: {
     assetClass: fields.assetClass,
     amount: fields.amount,
     updatedAt: fields.updatedAt || new Date().toISOString(),
-    // CSVに「プロファイルID」列は無い（フェーズ2スコープ）。フェーズ1では常に'default'固定。
-    profileId: 'default',
+    profileId: fields.profileId,
   };
 }
 

@@ -5,6 +5,8 @@ import { simulate, analyze, runMC } from '@/lib';
 import type { YearSnap, AnalysisResult, MCResult, WithdrawalStrategy, LifeEvent } from '@/lib/types';
 import type { ProfileV3, AssetRow } from '@/lib/profile';
 import { profileToSimParams, SAMPLE_PROFILE, getUnconfiguredAccounts, getEffectiveRW, getEffectiveMcStd } from '@/lib/profile';
+import { useCompanyStateStore } from '@/lib/hojinCompanyState/companyStateStore';
+import type { ImportedPersonalAssets } from '@/lib/importFromAssetManagementPersonal';
 
 type PortfolioPhase   = 'current' | 'working' | 'retirement';
 type PortfolioAcct    = 'nisa' | 'ideco' | 'tax';
@@ -52,6 +54,9 @@ function runAll(profile: ProfileV3, strategies: WithdrawalStrategy[], extraEvent
 
 interface SimulatorState {
   profile: ProfileV3;
+  /** 現在読み込み中のシミュレータープロファイルのID（instruction_phase2_profile_linking.md 1節）。
+   * 資産管理ツール側プロファイルとの自動リンク判定（simulatorProfileLink.ts）に使う。 */
+  currentProfileId: number | null;
   snaps: Record<string, YearSnap[]>;
   analysis: Record<string, AnalysisResult>;
   mcResult: MCResult | null;
@@ -77,6 +82,10 @@ interface SimulatorState {
   setExtraEvents: (events: LifeEvent[]) => void;
   updatePortfolio: (phase: PortfolioPhase, acct: PortfolioAcct, rows: AssetRow[]) => void;
   updateSpousePortfolio: (acct: SpPortfolioAcct, rows: AssetRow[]) => void;
+  /** instruction_phase2_companystate_rearchitecture.md 5.2節：資産管理ツールからの
+   * インポートで①現在PFのbCash/spCashBalと6つの口座別行配列をまとめて一括反映する
+   * （updatePortfolio/updateSpousePortfolioを6回呼ぶより1パスで済ませる）。 */
+  importPersonalAssets: (imported: ImportedPersonalAssets) => void;
   copyCurrentToWorking: () => void;
   setSameAsWorking: (val: boolean) => void;
   setRateSameAsWorking: (val: boolean) => void;
@@ -97,8 +106,16 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
   const initial = loadInitialProfile();
   const { snaps, analysis } = runAll(initial, INITIAL_STRATEGIES);
 
+  // instruction_phase2_companystate_rearchitecture.md 1.2節：CompanyStateはシミュレータープロファイル
+  // 単位で持つ。初期表示時点のCompanyStateも、この時点で読み込んでおく（companyStateStore.ts側は
+  // 循環importを避けるため自分では初期プロファイルを読みに行かない設計のため、ここで明示的に行う）。
+  if (typeof window !== 'undefined') {
+    useCompanyStateStore.getState().loadForProfile(initial.id);
+  }
+
   return {
     profile: initial,
+    currentProfileId: initial.id,
     snaps,
     analysis,
     mcResult: null,
@@ -161,7 +178,10 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
     loadProfile: (profile) => {
       const { activeStrategies, extraEvents } = get();
       const { snaps, analysis } = runAll(profile, activeStrategies, extraEvents);
-      set({ profile, snaps, analysis, mcResult: null, mcError: null });
+      set({ profile, currentProfileId: profile.id, snaps, analysis, mcResult: null, mcError: null });
+      // instruction_phase2_companystate_rearchitecture.md 1.2節：CompanyStateもこのプロファイルの
+      // ものへ丸ごと差し替える（資産管理ツール側プロファイルとは無関係）。
+      useCompanyStateStore.getState().loadForProfile(profile.id);
     },
 
     updatePortfolio: (phase, acct, rows) => {
@@ -203,6 +223,40 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         ...profile,
         params: { ...profile.params, spNisaBal, spIdecoBal, spTaxBal },
         portfolio: { ...profile.portfolio, current: newCurrent },
+      };
+      const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
+      set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
+    },
+
+    importPersonalAssets: (imported) => {
+      const { profile, activeStrategies, extraEvents } = get();
+      const bNisa  = imported.nisa.reduce((s, r) => s + (r.amount ?? 0), 0);
+      const bIdeco = imported.ideco.reduce((s, r) => s + (r.amount ?? 0), 0);
+      const bTax   = imported.tax.reduce((s, r) => s + (r.amount ?? 0), 0);
+      const spNisaBal  = imported.spNisa.reduce((s, r) => s + (r.amount ?? 0), 0);
+      const spIdecoBal = imported.spIdeco.reduce((s, r) => s + (r.amount ?? 0), 0);
+      const spTaxBal   = imported.spTax.reduce((s, r) => s + (r.amount ?? 0), 0);
+      const newProfile: ProfileV3 = {
+        ...profile,
+        params: {
+          ...profile.params,
+          bCash: imported.bCash,
+          spCashBal: imported.spCashBal,
+          bNisa, bIdeco, bTax,
+          spNisaBal, spIdecoBal, spTaxBal,
+        },
+        portfolio: {
+          ...profile.portfolio,
+          current: {
+            ...profile.portfolio.current,
+            nisa: imported.nisa,
+            ideco: imported.ideco,
+            tax: imported.tax,
+            spNisa: imported.spNisa,
+            spIdeco: imported.spIdeco,
+            spTax: imported.spTax,
+          },
+        },
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
