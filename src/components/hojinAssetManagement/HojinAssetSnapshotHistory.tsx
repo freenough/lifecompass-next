@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import type { AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
 import { toYearMonth } from '@/lib/assetManagement/monthlyCheck';
-import { findPersonalSnapshot } from '@/lib/hojinAssetManagement/personalHistory';
+import { findPersonalSnapshot, findHojinSnapshot, getMergedRecordDates } from '@/lib/hojinAssetManagement/personalHistory';
 
 interface HojinAssetSnapshotHistoryProps {
   snapshots: HojinAssetSnapshot[];
@@ -53,20 +53,29 @@ export default function HojinAssetSnapshotHistory({
   const personalTotalForSnapshot = (s: HojinAssetSnapshot): number =>
     findPersonalSnapshot(personalSnapshots, s.date)?.totalAmount ?? s.totalPersonalAmount;
 
+  // claude_instruction_fix_hojin_toggle_history_graph_bug.md：「行が存在するか」の判定を
+  // 法人スナップショット配列単独ではなく、個人・法人の日付の和集合に変更する。ある年月の
+  // 個人側金額はpersonalSnapshotsを優先し、無ければその年月の法人スナップショットが持つ
+  // totalPersonalAmountへフォールバックする。法人側金額は、その年月に法人スナップショットが
+  // 無ければ0円として扱う（個人単独の記録月は法人トグルの有無に関係なく行として存在する）。
+  const toPointForDate = (date: string): Point => {
+    const hojinSnap = findHojinSnapshot(snapshots, date);
+    const personalAmount = findPersonalSnapshot(personalSnapshots, date)?.totalAmount
+      ?? (hojinSnap ? personalTotalForSnapshot(hojinSnap) : 0);
+    const hojinAmount = hojinSnap?.totalHojinAmount ?? 0;
+    return toPoint(date, personalAmount, hojinAmount);
+  };
+  const recordDates = getMergedRecordDates(personalSnapshots, snapshots);
+
   // 4章：資産推移グラフの当月ポイントは「記録する」を押していなくても常にライブ値を表示する。
   // 過去月は引き続き記録済みスナップショットのまま。永続化はしない（表示専用の計算）。
   const nowYM = toYearMonth(new Date());
-  const hasCurrentSnapshot = snapshots.some((s) => s.date === nowYM);
+  const hasCurrentRecord = recordDates.includes(nowYM);
   const liveCurrentPoint = toPoint(nowYM, currentPersonalTotal, currentHojinTotal);
-  const chartPoints: Point[] = [...snapshots]
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
-    .map((s) => (s.date === nowYM ? liveCurrentPoint : toPoint(s.date, personalTotalForSnapshot(s), s.totalHojinAmount)));
-  const ascending: Point[] = hasCurrentSnapshot ? chartPoints : [...chartPoints, liveCurrentPoint];
+  const chartPoints: Point[] = recordDates.map((d) => (d === nowYM ? liveCurrentPoint : toPointForDate(d)));
+  const ascending: Point[] = hasCurrentRecord ? chartPoints : [...chartPoints, liveCurrentPoint];
 
-  const descending: Point[] = [...snapshots]
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
-    .map((s) => toPoint(s.date, personalTotalForSnapshot(s), s.totalHojinAmount))
-    .reverse();
+  const descending: Point[] = [...recordDates].reverse().map((d) => toPointForDate(d));
   const visibleRows = expanded ? descending : descending.slice(0, INITIAL_HISTORY_COUNT);
   const hasMore = descending.length > INITIAL_HISTORY_COUNT;
 

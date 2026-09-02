@@ -5,7 +5,7 @@ import KpiCard from '@/components/simulator/KpiCard';
 import PersonalizationRatioSlider from './PersonalizationRatioSlider';
 import type { AssetHolding, AssetSnapshot } from '@/lib/assetManagement/types';
 import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
-import { findPersonalSnapshot } from '@/lib/hojinAssetManagement/personalHistory';
+import { findPersonalSnapshot, findHojinSnapshot, getMergedRecordDates } from '@/lib/hojinAssetManagement/personalHistory';
 
 interface HojinAssetProgressPanelProps {
   hojinHoldings: AssetHolding[];
@@ -50,17 +50,24 @@ export default function HojinAssetProgressPanel({
   const progressPct = targetAmount > 0 ? (personalTotal / targetAmount) * 100 : null;
   const remaining = targetAmount > 0 ? targetAmount - personalTotal : null;
 
-  const latest = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
+  // claude_instruction_fix_hojin_toggle_history_graph_bug.md：「前回」の年月は法人スナップショット
+  // 単独ではなく、個人・法人の日付の和集合から求める（個人単独の記録月も「前回」の候補にする）。
+  const recordDates = getMergedRecordDates(personalSnapshots, snapshots);
+  const latestDate = recordDates.length > 0 ? recordDates[recordDates.length - 1] : null;
   // フェーズ1：/assetsは個人ツールが本体のため、'personalOnly'は個人資産のみを指す。
   const currentScopedTotal = displayScope === 'combined' ? personalTotal + hojinTotal : personalTotal;
   // 1章：前回の個人側金額は、個人ストア自身の真の記録履歴を該当年月で優先参照する
   // （無ければ法人スナップショットの表示用複製totalPersonalAmountへフォールバック）。
-  const lastPersonalTotal = latest ? (findPersonalSnapshot(personalSnapshots, latest.date)?.totalAmount ?? latest.totalPersonalAmount) : null;
-  const lastScopedTotal = latest
-    ? (displayScope === 'combined' ? (lastPersonalTotal ?? 0) + latest.totalHojinAmount : lastPersonalTotal ?? 0)
+  const lastHojinSnap = latestDate ? findHojinSnapshot(snapshots, latestDate) : undefined;
+  const lastPersonalTotal = latestDate
+    ? (findPersonalSnapshot(personalSnapshots, latestDate)?.totalAmount ?? lastHojinSnap?.totalPersonalAmount ?? 0)
     : null;
-  const diffFromLast = latest && lastScopedTotal !== null ? currentScopedTotal - lastScopedTotal : null;
-  const diffFromLastPct = latest && lastScopedTotal !== null && lastScopedTotal > 0 && diffFromLast !== null
+  const lastHojinTotal = lastHojinSnap?.totalHojinAmount ?? 0;
+  const lastScopedTotal = latestDate
+    ? (displayScope === 'combined' ? (lastPersonalTotal ?? 0) + lastHojinTotal : lastPersonalTotal ?? 0)
+    : null;
+  const diffFromLast = latestDate && lastScopedTotal !== null ? currentScopedTotal - lastScopedTotal : null;
+  const diffFromLastPct = latestDate && lastScopedTotal !== null && lastScopedTotal > 0 && diffFromLast !== null
     ? (diffFromLast / lastScopedTotal) * 100
     : null;
 
@@ -105,7 +112,7 @@ export default function HojinAssetProgressPanel({
         <KpiCard
           label="前回記録比"
           value={diffFromLast !== null ? `${diffFromLast >= 0 ? '+' : ''}${diffFromLast.toLocaleString()}万円` : '比較対象がありません'}
-          sub={diffFromLastPct !== null && latest ? `${diffFromLastPct >= 0 ? '+' : ''}${diffFromLastPct.toFixed(1)}%（${latest.date}比）` : undefined}
+          sub={diffFromLastPct !== null && latestDate ? `${diffFromLastPct >= 0 ? '+' : ''}${diffFromLastPct.toFixed(1)}%（${latestDate}比）` : undefined}
           variant={diffFromLast !== null ? (diffFromLast >= 0 ? 'good' : 'warn') : 'neutral'}
         />
       </div>
