@@ -57,7 +57,11 @@ function snapshotKey(date: string, profileId: string | undefined): string {
   return `${date}::${profileId || 'default'}`;
 }
 
-function dedupeSnapshotsByDate(snapshots: AssetSnapshot[]): AssetSnapshot[] {
+// claude_instruction_banner_and_duplicate_plan_fix.md：loadSnapshots()の自己修復（ソート＋
+// 重複排除）ロジックを、書き込み側（addSnapshot()）・インポート結果の反映側
+// （AssetManagementPage.tsxのhandleImported()）からも再利用できるようexportする。
+// 新しいソートロジックを重複して作らないための共通化。
+export function dedupeSnapshotsByDate(snapshots: AssetSnapshot[]): AssetSnapshot[] {
   const map = new Map<string, AssetSnapshot>();
   for (const s of snapshots) map.set(snapshotKey(s.date, s.profileId), s);
   return Array.from(map.values()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
@@ -157,7 +161,12 @@ export function addSnapshot(holdings: AssetHolding[], profileId: string = 'defau
   };
   const existing = loadSnapshots();
   const idx = existing.findIndex((s) => s.date === snapshot.date && s.profileId === snapshot.profileId);
-  const next = idx >= 0 ? existing.map((s, i) => (i === idx ? snapshot : s)) : [...existing, snapshot];
+  const merged = idx >= 0 ? existing.map((s, i) => (i === idx ? snapshot : s)) : [...existing, snapshot];
+  // claude_instruction_banner_and_duplicate_plan_fix.md：新規追加時は末尾へのpushのため、
+  // そのプロファイルの記録履歴に今より未来日付のレコードが既に存在する場合、配列の並びが
+  // 日付順でなくなる（isCurrentMonthRecorded()等、配列の並び順に依存する既存コードを壊さない
+  // よう、saveSnapshots()に渡す前に必ず日付順へ揃える）。
+  const next = dedupeSnapshotsByDate(merged);
   const { trimmed, removed } = saveSnapshots(next);
   return { snapshots: trimmed, removed };
 }

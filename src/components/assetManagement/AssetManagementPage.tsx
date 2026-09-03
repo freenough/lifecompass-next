@@ -23,6 +23,7 @@ import {
   loadTargetAmount,
   saveTargetAmount,
   resetAll as resetPersonalAll,
+  dedupeSnapshotsByDate,
 } from '@/lib/assetManagement/storage';
 import {
   loadHojinHoldings,
@@ -283,7 +284,13 @@ export default function AssetManagementPage() {
   // 対象にした戻り値をそのままallHoldings等へ反映する。
   const handleImported = (result: ImportResult) => {
     setAllHoldings(result.holdings);
-    setAllSnapshots(result.snapshots);
+    // claude_instruction_banner_and_duplicate_plan_fix.md：CSV/JSONインポートの結果
+    // （applyAssetCsv/applyJsonPayload等）はソートせずそのまま返ってくるため、
+    // loadSnapshots()の自己修復ソートを経由しないままsetAllSnapshots()すると、
+    // isCurrentMonthRecorded()等の配列順に依存するコードが誤判定する
+    // （実際にはCSV/JSON経由の全3経路がonImported→handleImported()に集約されている
+    // ことを確認済み）。setAllSnapshots()へ渡す前にdedupeSnapshotsByDate()で日付順へ揃える。
+    setAllSnapshots(dedupeSnapshotsByDate(result.snapshots));
     setAllHojinHoldings(result.hojinHoldings);
     setAllHojinSnapshots(result.hojinSnapshots);
     // json_export_completeness_and_history_bug.md 2章：JSON Importで設定値も上書きされうる
@@ -601,6 +608,8 @@ export default function AssetManagementPage() {
             onPlansChanged={refreshPlans}
             currentProfileId={currentProfileId}
             linkedSimulatorProfileId={linkedSimulatorProfileId}
+            displayScope={displayScope}
+            hojinSnapshots={hojinSnapshots}
           />
 
           <section>

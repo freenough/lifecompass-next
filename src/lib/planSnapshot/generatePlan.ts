@@ -12,7 +12,7 @@ import { randNorm } from '../helpers';
 import { profileToSimParams, SAMPLE_PROFILE, type ProfileV3 } from '../profile';
 import type { LifeEvent, WithdrawalStrategy } from '../types';
 import { toYearMonth } from '../assetManagement/monthlyCheck';
-import type { PlanCurvePoint, PlanPercentilePoint, PlanSnapshot } from './types';
+import type { PlanCurvePoint, PlanPercentilePoint, PlanSnapshot, CorporateYearSnap } from './types';
 
 const DEFAULT_TRIALS = 1000;
 
@@ -74,7 +74,18 @@ export function generateMcPercentiles(
 
 export function generatePlan(
   rawProfile: ProfileV3,
-  opts: { profileId: string; simulatorProfileId: number; name?: string; trials?: number; extraEvents?: LifeEvent[] },
+  opts: {
+    profileId: string;
+    simulatorProfileId: number;
+    name?: string;
+    trials?: number;
+    extraEvents?: LifeEvent[];
+    // claude_instruction_combined_line_implementation.md：計算には使わず、そのまま戻り値の
+    // PlanSnapshotへコピーして保存するだけ。このファイル自体はuseSimulatorStore/
+    // useCompanyStateStoreを一切importしない設計を維持する。
+    includesHojinDrawdown?: boolean;
+    corporateSnaps?: CorporateYearSnap[];
+  },
 ): PlanSnapshot {
   const profile = normalizeSimulatorProfile(rawProfile);
   const p = profileToSimParams(profile);
@@ -105,5 +116,7 @@ export function generatePlan(
     savedAtYearMonth: toYearMonth(now),
     fixed: { curve, byAccount: null },
     mc: percentiles ? { percentiles, byAccount: null } : null,
+    ...(opts.includesHojinDrawdown !== undefined ? { includesHojinDrawdown: opts.includesHojinDrawdown } : {}),
+    ...(opts.corporateSnaps ? { corporateSnaps: opts.corporateSnaps } : {}),
   };
 }

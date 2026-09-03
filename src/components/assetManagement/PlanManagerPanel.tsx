@@ -9,9 +9,10 @@ import { useState, useEffect } from 'react';
 import { loadProfiles as loadSimulatorProfiles } from '@/lib/storage';
 import { profileToSimParams } from '@/lib/profile';
 import { generatePlan } from '@/lib/planSnapshot/generatePlan';
-import { savePlan } from '@/lib/planSnapshot/storage';
+import { savePlan, listPlans, deletePlan } from '@/lib/planSnapshot/storage';
 import type { PlanSnapshot } from '@/lib/planSnapshot/types';
 import type { LifeEvent } from '@/lib/types';
+import type { CorporateYearSnap } from '@/lib/hojinCompanyState/types';
 import { getCompanyStateForProfile } from '@/lib/hojinCompanyState/storageByProfile';
 import { simulateCorporateAssets } from '@/lib/hojinCompanyState/corporateGrowth';
 import { buildCorporateGeneratedEventsFromSnaps } from '@/lib/hojinCompanyState/buildCombinedSimulationInput';
@@ -61,6 +62,20 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
       setError('連携先のシミュレータープロファイルが見つかりませんでした（削除された可能性があります）');
       return;
     }
+    // claude_instruction_banner_and_duplicate_plan_fix.md 2節：AssetManagerProfilePanel.tsxの
+    // 既存パターン（同名時にwindow.confirm→OKなら上書き）を踏襲する。押下時点の最新一覧を
+    // 都度取得し、trimmed名が空文字列の場合は重複チェックの対象外（未入力可の仕様のまま）。
+    const trimmedName = name.trim();
+    if (trimmedName !== '') {
+      const matched = listPlans(currentProfileId).find((p) => p.name === trimmedName);
+      if (matched) {
+        const confirmed = window.confirm(
+          `「${trimmedName}」はすでに存在します。上書きすると、既存の計画は削除され、新しい内容に置き換わります。よろしいですか？`
+        );
+        if (!confirmed) return;
+        deletePlan(matched.id);
+      }
+    }
     // 欠損フィールドの補完（SAMPLE_PROFILEマージ）はgeneratePlan()自身が行う
     // （claude_instruction_phase2_yojitsu_polish.md 0節）。
     setSaving(true);
@@ -69,10 +84,14 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
       // 保存ボタン押下時点で改めてgetCompanyStateForProfile()を呼び直す（マウント時の値を
       // キャッシュしたまま使い回さない）。CorporateSettingsSection.tsxのuseEffectと同一パターン。
       let extraEvents: LifeEvent[] | undefined;
+      // claude_instruction_combined_line_implementation.md：チェックON時に計算済みの
+      // corporateSnaps（これまで捨てていた）をそのままgeneratePlan()のoptsへ渡し、
+      // PlanSnapshotに保存する（予実比較の「合算」線が使う）。
+      let corporateSnaps: CorporateYearSnap[] | undefined;
       if (includeExtraEvents) {
         const companyState = getCompanyStateForProfile(linkedSimulatorProfileId);
         const p = profileToSimParams(simulatorProfile);
-        const corporateSnaps = simulateCorporateAssets(
+        corporateSnaps = simulateCorporateAssets(
           companyState.settings,
           p.curAge,
           p.lifeEx,
@@ -87,6 +106,8 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
         simulatorProfileId: linkedSimulatorProfileId,
         name,
         ...(extraEvents ? { extraEvents } : {}),
+        includesHojinDrawdown: includeExtraEvents,
+        ...(corporateSnaps ? { corporateSnaps } : {}),
       });
       savePlan(plan);
       setName('');

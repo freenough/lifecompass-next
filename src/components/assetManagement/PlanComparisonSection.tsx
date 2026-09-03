@@ -9,20 +9,31 @@
 import { useMemo, useState } from 'react';
 import { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { AssetSnapshot } from '@/lib/assetManagement/types';
+import type { AssetDisplayScope } from '@/lib/assetManagement/csvHistory';
+import type { HojinAssetSnapshot } from '@/lib/hojinAssetManagement/types';
+import { findPersonalSnapshot, findHojinSnapshot, getMergedRecordDates } from '@/lib/hojinAssetManagement/personalHistory';
 import type { PlanSnapshot } from '@/lib/planSnapshot/types';
 import { ageToYearMonth } from '@/lib/planSnapshot/alignment';
 import { deletePlan, renamePlan } from '@/lib/planSnapshot/storage';
+import { STRATEGY_LABELS } from '@/components/simulator/AssetChart';
 import PlanManagerPanel from './PlanManagerPanel';
 
 interface PlanComparisonSectionProps {
   plans: PlanSnapshot[];
-  /** 現在プロファイルの個人のみの実績。displayScope（個人のみ／合算）は無視して常にこれを使う。 */
+  /** 現在プロファイルの個人のみの実績。displayScope（個人のみ／合算）は無視して常にこれを使う
+   * （個人の2本は常にこれで描画する。合算実績のみhojinSnapshotsと合成する）。 */
   personalSnapshots: AssetSnapshot[];
   onPlansChanged: () => void;
   /** claude_instruction_phase2_yojitsu_polish.md 2節：計画の保存操作をこのドロワーへ統合する
    * （プロファイル管理ドロワーと同じパターン）ため、PlanManagerPanelをここで描画する。 */
   currentProfileId: string;
   linkedSimulatorProfileId: number | null;
+  /** claude_instruction_combined_line_implementation.md：AssetManagementPage.tsxが既に持つ
+   * displayScopeをそのまま渡す（新しいUI要素は作らない）。'combined'かつ選択中の計画が
+   * 法人取崩込みの場合のみ、合算計画・合算実績の2本を追加描画する。 */
+  displayScope: AssetDisplayScope;
+  /** 法人の実績データ。合算実績（個人実績＋法人実績、日付の和集合）の計算にのみ使う。 */
+  hojinSnapshots: HojinAssetSnapshot[];
 }
 
 interface ChartRow {
@@ -32,7 +43,16 @@ interface ChartRow {
   planP50?: number;
   planP90?: number;
   actualTotal?: number;
+  combinedPlanTotal?: number;
+  combinedPlanP50?: number;
+  combinedActualTotal?: number;
 }
+
+// claude_instruction_combined_line_implementation.md 5.2節：個人の色（青系#2a78d6／実績は
+// スレート#475569）とはっきり区別できるよう、合算の2本はティール系でまとめる。
+const COMBINED_PLAN_COLOR = '#0d9488';
+const COMBINED_ACTUAL_COLOR = '#0f766e';
+const COMBINED_PLAN_DASH = '3 3';
 
 // claude_instruction_phase2_yojitsu_chart_style_planA.md：計画側の線に使う点線パターン
 // （実績側の細い実線と明確に区別するため）。p10/p90帯の縁取り用の細かい点線（"1 3"）とは
@@ -68,6 +88,8 @@ export default function PlanComparisonSection({
   onPlansChanged,
   currentProfileId,
   linkedSimulatorProfileId,
+  displayScope,
+  hojinSnapshots,
 }: PlanComparisonSectionProps) {
   const sortedPlans = useMemo(() => [...plans].sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)), [plans]);
   const latestPlan = sortedPlans.length > 0 ? sortedPlans[sortedPlans.length - 1] : null;
@@ -80,11 +102,23 @@ export default function PlanComparisonSection({
 
   const selectedPlan = sortedPlans.find((p) => p.id === selectedPlanId) ?? latestPlan;
 
-  // claude_instruction_phase2_yojitsu_chart_style_planA.md：凡例は「計画」「実績」の2項目のみ
+  // claude_instruction_combined_line_implementation.md 5.2節：'combined'表示中でも、選択中の
+  // 計画が法人取崩を織り込んで保存されていなければ（includesHojinDrawdown!==true、または
+  // corporateSnapsを持たないV1以前の計画）合算線は描画しない。
+  const canShowCombined = displayScope === 'combined'
+    && selectedPlan?.includesHojinDrawdown === true
+    && !!selectedPlan.corporateSnaps && selectedPlan.corporateSnaps.length > 0;
+
+  // claude_instruction_phase2_yojitsu_chart_style_planA.md：凡例は「計画」「実績」の2項目が基本
   // （p10/p90帯はlegendType="none"で既に除外済み、中央値ラインの凡例ラベルはモードに応じて変える）。
+  // 5.4節：合算線が描画されている場合のみ「合算計画」「合算実績」を追加する。
   const legendPayload: LegendEntry[] = [
     { value: mode === 'mc' ? '計画(中央値)' : '計画', color: '#2a78d6', dashArray: PLAN_LINE_DASH },
     { value: '実績', color: '#475569' },
+    ...(canShowCombined ? [
+      { value: mode === 'mc' ? '合算計画(中央値)' : '合算計画', color: COMBINED_PLAN_COLOR, dashArray: COMBINED_PLAN_DASH },
+      { value: '合算実績', color: COMBINED_ACTUAL_COLOR },
+    ] : []),
   ];
 
   const data: ChartRow[] = useMemo(() => {
@@ -107,8 +141,42 @@ export default function PlanComparisonSection({
     for (const s of personalSnapshots) {
       rows.set(s.date, { ...get(s.date), actualTotal: s.totalAmount });
     }
+
+    // claude_investigation_double_counting_check.md：corporateSnaps[age].totalは取崩差引後の
+    // 残高（buildCorporateGeneratedEventsFromSnaps()経由で個人カーブに注入済みの取崩額は既に
+    // 除かれている）ため、個人計画カーブへ単純加算しても二重計上にならない。
+    if (canShowCombined && selectedPlan?.corporateSnaps) {
+      const corpByAge = new Map(selectedPlan.corporateSnaps.map((c) => [c.age, c.total]));
+      if (mode === 'fixed') {
+        for (const pt of selectedPlan.fixed.curve) {
+          const ym = ageToYearMonth(selectedPlan, pt.age);
+          const corp = corpByAge.get(pt.age) ?? 0;
+          rows.set(ym, { ...get(ym), combinedPlanTotal: pt.totalAssets + corp });
+        }
+      } else if (selectedPlan.mc) {
+        // 5.3節：合算は固定・MCどちらでも中央値相当の1本のみ（P10〜P90帯は作らない）。
+        for (const pt of selectedPlan.mc.percentiles) {
+          const ym = ageToYearMonth(selectedPlan, pt.age);
+          const corp = corpByAge.get(pt.age) ?? 0;
+          rows.set(ym, { ...get(ym), combinedPlanP50: pt.p50 + corp });
+        }
+      }
+    }
+
+    // 合算実績：個人実績（personalSnapshots）と法人実績（hojinSnapshots）を、法人トグルの
+    // グラフ不具合修正（getMergedRecordDates）と同じ考え方で日付の和集合として合成する。
+    // 片方が無い月は0円扱い（対応する側のみの値がそのまま反映される）。
+    if (canShowCombined) {
+      const combinedDates = getMergedRecordDates(personalSnapshots, hojinSnapshots);
+      for (const date of combinedDates) {
+        const personalAmount = findPersonalSnapshot(personalSnapshots, date)?.totalAmount ?? 0;
+        const hojinAmount = findHojinSnapshot(hojinSnapshots, date)?.totalHojinAmount ?? 0;
+        rows.set(date, { ...get(date), combinedActualTotal: personalAmount + hojinAmount });
+      }
+    }
+
     return Array.from(rows.values()).sort((a, b) => (a.yearMonth < b.yearMonth ? -1 : a.yearMonth > b.yearMonth ? 1 : 0));
-  }, [selectedPlan, mode, personalSnapshots]);
+  }, [selectedPlan, mode, personalSnapshots, hojinSnapshots, canShowCombined]);
 
   const handleDelete = (planId: string, name: string) => {
     const confirmed = window.confirm(`計画「${name}」を削除します。この操作は取り消せません。よろしいですか？`);
@@ -147,7 +215,7 @@ export default function PlanComparisonSection({
         <p className="text-xs text-slate-400">まだ計画が保存されていません。「計画を管理」から作成してください。</p>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <select
               value={selectedPlan?.id ?? ''}
               onChange={(e) => setSelectedPlanId(e.target.value)}
@@ -178,7 +246,17 @@ export default function PlanComparisonSection({
             {mode === 'mc' && !selectedPlan?.mc && (
               <span className="text-[11px] text-slate-400">この計画にはMC結果がありません</span>
             )}
+            {/* 5.5節：作成日時は既存の保存済み計画一覧にある表示（savedAtYearMonth+「時点」）と
+                同じ形式を再利用する。savedAtYearMonthはgeneratePlan()内でcreatedAtと同じnowから
+                導出されているため、値としてもcreatedAtの年月と一致する。 */}
+            {selectedPlan && (
+              <span className="text-[11px] text-slate-400">{selectedPlan.savedAtYearMonth}時点に作成</span>
+            )}
           </div>
+          {/* 5.2節：'combined'表示中に、選択中の計画が法人取崩を織り込んでいない場合の案内。 */}
+          {displayScope === 'combined' && selectedPlan && !canShowCombined && (
+            <p className="mb-2 text-[11px] text-amber-600">この計画には法人取崩が含まれていません</p>
+          )}
 
           <ResponsiveContainer width="100%" height={220}>
             <ComposedChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
@@ -217,6 +295,25 @@ export default function PlanComparisonSection({
                 name="実績"
                 legendType="none"
               />
+              {/* 5.2〜5.3節：合算計画は固定・MCどちらでも中央値相当の1本の点線のみ（帯は作らない）。
+                  合算実績は個人実績と同じ実線＋小マーカーのスタイルで、色だけ区別する。 */}
+              {canShowCombined && mode === 'fixed' && (
+                <Line dataKey="combinedPlanTotal" stroke={COMBINED_PLAN_COLOR} strokeWidth={2} strokeDasharray={COMBINED_PLAN_DASH} dot={false} name="合算計画" legendType="none" />
+              )}
+              {canShowCombined && mode === 'mc' && (
+                <Line dataKey="combinedPlanP50" stroke={COMBINED_PLAN_COLOR} strokeWidth={2} strokeDasharray={COMBINED_PLAN_DASH} dot={false} name="合算計画(中央値)" legendType="none" />
+              )}
+              {canShowCombined && (
+                <Line
+                  dataKey="combinedActualTotal"
+                  stroke={COMBINED_ACTUAL_COLOR}
+                  strokeWidth={1.5}
+                  dot={{ r: 2, fill: COMBINED_ACTUAL_COLOR, stroke: COMBINED_ACTUAL_COLOR }}
+                  connectNulls
+                  name="合算実績"
+                  legendType="none"
+                />
+              )}
             </ComposedChart>
           </ResponsiveContainer>
         </>
@@ -258,9 +355,20 @@ export default function PlanComparisonSection({
                         <button onClick={() => setRenamingId(null)} className="text-xs text-slate-400">取消</button>
                       </div>
                     ) : (
-                      <p className="text-xs font-medium text-slate-700 truncate">{p.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-medium text-slate-700 truncate">{p.name}</p>
+                        {/* 4節：法人取崩を織り込んで保存された計画かどうかのバッジ。
+                            includesHojinDrawdownを持たないV1以前の計画は「個人のみ」扱い。 */}
+                        <span
+                          className={`shrink-0 text-[9px] font-semibold rounded px-1.5 py-0.5 ${
+                            p.includesHojinDrawdown ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {p.includesHojinDrawdown ? '法人取崩込み' : '個人のみ'}
+                        </span>
+                      </div>
                     )}
-                    <p className="text-[10px] text-slate-400">{p.savedAtYearMonth}時点・{p.strategy}</p>
+                    <p className="text-[10px] text-slate-400">{p.savedAtYearMonth}時点・{STRATEGY_LABELS[p.strategy] ?? p.strategy}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {renamingId !== p.id && (
