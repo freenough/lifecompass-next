@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSimulatorStore } from '@/store/simulatorStore';
-import { loadProfiles, saveProfile, deleteProfile, encodeProfileUrl, decodeProfileUrl } from '@/lib/storage';
+import { loadProfiles, saveProfile, deleteProfile, encodeProfileUrl, decodeProfileUrl, exportProfileToJson, importProfileFromJson } from '@/lib/storage';
 import type { ProfileV3 } from '@/lib/profile';
 import { BASE_PATH } from '@/lib/siteConfig';
 
@@ -60,7 +60,7 @@ export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) 
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const parsed = JSON.parse(ev.target?.result as string) as ProfileV3;
+        const parsed = importProfileFromJson(ev.target?.result as string);
         loadProfile(parsed);
         setOpen(false);
       } catch {
@@ -71,7 +71,7 @@ export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) 
   };
 
   const handleExport = () => {
-    const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+    const blob = new Blob([exportProfileToJson(profile)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

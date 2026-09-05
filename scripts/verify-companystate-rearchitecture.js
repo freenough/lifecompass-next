@@ -122,6 +122,13 @@ console.log('='.repeat(80));
     getCompanyStateForProfile(1002).settings.effectiveTaxRate === 50);
   record('11. 別名保存後：simulatorStoreのcurrentProfileIdも新ID(1003)に切り替わっている',
     useSimulatorStore.getState().currentProfileId === 1003);
+  // 2026-09-05バグ修正：以前はcurrentProfileIdのみ同期され、profileオブジェクト自体（.id/.name）は
+  // 古い値（プロファイルB・1002）のまま据え置かれていた。保存直後にJSONエクスポート等でprofileを
+  // ライブ参照すると、保存したはずの新プロファイルではなく古いプロファイルの内容が使われてしまう
+  // 実害があった（instruction_json_export_import_companystate.md実装時の実機確認で発見）。
+  record('12. 別名保存後：simulatorStoreのprofileオブジェクト自体も新ID(1003)・新name(プロファイルC)に更新されている',
+    useSimulatorStore.getState().profile.id === 1003 && useSimulatorStore.getState().profile.name === 'プロファイルC',
+    JSON.stringify({ id: useSimulatorStore.getState().profile.id, name: useSimulatorStore.getState().profile.name }));
 }
 
 // ================================================================
@@ -136,13 +143,13 @@ console.log('='.repeat(80));
     { assetClass: '全世界株', pct: 0, amount: 100 },
     { assetClass: '現金', pct: 0, amount: 50 },
   ]);
-  record('12. ①現在PFの行を更新：investedBalanceが行のamount合計(150)に自動算出される',
+  record('13. ①現在PFの行を更新：investedBalanceが行のamount合計(150)に自動算出される',
     useCompanyStateStore.getState().state.settings.investedBalance === 150,
     `investedBalance=${useCompanyStateStore.getState().state.settings.investedBalance}`);
 
   // ②積立期はpctのみのためinvestedBalanceに影響しないことを確認。
   useCompanyStateStore.getState().updatePortfolioPhase('working', [{ assetClass: '全世界株', pct: 100 }]);
-  record('13. ②積立期の行を更新してもinvestedBalanceは変化しない（①現在PFのみ対象）',
+  record('14. ②積立期の行を更新してもinvestedBalanceは変化しない（①現在PFのみ対象）',
     useCompanyStateStore.getState().state.settings.investedBalance === 150);
 }
 
@@ -169,14 +176,14 @@ console.log('='.repeat(80));
   if (anyOtherId) useAssetManagerProfileStore.getState().switchProfile(anyOtherId);
 
   const resultX = importFromAssetManagement('profX');
-  record('14. importFromAssetManagement(\'profX\')：investedBalance=300（profXの法人証券口座のみ）',
+  record('15. importFromAssetManagement(\'profX\')：investedBalance=300（profXの法人証券口座のみ）',
     resultX.investedBalance === 300, JSON.stringify(resultX));
-  record('15. cashBalance=100（profXの法人預金のみ）', resultX.cashBalance === 100);
-  record('16. rowsにamountフィールドが含まれる（④節：金額表示UI用）',
+  record('16. cashBalance=100（profXの法人預金のみ）', resultX.cashBalance === 100);
+  record('17. rowsにamountフィールドが含まれる（④節：金額表示UI用）',
     resultX.rows.length === 1 && resultX.rows[0].amount === 300, JSON.stringify(resultX.rows));
 
   const resultY = importFromAssetManagement('profY');
-  record('17. importFromAssetManagement(\'profY\')：日本株999が反映される（profXの値と混ざらない）',
+  record('18. importFromAssetManagement(\'profY\')：日本株999が反映される（profXの値と混ざらない）',
     resultY.investedBalance === 999);
 }
 
@@ -205,17 +212,17 @@ console.log('='.repeat(80));
   ]);
 
   const r = importFromAssetManagementPersonal('personalProf');
-  record('18. 現金（本人）→bCash=100', r.bCash === 100);
-  record('19. 現金（配偶者）→spCashBal=50', r.spCashBal === 50);
-  record('20. NISA（本人）→nisa=[{全世界株,200}]', r.nisa.length === 1 && r.nisa[0].amount === 200 && r.nisa[0].assetClass === '全世界株');
-  record('21. NISA（配偶者）→spNisa=[{先進国株,80}]', r.spNisa.length === 1 && r.spNisa[0].amount === 80);
-  record('22. iDeCo（本人）→ideco=[{日本株,120}]', r.ideco.length === 1 && r.ideco[0].amount === 120);
-  record('23. iDeCo（配偶者）→spIdeco=[{日本株,60}]', r.spIdeco.length === 1 && r.spIdeco[0].amount === 60);
-  record('24. 特定口座（本人）＋その他（本人）→taxに合算（ゴールド40＋不動産500）',
+  record('19. 現金（本人）→bCash=100', r.bCash === 100);
+  record('20. 現金（配偶者）→spCashBal=50', r.spCashBal === 50);
+  record('21. NISA（本人）→nisa=[{全世界株,200}]', r.nisa.length === 1 && r.nisa[0].amount === 200 && r.nisa[0].assetClass === '全世界株');
+  record('22. NISA（配偶者）→spNisa=[{先進国株,80}]', r.spNisa.length === 1 && r.spNisa[0].amount === 80);
+  record('23. iDeCo（本人）→ideco=[{日本株,120}]', r.ideco.length === 1 && r.ideco[0].amount === 120);
+  record('24. iDeCo（配偶者）→spIdeco=[{日本株,60}]', r.spIdeco.length === 1 && r.spIdeco[0].amount === 60);
+  record('25. 特定口座（本人）＋その他（本人）→taxに合算（ゴールド40＋不動産500）',
     r.tax.length === 2 && r.tax.reduce((s, x) => s + x.amount, 0) === 540, JSON.stringify(r.tax));
-  record('25. 特定口座（配偶者）＋その他（配偶者）→spTaxに合算（ゴールド20＋暗号資産30）',
+  record('26. 特定口座（配偶者）＋その他（配偶者）→spTaxに合算（ゴールド20＋暗号資産30）',
     r.spTax.length === 2 && r.spTax.reduce((s, x) => s + x.amount, 0) === 50, JSON.stringify(r.spTax));
-  record('26. 別プロファイル(otherProf)の保有資産は混ざらない（bCashは100のまま、99999を含まない）',
+  record('27. 別プロファイル(otherProf)の保有資産は混ざらない（bCashは100のまま、99999を含まない）',
     r.bCash === 100);
 }
 
@@ -228,23 +235,23 @@ console.log('='.repeat(80));
 
 {
   const fudousan = ASSET_CLASSES.find(a => a.key === '不動産');
-  record('27. profile.ts ASSET_CLASSES：不動産のmu=4.5/sigma=16.2/group=reit_jp',
+  record('28. profile.ts ASSET_CLASSES：不動産のmu=4.5/sigma=16.2/group=reit_jp',
     fudousan && fudousan.mu === 4.5 && fudousan.sigma === 16.2 && fudousan.group === 'reit_jp', JSON.stringify(fudousan));
 
   const crypto = ASSET_CLASSES.find(a => a.key === '暗号資産');
-  record('28. profile.ts ASSET_CLASSES：暗号資産のmu=0/sigma=0/group=crypto（ダミー値）',
+  record('29. profile.ts ASSET_CLASSES：暗号資産のmu=0/sigma=0/group=crypto（ダミー値）',
     crypto && crypto.mu === 0 && crypto.sigma === 0 && crypto.group === 'crypto', JSON.stringify(crypto));
 
-  record('29. profile.ts ASSET_CORR：crypto行が追加されている（stock相関0.3）',
+  record('30. profile.ts ASSET_CORR：crypto行が追加されている（stock相関0.3）',
     ASSET_CORR.crypto && ASSET_CORR.crypto.stock === 0.3);
-  record('30. profile.ts ASSET_CORR：既存グループ側にもcrypto列が対称に追加されている（stock→crypto=0.3）',
+  record('31. profile.ts ASSET_CORR：既存グループ側にもcrypto列が対称に追加されている（stock→crypto=0.3）',
     ASSET_CORR.stock.crypto === 0.3);
 
   const toolFudousan = TOOL_ASSET_CLASSES.find(a => a.key === '不動産');
-  record('31. assetManagement/categories.ts：不動産のmu/sigma/groupがprofile.tsと同値に補完されている',
+  record('32. assetManagement/categories.ts：不動産のmu/sigma/groupがprofile.tsと同値に補完されている',
     toolFudousan && toolFudousan.mu === 4.5 && toolFudousan.sigma === 16.2 && toolFudousan.group === 'reit_jp', JSON.stringify(toolFudousan));
   const toolCrypto = TOOL_ASSET_CLASSES.find(a => a.key === '暗号資産');
-  record('32. assetManagement/categories.ts：暗号資産はgroup=cryptoのみ補完（mu/sigmaは未設定のまま）',
+  record('33. assetManagement/categories.ts：暗号資産はgroup=cryptoのみ補完（mu/sigmaは未設定のまま）',
     toolCrypto && toolCrypto.group === 'crypto' && toolCrypto.mu === undefined && toolCrypto.sigma === undefined, JSON.stringify(toolCrypto));
 }
 
@@ -266,7 +273,7 @@ console.log('='.repeat(80));
     params: { ...base.params, bNisa: 100, pfManualFlags: { ...base.params.pfManualFlags, rWNisa: false } },
   };
   const warningsAuto = getCryptoManualWarnings(withCrypto);
-  record('33. 個人側：NISA（積立期）に暗号資産を含み自動モードのまま→警告が出る',
+  record('34. 個人側：NISA（積立期）に暗号資産を含み自動モードのまま→警告が出る',
     warningsAuto.some(w => w.includes('NISA（積立期）')), JSON.stringify(warningsAuto));
 
   const withCryptoManual = {
@@ -274,7 +281,7 @@ console.log('='.repeat(80));
     params: { ...withCrypto.params, pfManualFlags: { ...withCrypto.params.pfManualFlags, rWNisa: true } },
   };
   const warningsManual = getCryptoManualWarnings(withCryptoManual);
-  record('34. 個人側：同じ口座を手動入力に切り替えると警告が消える', warningsManual.length === 0, JSON.stringify(warningsManual));
+  record('35. 個人側：同じ口座を手動入力に切り替えると警告が消える', warningsManual.length === 0, JSON.stringify(warningsManual));
 }
 
 {
@@ -287,7 +294,7 @@ console.log('='.repeat(80));
     },
   };
   const corpWarningsAuto = getCorporateCryptoWarnings(stateWithCrypto.portfolio);
-  record('35. 法人側：②積立期に暗号資産を含み自動モードのまま→警告が出る',
+  record('36. 法人側：②積立期に暗号資産を含み自動モードのまま→警告が出る',
     corpWarningsAuto.some(w => w.includes('②積立期')), JSON.stringify(corpWarningsAuto));
 
   const stateManual = {
@@ -298,7 +305,7 @@ console.log('='.repeat(80));
     },
   };
   const corpWarningsManual = getCorporateCryptoWarnings(stateManual.portfolio);
-  record('36. 法人側：手動入力（μ・σとも）に切り替えると警告が消える', corpWarningsManual.length === 0, JSON.stringify(corpWarningsManual));
+  record('37. 法人側：手動入力（μ・σとも）に切り替えると警告が消える', corpWarningsManual.length === 0, JSON.stringify(corpWarningsManual));
 }
 
 // ================================================================

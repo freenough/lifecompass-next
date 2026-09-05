@@ -845,3 +845,12 @@ console.log('\n' + '='.repeat(100));
 console.log('【CSVインポート:プロファイルスコープ修正】verify-csv-profile-scope-fix.js');
 console.log('='.repeat(100));
 require('./verify-csv-profile-scope-fix.js');
+
+// ================================================================
+// プロファイルJSONエクスポート/インポートへのCompanyState統合
+// instruction_json_export_import_companystate.md の回帰テスト。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【プロファイルJSON:CompanyState統合】verify-profile-json-companystate.js');
+console.log('='.repeat(100));
+require('./verify-profile-json-companystate.js');
