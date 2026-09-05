@@ -4,12 +4,24 @@ import { useState } from 'react';
 import type { AssetHolding } from '@/lib/assetManagement/types';
 import { CASH_ASSET_CLASS } from '@/lib/assetManagement/categories';
 import { appendTransferLog } from '@/lib/hojinAssetManagement/transferLog';
+import { calcPersonalDelta } from '@/lib/hojinAssetManagement/transferHelper';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
+import InfoTooltip from '@/components/simulator/InfoTooltip';
+
+// instruction_transfer_helper_tax_rate_fix.md 0節：積立期（法人税未確定の今期利益を含む）は
+// 法人税＋個人側税金で40〜50%程度、取崩期（過去に法人税を払い終えた内部留保）は個人側税金の
+// 20〜30%程度と、状況によって幅があるため、KENZOが都度調整する前提の中間的な初期値。
+// 「個人化想定比率」（DEFAULT_PERSONALIZATION_RATIO、進捗バー用の別概念）とは意味が異なるため
+// 独立した定数として持つ（以前はpersonalizationRatioを流用していたが、計算式の向きを修正した
+// ことで数値の意味が変わり、流用が不適切になったため切り離した）。
+const DEFAULT_APPLIED_TAX_RATE = 35;
+
+const APPLIED_TAX_RATE_TOOLTIP =
+  '目安：この移転額のうち、最終的に税金として失われる割合の見積もりです。今回の引き出しが今期の利益の範囲内（法人税がまだ確定していない利益を取り崩す想定）なら、法人税と個人側の所得税・住民税・社会保険料を合わせた負担率（目安40〜50%程度）。役員報酬が今期の利益を上回る場合（過去に法人税を払い終えた内部留保を取り崩す想定）は、個人側の税金のみ（目安20〜30%程度）で構いません。精緻な税務計算ではなく、ご自身の見積もりとして入力してください。';
 
 interface HojinTransferHelperProps {
   hojinHoldings: AssetHolding[];
   personalHoldings: AssetHolding[];
-  personalizationRatio: number;
   onUpdateHojinHoldings: (next: AssetHolding[]) => void;
   onUpdatePersonalHoldings: (next: AssetHolding[]) => void;
   // 新規作成するcash行に設定するprofileId（instruction_phase2_profile_foundation.md 5節：
@@ -31,7 +43,6 @@ function newId(): string {
 export default function HojinTransferHelper({
   hojinHoldings,
   personalHoldings,
-  personalizationRatio,
   onUpdateHojinHoldings,
   onUpdatePersonalHoldings,
   currentProfileId,
@@ -42,10 +53,10 @@ export default function HojinTransferHelper({
   const [warning, setWarning] = useState<string | null>(null);
 
   const handleSelectMode = (next: TransferMode) => {
-    // 取崩モードへ切り替えた瞬間だけ、現在の個人化想定比率を初期値として1回埋める
+    // 取崩モードへ切り替えた瞬間だけ、デフォルト値を初期値として1回埋める
     // （以降はユーザー入力優先、個別の移転ごとに上書き可能）。
     if (next === 'withdrawal' && mode !== 'withdrawal') {
-      setRateInput(String(personalizationRatio));
+      setRateInput(String(DEFAULT_APPLIED_TAX_RATE));
     }
     setMode(next);
   };
@@ -56,7 +67,7 @@ export default function HojinTransferHelper({
   const handleExecute = () => {
     if (!canExecute || !mode) return;
     const rate = mode === 'withdrawal' ? (Number(rateInput) || 0) : null;
-    const personalDelta = mode === 'withdrawal' ? (amount * (rate ?? 0)) / 100 : amount;
+    const personalDelta = calcPersonalDelta(mode, amount, rate ?? 0);
     const nowIso = new Date().toISOString();
 
     // 法人側：法人預金カテゴリの先頭行から全額を減算（クランプしない。マイナス残高も許容）。
@@ -149,7 +160,10 @@ export default function HojinTransferHelper({
 
       {mode === 'withdrawal' && (
         <div className="flex items-center gap-1">
-          <span className="text-xs text-slate-500 shrink-0">適用税率:</span>
+          <span className="text-xs text-slate-500 shrink-0 flex items-center gap-1">
+            適用税率:
+            <InfoTooltip text={APPLIED_TAX_RATE_TOOLTIP} />
+          </span>
           <input
             type="number"
             value={rateInput}

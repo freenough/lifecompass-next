@@ -546,7 +546,6 @@ export default function AssetManagementPage() {
                   <HojinTransferHelper
                     hojinHoldings={hojinHoldings}
                     personalHoldings={holdings}
-                    personalizationRatio={personalizationRatio}
                     onUpdateHojinHoldings={updateHojinHoldings}
                     onUpdatePersonalHoldings={updateHoldings}
                     currentProfileId={currentProfileId}

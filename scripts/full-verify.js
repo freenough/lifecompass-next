@@ -854,3 +854,12 @@ console.log('\n' + '='.repeat(100));
 console.log('【プロファイルJSON:CompanyState統合】verify-profile-json-companystate.js');
 console.log('='.repeat(100));
 require('./verify-profile-json-companystate.js');
+
+// ================================================================
+// 資産移転ヘルパーの適用税率計算式修正
+// instruction_transfer_helper_tax_rate_fix.md の回帰テスト。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【資産移転ヘルパー:適用税率】verify-transfer-helper-tax-rate.js');
+console.log('='.repeat(100));
+require('./verify-transfer-helper-tax-rate.js');
