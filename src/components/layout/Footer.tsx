@@ -14,8 +14,13 @@ export default function Footer() {
     <footer className="mt-16 border-t border-slate-200 bg-slate-50 pt-8 pb-6 text-xs text-slate-500 sm:pt-10 sm:pb-8 sm:text-sm">
       <div className="mx-auto max-w-7xl px-4">
         {/* ①2カラムのコンテンツ列。モバイルでも2カラムのまま、フォント・余白のみ圧縮する
-            （instruction_freenough_footer_unification.md モバイルA案：アコーディオン化はしない） */}
-        <div className="grid grid-cols-2 gap-4 border-b border-slate-200 pb-5 sm:gap-16 sm:pb-8">
+            （instruction_freenough_footer_unification.md モバイルA案：アコーディオン化はしない）。
+            grid-cols-2だとコンテナ幅(max-w-7xl)いっぱいに列が引き伸ばされ、②③の
+            flex-wrap justify-centerな行と横幅が揃わなかったため、同じflex justify-centerに
+            揃える。ただし②③のflex-wrapをそのまま使うと、狭い画面で「一人法人を考える」列が
+            下に折り返され縦積みになり、モバイルでも2カラム横並びを維持するA案の仕様に反するため、
+            flex-nowrapを明示指定して折り返しを禁止する（instruction_freenough_footer_layout_fix.md）。 */}
+        <div className="flex flex-nowrap justify-center gap-8 border-b border-slate-200 pb-5 sm:gap-16 sm:pb-8">
           <div>
             <p className="mb-2 text-[11px] font-semibold text-slate-400 sm:mb-3 sm:text-xs">FIREを考える</p>
             <ul className="space-y-1.5 sm:space-y-2">
