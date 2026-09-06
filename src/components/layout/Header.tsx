@@ -5,12 +5,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { IconMenu2, IconX, IconSearch } from '@tabler/icons-react';
-import { withBasePath } from '@/lib/siteConfig';
+import { withBasePath, HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 import SearchModal from '@/components/search/SearchModal';
 import { useUnsavedChanges } from '@/lib/UnsavedChangesContext';
 
-type NavItem = { label: string; href: string; external?: boolean };
+// absolute: true の項目はnext/linkではなく絶対URL付き<a>で描画する。basePath('/asset-simulator')
+// が自動付与されるnext/linkを使うと、freenough-mainのrewiteでクリーンURL(/hitori-hojin)を
+// 表示している最中でも1クリックでURLバーが/asset-simulator/hitori-hojin/...に巻き戻ってしまう
+// （implementation_hitorihojin_url_cleanup.mdで確認済みの既知の制約と同じ原理）。
+type NavItem = { label: string; href: string; external?: boolean; absolute?: boolean };
 
 // 資産シミュレーター側（/hitori-hojin配下以外）のナビ。
 const SIMULATOR_NAV_ITEMS: NavItem[] = [
@@ -28,7 +32,7 @@ const SIMULATOR_NAV_ITEMS: NavItem[] = [
 const HITORI_HOJIN_NAV_ITEMS: NavItem[] = [
   { label: 'シミュレーター', href: '/app' },
   { label: '資産管理ツール', href: ASSET_MANAGEMENT_PATH },
-  { label: '一人法人ブログ', href: '/hitori-hojin/blog' },
+  { label: '一人法人ブログ', href: `${HITORI_HOJIN_SITE_URL}/blog`, absolute: true },
 ];
 
 export default function Header() {
@@ -48,16 +52,28 @@ export default function Header() {
   const pathname = usePathname();
   const isHitoriHojin = pathname?.startsWith('/hitori-hojin') ?? false;
   const navItems = isHitoriHojin ? HITORI_HOJIN_NAV_ITEMS : SIMULATOR_NAV_ITEMS;
-  const logoHref = isHitoriHojin ? '/hitori-hojin' : '/';
+
+  const logoContent = (
+    <>
+      <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
+      資産シミュレーター
+    </>
+  );
+  const logoClassName = 'flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight';
 
   return (
     <>
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link href={logoHref} onClick={handleNavClick} className="flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight">
-          <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
-          資産シミュレーター
-        </Link>
+        {isHitoriHojin ? (
+          <a href={HITORI_HOJIN_SITE_URL} onClick={handleNavClick} className={logoClassName}>
+            {logoContent}
+          </a>
+        ) : (
+          <Link href="/" onClick={handleNavClick} className={logoClassName}>
+            {logoContent}
+          </Link>
+        )}
 
         <div className="flex items-center gap-2">
           {/* PC幅（lg:以上）は従来通り横並びナビ */}
@@ -65,6 +81,10 @@ export default function Header() {
             {navItems.map((item) =>
               item.external ? (
                 <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">
+                  {item.label}
+                </a>
+              ) : item.absolute ? (
+                <a key={item.label} href={item.href} onClick={handleNavClick} className="hover:text-slate-900 transition-colors">
                   {item.label}
                 </a>
               ) : (
@@ -114,6 +134,15 @@ export default function Header() {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="border-b border-slate-100 py-3 text-sm text-slate-600 last:border-b-0 hover:text-slate-900"
+              >
+                {item.label}
+              </a>
+            ) : item.absolute ? (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={handleNavClick}
                 className="border-b border-slate-100 py-3 text-sm text-slate-600 last:border-b-0 hover:text-slate-900"
               >
                 {item.label}
