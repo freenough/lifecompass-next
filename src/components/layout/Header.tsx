@@ -3,18 +3,32 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { IconMenu2, IconX, IconSearch } from '@tabler/icons-react';
 import { withBasePath } from '@/lib/siteConfig';
+import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 import SearchModal from '@/components/search/SearchModal';
 import { useUnsavedChanges } from '@/lib/UnsavedChangesContext';
 
-const NAV_ITEMS: { label: string; href: string; external?: boolean }[] = [
+type NavItem = { label: string; href: string; external?: boolean };
+
+// 資産シミュレーター側（/hitori-hojin配下以外）のナビ。
+const SIMULATOR_NAV_ITEMS: NavItem[] = [
   { label: 'シミュレーター', href: '/app' },
   { label: 'ツール', href: '/tools' },
   { label: 'お悩み', href: '/concerns' },
   { label: 'ブログ', href: '/blog' },
   { label: '使い方ガイド', href: '/guide' },
+  { label: '資産管理ツール', href: ASSET_MANAGEMENT_PATH },
   { label: 'Note', href: 'https://note.com/freenough', external: true },
+];
+
+// 一人法人側（/hitori-hojin配下）専用のナビ。instruction_freenough_hierarchy_navigation.md
+// で確定した仕様：資産シミュレーター側の6項目をそのまま流用せず、3項目に差し替える。
+const HITORI_HOJIN_NAV_ITEMS: NavItem[] = [
+  { label: 'シミュレーター', href: '/app' },
+  { label: '資産管理ツール', href: ASSET_MANAGEMENT_PATH },
+  { label: '一人法人ブログ', href: '/hitori-hojin/blog' },
 ];
 
 export default function Header() {
@@ -29,11 +43,18 @@ export default function Header() {
     if (!confirmNavigation()) e.preventDefault();
   };
 
+  // usePathnameはbasePath('/asset-simulator')を除いたパスを返すため、
+  // '/hitori-hojin'配下かどうかはこの判定だけで正しく分岐できる。
+  const pathname = usePathname();
+  const isHitoriHojin = pathname?.startsWith('/hitori-hojin') ?? false;
+  const navItems = isHitoriHojin ? HITORI_HOJIN_NAV_ITEMS : SIMULATOR_NAV_ITEMS;
+  const logoHref = isHitoriHojin ? '/hitori-hojin' : '/';
+
   return (
     <>
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link href="/" onClick={handleNavClick} className="flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight">
+        <Link href={logoHref} onClick={handleNavClick} className="flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight">
           <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
           資産シミュレーター
         </Link>
@@ -41,7 +62,7 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {/* PC幅（lg:以上）は従来通り横並びナビ */}
           <nav className="hidden lg:flex gap-6 text-sm text-slate-600 mr-2">
-            {NAV_ITEMS.map((item) =>
+            {navItems.map((item) =>
               item.external ? (
                 <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">
                   {item.label}
@@ -86,7 +107,7 @@ export default function Header() {
         }`}
       >
         <nav className="flex flex-col px-4 py-1">
-          {NAV_ITEMS.map((item) =>
+          {navItems.map((item) =>
             item.external ? (
               <a
                 key={item.label}
