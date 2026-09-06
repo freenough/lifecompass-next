@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   title: '一人法人を、FIREの選択肢に。 | FREENOUGH',
   description:
     '税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。',
+  openGraph: {
+    title: '一人法人を、FIREの選択肢に。 | FREENOUGH',
+    description:
+      '税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。',
+    url: HITORI_HOJIN_SITE_URL,
+  },
   alternates: {
     canonical: HITORI_HOJIN_SITE_URL,
   },

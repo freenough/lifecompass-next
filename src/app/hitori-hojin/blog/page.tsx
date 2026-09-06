@@ -6,6 +6,11 @@ import HitoriHojinBlogListClient from '@/components/hitori-hojin/HitoriHojinBlog
 export const metadata: Metadata = {
   title: '一人法人ブログ | FREENOUGH',
   description: '税金・社会保険・役員報酬・資産の置き場所など、一人法人特有の論点をFIREの視点から整理します。',
+  openGraph: {
+    title: '一人法人ブログ | FREENOUGH',
+    description: '税金・社会保険・役員報酬・資産の置き場所など、一人法人特有の論点をFIREの視点から整理します。',
+    url: `${HITORI_HOJIN_SITE_URL}/blog`,
+  },
   alternates: {
     canonical: `${HITORI_HOJIN_SITE_URL}/blog`,
   },
