@@ -40,6 +40,7 @@ export default function Footer() {
           <Link href={ASSET_MANAGEMENT_PATH} className="hover:text-slate-700">資産管理ツール</Link>
           <Link href="/guide" className="hover:text-slate-700">使い方ガイド</Link>
           <Link href="/methodology" className="hover:text-slate-700">計算ロジック</Link>
+          <a href="https://x.com/freenough" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700">X</a>
           <a href="https://note.com/freenough" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700">Note</a>
         </nav>
 
