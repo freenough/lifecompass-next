@@ -9,7 +9,11 @@ const HOJIN_HOLDINGS_KEY = 'hojinAssetHoldings';
 const SNAPSHOTS_KEY = 'hojinAssetSnapshots';
 const TARGET_KEY = 'hojinAssetTarget';
 const PERSONALIZATION_RATIO_KEY = 'hojinPersonalizationRatio';
-const DEFAULT_PERSONALIZATION_RATIO = 70; // 7章：デフォルト70%を仮置き
+// instruction_remove_transfer_helper_and_update_personalization_ratio.md 0.2節：対象は
+// 「今すでに法人に貯まっている残高全体」であり、法人の運用年数が長いほど過去の決算で法人税を
+// 払い終えた内部留保である可能性が高いため、個人側の税負担のみ（20〜30%程度）に近い25を
+// 初期値とする（旧デフォルト70から変更）。
+const DEFAULT_PERSONALIZATION_RATIO = 25;
 
 // 個人側と共通の上限件数（追加実装でsrc/lib/assetManagement/config.tsに一元化）。
 export { MAX_SNAPSHOTS };

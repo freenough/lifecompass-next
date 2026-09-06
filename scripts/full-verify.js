@@ -856,10 +856,21 @@ console.log('='.repeat(100));
 require('./verify-profile-json-companystate.js');
 
 // ================================================================
-// 資産移転ヘルパーの適用税率計算式修正
-// instruction_transfer_helper_tax_rate_fix.md の回帰テスト。
+// 資産移転ヘルパーの適用税率計算式修正（verify-transfer-helper-tax-rate.js）
+// instruction_remove_transfer_helper_and_update_personalization_ratio.md 1節により
+// 資産移転ヘルパー機能自体を撤去したため、このテストスイートへの登録も削除した
+// （スクリプト本体・対象のsrc/lib/hojinAssetManagement/transferHelper.tsも削除済み）。
 // ================================================================
 console.log('\n' + '='.repeat(100));
-console.log('【資産移転ヘルパー:適用税率】verify-transfer-helper-tax-rate.js');
+console.log('【個人化想定比率（旧デフォルト値・表示追加）】verify-personalization-ratio.js');
 console.log('='.repeat(100));
-require('./verify-transfer-helper-tax-rate.js');
+require('./verify-personalization-ratio.js');
+
+// ================================================================
+// 資産管理ツールトップページのレイアウト整理
+// instruction_asset_management_page_layout_review.md 0.4節の回帰テスト。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【資産構成内訳バー】verify-asset-composition-bar.js');
+console.log('='.repeat(100));
+require('./verify-asset-composition-bar.js');

@@ -48,8 +48,9 @@ import AssetResetControls, { type ResetScope } from './AssetResetControls';
 import AssetManagerProfilePanel from './AssetManagerProfilePanel';
 import HojinAssetHoldingCard from '@/components/hojinAssetManagement/HojinAssetHoldingCard';
 import HojinAssetProgressPanel from '@/components/hojinAssetManagement/HojinAssetProgressPanel';
+import HojinAssetCompositionBar from '@/components/hojinAssetManagement/HojinAssetCompositionBar';
 import HojinAssetAllocationChangeTable from '@/components/hojinAssetManagement/HojinAssetAllocationChangeTable';
-import HojinTransferHelper from '@/components/hojinAssetManagement/HojinTransferHelper';
+import PersonalizationRatioSlider from '@/components/hojinAssetManagement/PersonalizationRatioSlider';
 
 // Rechartsコンポーネントは必ずssr:falseの動的importで読み込む（ResponsiveContainerが
 // DOM計測に依存するため。HeroDemo.tsx/src/app/page.tsxの既存パターンを踏襲）。
@@ -542,14 +543,6 @@ export default function AssetManagementPage() {
                       onDelete={handleDeleteHojin}
                     />
                   ))}
-
-                  <HojinTransferHelper
-                    hojinHoldings={hojinHoldings}
-                    personalHoldings={holdings}
-                    onUpdateHojinHoldings={updateHojinHoldings}
-                    onUpdatePersonalHoldings={updateHoldings}
-                    currentProfileId={currentProfileId}
-                  />
                 </div>
               )}
             </div>
@@ -586,6 +579,32 @@ export default function AssetManagementPage() {
             </div>
           )}
 
+          {/* instruction_asset_management_page_layout_review.md 0.1節：セクション並び順を
+              1.FIRE進捗 → 2.資産推移＋記録する → 3.予実比較 → 4.今の資産構成（内訳バー／
+              資産クラス内訳／資産配分の変化、隣接1塊） → 5.法人資産を個人化した場合（旧
+              「適用税率」カード）に変更した。 */}
+          <section>
+            <h2 className="text-sm font-bold text-slate-700 mb-3">FIRE進捗</h2>
+            {includeCorporate ? (
+              <HojinAssetProgressPanel
+                hojinHoldings={hojinHoldings}
+                personalHoldings={holdings}
+                snapshots={hojinSnapshots}
+                targetAmount={hojinTargetAmount}
+                onChangeTarget={handleChangeHojinTarget}
+                displayScope={displayScope}
+                personalSnapshots={snapshots}
+              />
+            ) : (
+              <AssetProgressPanel
+                holdings={holdings}
+                snapshots={snapshots}
+                targetAmount={targetAmount}
+                onChangeTarget={handleChangeTarget}
+              />
+            )}
+          </section>
+
           <section>
             {includeCorporate ? (
               <HojinAssetSnapshotHistory
@@ -611,49 +630,56 @@ export default function AssetManagementPage() {
             hojinSnapshots={hojinSnapshots}
           />
 
-          <section>
-            <h2 className="text-sm font-bold text-slate-700 mb-3">FIRE進捗</h2>
+          {/* 4. 今の資産構成：内訳バー・資産クラス内訳・資産配分の変化を隣接させ1塊にする。 */}
+          <div className="flex flex-col gap-6">
+            <h2 className="text-sm font-bold text-slate-700">今の資産構成</h2>
+
+            {includeCorporate && (
+              <HojinAssetCompositionBar hojinHoldings={hojinHoldings} personalHoldings={holdings} displayScope={displayScope} />
+            )}
+
+            <section className="rounded-lg border border-slate-200 p-4">
+              <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1">
+                資産クラス内訳
+                {/* 0.5節：FIRE進捗が「個人資産のみ」と明記しているのに対し、このセクションが
+                    黙って合算スコープに変わっている状態を解消するため、実際に合算表示している
+                    ときだけ明記する。 */}
+                {includeCorporate && displayScope === 'combined' && (
+                  <span className="text-[11px] font-normal text-slate-400">（個人＋法人合算）</span>
+                )}
+              </h2>
+              {includeCorporate ? (
+                <HojinAssetAllocationChart hojinHoldings={hojinHoldings} personalHoldings={holdings} displayScope={displayScope} />
+              ) : (
+                <AssetAllocationChart holdings={holdings} totalAmount={totalAmount} />
+              )}
+            </section>
+
             {includeCorporate ? (
-              <HojinAssetProgressPanel
+              <HojinAssetAllocationChangeTable
                 hojinHoldings={hojinHoldings}
                 personalHoldings={holdings}
                 snapshots={hojinSnapshots}
-                targetAmount={hojinTargetAmount}
-                onChangeTarget={handleChangeHojinTarget}
-                personalizationRatio={personalizationRatio}
-                onChangeRatio={handleChangeRatio}
                 displayScope={displayScope}
                 personalSnapshots={snapshots}
               />
             ) : (
-              <AssetProgressPanel
-                holdings={holdings}
-                snapshots={snapshots}
-                targetAmount={targetAmount}
-                onChangeTarget={handleChangeTarget}
+              <AssetAllocationChangeTable holdings={holdings} snapshots={snapshots} />
+            )}
+          </div>
+
+          {/* 5. 法人資産を個人化した場合（旧「適用税率」カード）。「今の事実」とは性質が異なる
+              将来の仮定の見積もりのため、最後に明確に区切って独立させる。 */}
+          {includeCorporate && (
+            <section className="rounded-lg border border-slate-200 p-4">
+              <h2 className="text-sm font-bold text-slate-700 mb-3">法人資産を個人化した場合</h2>
+              <PersonalizationRatioSlider
+                ratio={personalizationRatio}
+                onChange={handleChangeRatio}
+                hojinTotal={hojinTotal}
+                personalTotal={totalAmount}
               />
-            )}
-          </section>
-
-          <section className="rounded-lg border border-slate-200 p-4">
-            <h2 className="text-sm font-bold text-slate-700 mb-3">資産クラス内訳</h2>
-            {includeCorporate ? (
-              <HojinAssetAllocationChart hojinHoldings={hojinHoldings} personalHoldings={holdings} displayScope={displayScope} />
-            ) : (
-              <AssetAllocationChart holdings={holdings} totalAmount={totalAmount} />
-            )}
-          </section>
-
-          {includeCorporate ? (
-            <HojinAssetAllocationChangeTable
-              hojinHoldings={hojinHoldings}
-              personalHoldings={holdings}
-              snapshots={hojinSnapshots}
-              displayScope={displayScope}
-              personalSnapshots={snapshots}
-            />
-          ) : (
-            <AssetAllocationChangeTable holdings={holdings} snapshots={snapshots} />
+            </section>
           )}
 
           <section>

@@ -62,6 +62,7 @@ export default function AssetProgressPanel({ holdings, snapshots, targetAmount, 
         value={diffFromLast !== null ? `${diffFromLast >= 0 ? '+' : ''}${diffFromLast.toLocaleString()}万円` : '比較対象がありません'}
         sub={diffFromLastPct !== null && latest ? `${diffFromLastPct >= 0 ? '+' : ''}${diffFromLastPct.toFixed(1)}%（${latest.date}比）` : undefined}
         variant={diffFromLast !== null ? (diffFromLast >= 0 ? 'good' : 'warn') : 'neutral'}
+        tooltip="「前回」は前月ではなく、直前に記録した回を指します（記録をスキップした月がある場合、前月とは一致しません）"
       />
     </div>
   );
