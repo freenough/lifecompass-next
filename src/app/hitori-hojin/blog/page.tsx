@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import { getAllHitoriHojinPosts } from '@/lib/hitoriHojinBlog';
-import { SITE_URL } from '@/lib/siteConfig';
+import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 import HitoriHojinBlogListClient from '@/components/hitori-hojin/HitoriHojinBlogListClient';
 
 export const metadata: Metadata = {
   title: '一人法人ブログ | FREENOUGH',
   description: '税金・社会保険・役員報酬・資産の置き場所など、一人法人特有の論点をFIREの視点から整理します。',
   alternates: {
-    canonical: `${SITE_URL}/hitori-hojin/blog`,
+    canonical: `${HITORI_HOJIN_SITE_URL}/blog`,
   },
 };
 

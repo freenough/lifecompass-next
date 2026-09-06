@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { HitoriHojinBlogPostMeta } from '@/lib/hitoriHojinBlog';
 import HitoriHojinArticleCard from './HitoriHojinArticleCard';
 
@@ -31,9 +30,9 @@ export default function HitoriHojinContentSection({
 
         {footerLink && (
           <div className="mt-10 text-center">
-            <Link href={footerLink.href} className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
+            <a href={footerLink.href} className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
               {footerLink.label} →
-            </Link>
+            </a>
           </div>
         )}
       </div>

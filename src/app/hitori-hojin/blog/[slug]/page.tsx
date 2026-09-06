@@ -1,9 +1,8 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getAllHitoriHojinPosts, getHitoriHojinPostBySlug } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_CATEGORIES } from '@/lib/hitoriHojinCategories';
-import { SITE_URL } from '@/lib/siteConfig';
+import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 
 export async function generateStaticParams() {
   return getAllHitoriHojinPosts().map((post) => ({ slug: post.slug }));
@@ -23,7 +22,7 @@ export async function generateMetadata({
     openGraph: {
       title: post.title,
       description: post.description,
-      url: `${SITE_URL}/hitori-hojin/blog/${post.slug}`,
+      url: `${HITORI_HOJIN_SITE_URL}/blog/${post.slug}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -31,7 +30,7 @@ export async function generateMetadata({
       description: post.description,
     },
     alternates: {
-      canonical: `${SITE_URL}/hitori-hojin/blog/${post.slug}`,
+      canonical: `${HITORI_HOJIN_SITE_URL}/blog/${post.slug}`,
     },
   };
 }
@@ -45,9 +44,9 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
     <main className="max-w-3xl mx-auto px-4 py-12">
       {/* パンくず */}
       <nav className="text-sm text-slate-400 mb-8 flex items-center gap-1">
-        <Link href="/hitori-hojin" className="hover:text-[#0F2A4A]">一人法人</Link>
+        <a href={HITORI_HOJIN_SITE_URL} className="hover:text-[#0F2A4A]">一人法人</a>
         <span>›</span>
-        <Link href="/hitori-hojin/blog" className="hover:text-[#0F2A4A]">ブログ</Link>
+        <a href={`${HITORI_HOJIN_SITE_URL}/blog`} className="hover:text-[#0F2A4A]">ブログ</a>
         <span>›</span>
         <span className="text-slate-600 truncate max-w-[200px]">{post.title}</span>
       </nav>

@@ -1,10 +1,10 @@
-import Link from 'next/link';
 import type { HitoriHojinBlogPostMeta } from '@/lib/hitoriHojinBlog';
+import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 
 export default function HitoriHojinArticleCard({ post }: { post: HitoriHojinBlogPostMeta }) {
   return (
-    <Link
-      href={`/hitori-hojin/blog/${post.slug}`}
+    <a
+      href={`${HITORI_HOJIN_SITE_URL}/blog/${post.slug}`}
       className="rounded-xl border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
     >
       <div className="relative w-[190px] aspect-[3/2] shrink-0 self-center overflow-hidden bg-slate-100">
@@ -23,6 +23,6 @@ export default function HitoriHojinArticleCard({ post }: { post: HitoriHojinBlog
         </h3>
         <p className="text-xs text-slate-500">{post.excerpt ?? post.description}</p>
       </div>
-    </Link>
+    </a>
   );
 }

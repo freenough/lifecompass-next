@@ -4,7 +4,7 @@ import { getHitoriHojinPostsBySeries } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_CATEGORIES } from '@/lib/hitoriHojinCategories';
 import HitoriHojinContentSection from '@/components/hitori-hojin/HitoriHojinContentSection';
 import HitoriHojinManageSection from '@/components/hitori-hojin/HitoriHojinManageSection';
-import { SITE_URL } from '@/lib/siteConfig';
+import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 
 const SERIES = 'hitori-hojin-intro';
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description:
     '税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。',
   alternates: {
-    canonical: `${SITE_URL}/hitori-hojin`,
+    canonical: HITORI_HOJIN_SITE_URL,
   },
 };
 
@@ -61,7 +61,7 @@ export default function HitoriHojinLandingPage() {
         title={HITORI_HOJIN_CATEGORIES.consider.label}
         subtitle={HITORI_HOJIN_CATEGORIES.consider.subtitle}
         items={considerPosts}
-        footerLink={{ label: '①から順番に読みたい方はこちら', href: `/hitori-hojin/blog?series=${SERIES}` }}
+        footerLink={{ label: '①から順番に読みたい方はこちら', href: `${HITORI_HOJIN_SITE_URL}/blog?series=${SERIES}` }}
       />
 
       {/* 管理する（法人資産管理ツールPhase1への導線）。計算する（CompanyState実装待ち）は
@@ -70,9 +70,9 @@ export default function HitoriHojinLandingPage() {
 
       {/* ブログ一覧への導線 */}
       <section className="py-12 text-center">
-        <Link href="/hitori-hojin/blog" className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
+        <a href={`${HITORI_HOJIN_SITE_URL}/blog`} className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
           すべての記事を見る →
-        </Link>
+        </a>
       </section>
 
       {/* FIRE資産シミュレーターへのCTA */}

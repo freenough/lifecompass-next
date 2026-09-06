@@ -23,3 +23,13 @@ export function withBasePath<T extends string | undefined>(path: T): T {
   if (!path) return path;
   return `${BASE_PATH}${path}` as T;
 }
+
+/**
+ * 一人法人セクション専用のcanonical/OGP・内部リンク絶対URL起点。
+ * このリポジトリのbasePath('/asset-simulator')付きURLではなく、freenough-main側の
+ * rewriteが提供するクリーンURL(/hitori-hojin)を指す。hitori-hojinセクション内の
+ * next/linkはbasePathが自動付与されクリーンURLを維持できないため、このセクション内の
+ * 内部リンクは`<a>`タグ＋この定数由来の絶対URLで組み立てる（SITE_URLとは別に用意し、
+ * 他ページのcanonical/OGPには影響させない）。
+ */
+export const HITORI_HOJIN_SITE_URL = 'https://www.freenough.com/hitori-hojin';

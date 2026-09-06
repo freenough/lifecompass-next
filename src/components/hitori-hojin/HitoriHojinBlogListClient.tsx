@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import type { HitoriHojinBlogPostMeta } from '@/lib/hitoriHojinBlog';
+import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 
 // seriesはサーバーコンポーネント(hitori-hojin/blog/page.tsx)がNext.jsのsearchParams propから
 // 受け取って渡す(useSearchParamsフックはSuspense境界内で使うとサーバー側では
@@ -28,7 +28,7 @@ export default function HitoriHojinBlogListClient({
     <ul className="space-y-4">
       {filteredPosts.map((post) => (
         <li key={post.slug}>
-          <Link href={`/hitori-hojin/blog/${post.slug}`} className="block group">
+          <a href={`${HITORI_HOJIN_SITE_URL}/blog/${post.slug}`} className="block group">
             <article className="flex gap-3 border border-slate-200 rounded-xl p-3 hover:shadow-md transition-shadow">
               <div className="relative w-[100px] sm:w-[120px] lg:w-[130px] aspect-[3/2] shrink-0 self-start overflow-hidden rounded-lg bg-slate-100">
                 {post.eyecatch && (
@@ -52,7 +52,7 @@ export default function HitoriHojinBlogListClient({
                 </p>
               </div>
             </article>
-          </Link>
+          </a>
         </li>
       ))}
     </ul>
