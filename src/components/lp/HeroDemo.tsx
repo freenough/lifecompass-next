@@ -6,8 +6,7 @@ import {
 } from 'recharts';
 import { simulate, analyze, runMC } from '@/lib';
 import type { SimParams, LifeEvent } from '@/lib/types';
-import LpKpiCard from '@/components/lp/LpKpiCard';
-import NumberText from '@/components/typography/NumberText';
+import KpiCard from '@/components/simulator/KpiCard';
 import { formatYen, addFireLines, FireLines, EventLines } from '@/components/simulator/AssetChart';
 import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
 import { useEqualHeight } from '@/hooks/useEqualHeight';
@@ -93,39 +92,13 @@ interface XAxisTickProps {
  * 目盛り位置（データ点・グリッド線の座標）は一切動かさず、ラベルの描画だけを調整する。
  * 最後の目盛り(lifeEx＝90歳)はtext-anchorをmiddleからendに変え、文字を左方向へ伸ばして
  * 描画することで、右端でのはみ出し・欠けを防ぐ。他の目盛りは従来通りmiddleのまま。
- * 数字部分(payload.value)のみfont-number(Space Grotesk)、単位「歳」は本文フォントのまま
- * （instruction_lp_typography_and_hero.md：チャート軸ラベルの数字部分）。
  */
 function XAxisTick({ x, y, payload }: XAxisTickProps) {
   if (x == null || y == null || !payload) return null;
   const isLast = payload.value === DEMO_PROFILE.lifeEx;
   return (
     <text x={x} y={y + 12} textAnchor={isLast ? 'end' : 'middle'} fontSize={11} fill="#666">
-      <tspan className="font-number">{payload.value}</tspan>歳
-    </text>
-  );
-}
-
-interface YAxisTickProps {
-  x?: number;
-  y?: number;
-  payload?: { value: number };
-}
-
-/**
- * YAxisの`tickFormatter`だけでは「5000万」のような単位込みの1文字列しか得られず、
- * 数字部分だけにfont-numberを当てられない。formatYen()の出力を数字/単位に正規表現で
- * 分割し、tspanで別々のフォントを当てる（XAxisTickと同じ考え方）。
- */
-function YAxisTick({ x, y, payload }: YAxisTickProps) {
-  if (x == null || y == null || !payload) return null;
-  const label = formatYen(payload.value);
-  const m = label.match(/^([\d.]+)(.*)$/);
-  const numPart = m ? m[1] : label;
-  const unitPart = m ? m[2] : '';
-  return (
-    <text x={x} y={y} textAnchor="end" dominantBaseline="middle" fontSize={11} fill="#666">
-      <tspan className="font-number">{numPart}</tspan>{unitPart}
+      {payload.value}歳
     </text>
   );
 }
@@ -223,7 +196,7 @@ export default function HeroDemo() {
               ...(kpiCardMaxHeight ? { minHeight: kpiCardMaxHeight } : undefined),
             }}
           >
-            <LpKpiCard label={label} value={<NumberText>{kpiValues[i]}</NumberText>} variant={kpiVariants[i]} />
+            <KpiCard label={label} value={kpiValues[i]} variant={kpiVariants[i]} size="sm" />
           </div>
         ))}
       </div>
@@ -244,7 +217,8 @@ export default function HeroDemo() {
                 domain={[0, yMax]}
                 ticks={yTicks}
                 width={36}
-                tick={<YAxisTick />}
+                tick={{ fontSize: 11 }}
+                tickFormatter={formatYen}
               />
               <Legend wrapperStyle={{ fontSize: '12px', whiteSpace: 'nowrap', overflowX: 'auto', paddingTop: '4px' }} />
               {/* 退職の1本のみ表示（年金開始・配偶者マーカーはLPでは情報過多のため非表示） */}
