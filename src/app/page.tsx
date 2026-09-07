@@ -22,7 +22,6 @@ import type { Icon } from '@tabler/icons-react';
 import { getFeaturedPosts } from '@/lib/blog';
 import ConcernBlockLP from '@/components/concerns/ConcernBlockLP';
 import AssetManagementPromoSection from '@/components/lp/AssetManagementPromoSection';
-import RadialLinesBackground from '@/components/lp/RadialLinesBackground';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
@@ -135,13 +134,12 @@ export default function HomePage() {
 
           {/* 左カラム：テキスト */}
           <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
-            <h1 className="font-heading text-[clamp(2.75rem,10vw,5rem)] font-bold tracking-tight text-slate-900 text-balance">
+            <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold tracking-tight text-slate-900 text-balance">
               あなたのFIREは、<br />
               何歳？
             </h1>
             {/* ライブデモ（1024px未満・見出しの直下） */}
-            <div className="lg:hidden relative mt-6 w-full">
-              <RadialLinesBackground />
+            <div className="lg:hidden mt-6 w-full">
               <HeroDemo />
             </div>
             <p className="mt-10 text-base text-slate-500 leading-relaxed text-balance sm:text-lg">
@@ -164,11 +162,8 @@ export default function HomePage() {
               self-stretchを外したことで、親の`lg:items-start`によりカードは自身のコンテンツに
               応じた高さ（可変・auto）になる。以前はself-stretchでテキスト列と同じ高さまで
               引き伸ばされ、カード内部に余分な空白ができていた（実測: 900px幅でカード下部に
-              88px分の空白を確認）。
-              固定幅は460px→380pxに縮小（instruction_lp_typography_and_hero.md Phase1-B：
-              コピーとチャートの比率を、コピーがより優勢な比率に変更する）。 */}
-          <div className="hidden lg:flex lg:w-[380px] lg:shrink-0 relative">
-            <RadialLinesBackground />
+              88px分の空白を確認）。 */}
+          <div className="hidden lg:flex lg:w-[460px] lg:shrink-0">
             <HeroDemo />
           </div>
 
@@ -181,8 +176,6 @@ export default function HomePage() {
           {features.map((f) => (
             <div key={f.title} className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
               <f.Icon size={32} className="text-slate-600 mb-3" />
-              {/* 3つの特徴カードはinstruction_lp_typography_and_hero.mdで明示的に本Phase範囲外
-                  （Phase 3で思想セクション統合時に扱う）とされているため、フォント含め変更しない。 */}
               <h3 className="text-base font-semibold text-slate-900">{f.title}</h3>
               <p className="mt-2 text-sm text-slate-500 leading-relaxed">{f.body}</p>
             </div>
@@ -200,7 +193,7 @@ export default function HomePage() {
       <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-10">
-            <h2 className="font-heading text-2xl font-bold text-slate-900">FIREガイド</h2>
+            <h2 className="text-2xl font-bold text-slate-900">FIREガイド</h2>
             <p className="mt-2 text-sm text-slate-500">
               シミュレーターをより活用するための解説記事を公開しています
             </p>
@@ -228,7 +221,7 @@ export default function HomePage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0 p-[14px] flex flex-col gap-1">
-                  <h3 className="font-heading text-base font-semibold text-slate-900 leading-snug line-clamp-3">
+                  <h3 className="text-base font-semibold text-slate-900 leading-snug line-clamp-3">
                     {post.title}
                   </h3>
                   <p className="text-xs text-slate-500">{post.excerpt}</p>
@@ -251,7 +244,7 @@ export default function HomePage() {
       <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-10">
-            <h2 className="font-heading text-2xl font-bold text-slate-900">かんたん計算ツール</h2>
+            <h2 className="text-2xl font-bold text-slate-900">かんたん計算ツール</h2>
             <p className="mt-2 text-sm text-slate-500">
               シミュレーターの前に、気になる数字だけサクッと試せます
             </p>
@@ -265,7 +258,7 @@ export default function HomePage() {
                 className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
               >
                 <tool.Icon size={32} className="text-slate-600 mb-3" />
-                <h3 className="font-heading text-base font-semibold text-slate-900">{tool.title}</h3>
+                <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
                 <p className="mt-2 text-sm text-slate-500 leading-relaxed">{tool.body}</p>
               </Link>
             ))}
@@ -285,7 +278,7 @@ export default function HomePage() {
       {/* ④ あなたはどのタイプ？ */}
       <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="font-heading text-2xl font-bold text-slate-900 text-center mb-10">
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
             あなたはどのタイプ？
           </h2>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -355,7 +348,7 @@ export default function HomePage() {
       {/* ⑤ 使い方（3ステップ） */}
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
-          <h2 className="font-heading text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
             {steps.map((s) => (
               <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
@@ -377,7 +370,7 @@ export default function HomePage() {
           Footer.tsx側は変更対象外のため、直前要素のマージンで打ち消す形で対応している。 */}
       <section className="bg-slate-50 py-20 -mb-16">
         <div className="mx-auto max-w-xl px-6 text-center">
-          <h2 className="font-heading text-xl font-bold text-slate-900 text-balance sm:text-2xl">
+          <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
             まず、自分の数字を入れてみる。
           </h2>
           <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
