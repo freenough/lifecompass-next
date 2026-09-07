@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { IconChartDonut, IconTarget, IconTrendingUp } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
+import NumberText from '@/components/typography/NumberText';
 
 const features: { label: string; Icon: Icon }[] = [
   { label: 'カテゴリ別に資産を入力するだけ', Icon: IconChartDonut },
@@ -37,7 +38,7 @@ export default function AssetManagementPromoSection() {
 
             {/* 左：テキスト＋CTA */}
             <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
-              <h2 className="text-2xl font-bold text-slate-900 text-balance">
+              <h2 className="font-heading text-2xl font-bold text-slate-900 text-balance">
                 毎月の資産を、記録する。
               </h2>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
@@ -93,11 +94,11 @@ export default function AssetManagementPromoSection() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded-lg bg-white p-3">
                     <p className="text-[11px] text-slate-400">目標達成率</p>
-                    <p className="mt-0.5 text-lg font-bold text-slate-900">68%</p>
+                    <p className="mt-0.5 text-lg font-bold text-slate-900"><NumberText>68%</NumberText></p>
                   </div>
                   <div className="rounded-lg bg-white p-3">
                     <p className="text-[11px] text-slate-400">前回比</p>
-                    <p className="mt-0.5 text-lg font-bold text-slate-900">+3.2%</p>
+                    <p className="mt-0.5 text-lg font-bold text-slate-900"><NumberText>+3.2%</NumberText></p>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Noto_Sans_JP } from 'next/font/google';
+import { Noto_Sans_JP, Zen_Kaku_Gothic_New, Space_Grotesk } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import Header from '@/components/layout/Header';
@@ -13,6 +13,24 @@ const GA_MEASUREMENT_ID = 'G-KQNTWNKPJ7';
 const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
+  display: 'swap',
+});
+
+// LP再設計Phase1（instruction_lp_typography_and_hero.md）：見出し用・数字用フォント。
+// .classNameではなく.variableで追加するため、本文フォント(notoSansJP、変更しない)には
+// 影響せず、globals.cssの--font-heading/--font-numberテーマトークン経由で
+// font-heading/font-numberユーティリティを使った要素にのみ適用される。
+const zenKakuGothicNew = Zen_Kaku_Gothic_New({
+  subsets: ['latin'],
+  weight: ['500', '700'],
+  variable: '--font-zen-kaku',
+  display: 'swap',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-space-grotesk',
   display: 'swap',
 });
 
@@ -33,7 +51,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={notoSansJP.className}>
+    <html lang="ja" className={`${notoSansJP.className} ${zenKakuGothicNew.variable} ${spaceGrotesk.variable}`}>
       <body className="bg-white text-slate-800 antialiased min-h-screen flex flex-col">
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}

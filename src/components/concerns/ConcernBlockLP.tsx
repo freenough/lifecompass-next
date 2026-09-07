@@ -9,7 +9,7 @@ export default function ConcernBlockLP() {
     <section className="bg-slate-50 py-12">
       <div className="mx-auto max-w-5xl px-6">
         <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-slate-900">こんな悩みはありませんか?</h2>
+          <h2 className="font-heading text-2xl font-bold text-slate-900">こんな悩みはありませんか?</h2>
           <p className="mt-2 text-sm text-slate-500">
             シミュレーターなら、悩みに具体的な数字で答えられます
           </p>

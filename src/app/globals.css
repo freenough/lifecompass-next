@@ -13,6 +13,12 @@
   --color-danger-bg:    #fef2f2;
   --color-danger-text:  #991b1b;
   --font-sans: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+  /* LP再設計Phase1（instruction_lp_typography_and_hero.md）。--font-*テーマトークンから
+     Tailwindが自動生成するfont-heading/font-numberユーティリティとして使う。
+     フォント本体はlayout.tsxのnext/font/googleで読み込み、CSS変数(--font-zen-kaku/
+     --font-space-grotesk)として渡している。 */
+  --font-heading: var(--font-zen-kaku), 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+  --font-number:  var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ブログ記事内、画像直後のキャプション行（remarkImageCaption()が付与、src/lib/blog.ts参照）。
