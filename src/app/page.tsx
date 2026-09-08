@@ -100,6 +100,7 @@ const characters: { name: string; sub: string; worry: string; label: string; Ico
     worry: '収入は高いのに、いつ辞められるか見えない',
     label: '教育費とFIREを両立したい。',
     Icon: IconUsers,
+    href: 'https://note.com/freenough/m/m9e4bd2e0a99b',
   },
   {
     name: '佐々木さん',
