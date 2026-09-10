@@ -175,8 +175,10 @@ export default function HomePage() {
       <section className="mx-auto max-w-5xl px-6 py-12 w-full">
         <div className="grid gap-8 sm:grid-cols-3">
           {features.map((f) => (
-            <div key={f.title} className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-              <f.Icon size={32} className="text-slate-600 mb-3" />
+            <div key={f.title} className="flex flex-col items-center text-center">
+              <div className="mb-4 flex aspect-square h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-slate-600">
+                <f.Icon size={26} className="text-slate-600" />
+              </div>
               <h3 className="text-base font-semibold text-slate-900">{f.title}</h3>
               <p className="mt-2 text-sm text-slate-500 leading-relaxed">{f.body}</p>
             </div>
