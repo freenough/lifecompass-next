@@ -1,5 +1,5 @@
 import type { HitoriHojinBlogPostMeta } from '@/lib/hitoriHojinBlog';
-import HitoriHojinArticleCard from './HitoriHojinArticleCard';
+import HitoriHojinArticleCardIcon from './HitoriHojinArticleCardIcon';
 
 interface HitoriHojinContentSectionProps {
   title: string;
@@ -24,7 +24,7 @@ export default function HitoriHojinContentSection({
 
         <div className="grid gap-5 sm:grid-cols-2">
           {items.map((item) => (
-            <HitoriHojinArticleCard key={item.slug} post={item} />
+            <HitoriHojinArticleCardIcon key={item.slug} post={item} />
           ))}
         </div>
 
