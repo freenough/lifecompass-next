@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getAllHitoriHojinPosts } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
-import HitoriHojinBlogListClient from '@/components/hitori-hojin/HitoriHojinBlogListClient';
+import HitoriHojinBlogListRows from '@/components/hitori-hojin/HitoriHojinBlogListRows';
 
 export const metadata: Metadata = {
   title: '一人法人ブログ | FREENOUGH',
@@ -33,7 +33,7 @@ export default function HitoriHojinBlogPage({
       {posts.length === 0 ? (
         <p className="text-slate-400">記事はまだありません。</p>
       ) : (
-        <HitoriHojinBlogListClient posts={posts} series={searchParams.series} />
+        <HitoriHojinBlogListRows posts={posts} series={searchParams.series} />
       )}
     </main>
   );
