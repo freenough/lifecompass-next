@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { IconMenu2, IconX, IconSearch } from '@tabler/icons-react';
-import { withBasePath, HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
+import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 import SearchModal from '@/components/search/SearchModal';
+import HeaderLogo from '@/components/layout/HeaderLogo';
 import { useUnsavedChanges } from '@/lib/UnsavedChangesContext';
 
 // absolute: true の項目はnext/linkではなく絶対URL付き<a>で描画する。basePath('/asset-simulator')
@@ -53,27 +53,22 @@ export default function Header() {
   const isHitoriHojin = pathname?.startsWith('/hitori-hojin') ?? false;
   const navItems = isHitoriHojin ? HITORI_HOJIN_NAV_ITEMS : SIMULATOR_NAV_ITEMS;
 
-  const logoContent = (
-    <>
-      <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
-      資産シミュレーター
-    </>
-  );
-  const logoClassName = 'flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight';
+  // instruction_header_logo_text_lockup.md: コンパスアイコン+セクション名のみの旧ロゴ表示は
+  // HeaderLogoコンポーネントへ切り出した（「FREENOUGH ｜ セクション名」のテキストロックアップに変更）。
+  // 旧実装（切り戻し用参考）:
+  //   const logoContent = (
+  //     <>
+  //       <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
+  //       {isHitoriHojin ? '一人法人' : '資産シミュレーター'}
+  //     </>
+  //   );
+  const logoClassName = 'flex items-center whitespace-nowrap text-xs sm:text-lg text-slate-800 tracking-tight';
 
   return (
     <>
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        {isHitoriHojin ? (
-          <a href={HITORI_HOJIN_SITE_URL} onClick={handleNavClick} className={logoClassName}>
-            {logoContent}
-          </a>
-        ) : (
-          <Link href="/" onClick={handleNavClick} className={logoClassName}>
-            {logoContent}
-          </Link>
-        )}
+        <HeaderLogo isHitoriHojin={isHitoriHojin} onClick={handleNavClick} className={logoClassName} />
 
         <div className="flex items-center gap-2">
           {/* PC幅（lg:以上）は従来通り横並びナビ */}

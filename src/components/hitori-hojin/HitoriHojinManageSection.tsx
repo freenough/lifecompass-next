@@ -89,15 +89,9 @@ export default function HitoriHojinManageSection() {
                   </li>
                 </ul>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg bg-white p-3">
-                    <p className="text-[11px] text-slate-400">目標までの進捗</p>
-                    <p className="mt-0.5 text-lg font-bold text-slate-900">68%</p>
-                  </div>
-                  <div className="rounded-lg bg-white p-3">
-                    <p className="text-[11px] text-slate-400">個人化想定比率</p>
-                    <p className="mt-0.5 text-lg font-bold text-slate-900">70%</p>
-                  </div>
+                <div className="rounded-lg bg-white p-3">
+                  <p className="text-[11px] text-slate-400">目標までの進捗</p>
+                  <p className="mt-0.5 text-lg font-bold text-slate-900">68%</p>
                 </div>
               </div>
             </div>

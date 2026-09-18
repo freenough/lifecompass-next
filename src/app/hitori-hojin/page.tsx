@@ -32,9 +32,12 @@ export default function HitoriHojinLandingPage() {
     <main>
       {/* Hero */}
       <section className="py-16 bg-[#EFF6FF]">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#0F2A4A] leading-snug">
-            一人法人を、FIREの選択肢に。
+        <div className="mx-auto max-w-5xl px-6 text-center">
+          {/* 下の本文・セクション群(max-w-5xl)と同じ幅のコンテナに広げた上で、
+              word-break: keep-all + wbrで「一人法人を、」/「FIREの選択肢に。」の
+              意味の区切りでのみ改行させる(幅に余裕があれば1行に収まる)。 */}
+          <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold text-[#0F2A4A] leading-snug [word-break:keep-all]">
+            一人法人を、<wbr />FIREの選択肢に。
           </h1>
           <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed">
             これから法人化を考える人にも、すでに一人法人を運営している人にも。
@@ -45,7 +48,7 @@ export default function HitoriHojinLandingPage() {
 
       {/* Intro */}
       <section className="py-12">
-        <div className="mx-auto max-w-3xl px-6 text-sm md:text-base text-slate-700 leading-relaxed space-y-4">
+        <div className="mx-auto max-w-5xl px-6 text-sm md:text-base text-slate-700 leading-relaxed space-y-4">
           <p>
             FIREというと、「完全に働くのをやめること」だけをイメージしがちです。でも、完全リタイアと会社員の間には、仕事を続けながら働き方や収入の持ち方を変え、資産形成を続けるという選択肢もあります。その選択肢の一つとして、一人法人があります。
           </p>
@@ -55,46 +58,46 @@ export default function HitoriHojinLandingPage() {
         </div>
       </section>
 
-      {/* 一人法人を知る */}
-      <HitoriHojinContentSection
-        title={HITORI_HOJIN_CATEGORIES.knowledge.label}
-        subtitle={HITORI_HOJIN_CATEGORIES.knowledge.subtitle}
-        items={knowledgePosts}
-      />
+      {/* 「一人法人を知る」「一人法人を考える」をまとめて薄いグレー背景で囲む
+          （資産シミュレーター側の白/グレー切り替え構成に合わせる）。 */}
+      <div className="bg-slate-50">
+        {/* 一人法人を知る */}
+        <HitoriHojinContentSection
+          title={HITORI_HOJIN_CATEGORIES.knowledge.label}
+          subtitle={HITORI_HOJIN_CATEGORIES.knowledge.subtitle}
+          items={knowledgePosts}
+        />
 
-      {/* 一人法人を考える */}
-      <HitoriHojinContentSection
-        title={HITORI_HOJIN_CATEGORIES.consider.label}
-        subtitle={HITORI_HOJIN_CATEGORIES.consider.subtitle}
-        items={considerPosts}
-        footerLink={{ label: '①から順番に読みたい方はこちら', href: `${HITORI_HOJIN_SITE_URL}/blog?series=${SERIES}` }}
-      />
+        {/* 一人法人を考える */}
+        <HitoriHojinContentSection
+          title={HITORI_HOJIN_CATEGORIES.consider.label}
+          subtitle={HITORI_HOJIN_CATEGORIES.consider.subtitle}
+          items={considerPosts}
+          footerLink={{ label: 'すべての記事を見る', href: `${HITORI_HOJIN_SITE_URL}/blog` }}
+        />
+      </div>
 
       {/* 管理する（法人資産管理ツールPhase1への導線）。計算する（CompanyState実装待ち）は
           引き続き非表示のままにする。 */}
       <HitoriHojinManageSection />
 
-      {/* ブログ一覧への導線 */}
-      <section className="py-12 text-center">
-        <a href={`${HITORI_HOJIN_SITE_URL}/blog`} className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
-          すべての記事を見る →
-        </a>
-      </section>
-
-      {/* FIRE資産シミュレーターへのCTA */}
-      <section className="py-12">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="bg-[#EFF6FF] border border-blue-100 rounded-xl p-8 text-center">
-            <p className="text-sm text-slate-600 leading-relaxed mb-6">
-              一人法人を考える前に、まずは自分の必要資産額を確認してみてください。一人法人はFIREを実現するための選択肢の一つです。
-            </p>
-            <Link
-              href="/?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp"
-              className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              資産シミュレーターで試算する →
-            </Link>
-          </div>
+      {/* FIRE資産シミュレーターへのCTA。資産シミュレーター側の最終CTAセクション（「まず、
+          自分の数字を入れてみる。」）と同じく、角丸・枠線付きの箱ではなく画面幅いっぱいの
+          背景帯にし、コンテンツのみ中央寄せ・幅を制限する。-mb-16はFooter.tsxのmt-16
+          (margin-top: 4rem)を打ち消すための負のマージン（asset-simulator側page.tsxの
+          CTAセクションと同じ理由。bodyがflex flex-colのためmain/footer間のmarginは
+          相殺されず、Footerのmt-16がそのまま本セクション背景色の外側の白い隙間になる）。 */}
+      <section className="bg-slate-50 py-16 -mb-16">
+        <div className="mx-auto max-w-3xl px-6 text-center">
+          <p className="text-sm text-slate-600 leading-relaxed mb-6">
+            一人法人を考える前に、まずは自分の必要資産額を確認してみてください。一人法人はFIREを実現するための選択肢の一つです。
+          </p>
+          <Link
+            href="/?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp"
+            className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            資産シミュレーターで試算する →
+          </Link>
         </div>
       </section>
     </main>
