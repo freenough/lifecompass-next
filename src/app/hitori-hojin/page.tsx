@@ -81,20 +81,23 @@ export default function HitoriHojinLandingPage() {
           引き続き非表示のままにする。 */}
       <HitoriHojinManageSection />
 
-      {/* FIRE資産シミュレーターへのCTA */}
-      <section className="py-12">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
-            <p className="text-sm text-slate-600 leading-relaxed mb-6">
-              一人法人を考える前に、まずは自分の必要資産額を確認してみてください。一人法人はFIREを実現するための選択肢の一つです。
-            </p>
-            <Link
-              href="/?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp"
-              className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              資産シミュレーターで試算する →
-            </Link>
-          </div>
+      {/* FIRE資産シミュレーターへのCTA。資産シミュレーター側の最終CTAセクション（「まず、
+          自分の数字を入れてみる。」）と同じく、角丸・枠線付きの箱ではなく画面幅いっぱいの
+          背景帯にし、コンテンツのみ中央寄せ・幅を制限する。-mb-16はFooter.tsxのmt-16
+          (margin-top: 4rem)を打ち消すための負のマージン（asset-simulator側page.tsxの
+          CTAセクションと同じ理由。bodyがflex flex-colのためmain/footer間のmarginは
+          相殺されず、Footerのmt-16がそのまま本セクション背景色の外側の白い隙間になる）。 */}
+      <section className="bg-slate-50 py-16 -mb-16">
+        <div className="mx-auto max-w-3xl px-6 text-center">
+          <p className="text-sm text-slate-600 leading-relaxed mb-6">
+            一人法人を考える前に、まずは自分の必要資産額を確認してみてください。一人法人はFIREを実現するための選択肢の一つです。
+          </p>
+          <Link
+            href="/?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp"
+            className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            資産シミュレーターで試算する →
+          </Link>
         </div>
       </section>
     </main>
