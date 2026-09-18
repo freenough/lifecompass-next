@@ -33,7 +33,7 @@ export default function HitoriHojinLandingPage() {
       {/* Hero */}
       <section className="py-16 bg-[#EFF6FF]">
         <div className="mx-auto max-w-3xl px-6 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#0F2A4A] leading-snug">
+          <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold text-[#0F2A4A] leading-snug">
             一人法人を、FIREの選択肢に。
           </h1>
           <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed">
@@ -67,19 +67,12 @@ export default function HitoriHojinLandingPage() {
         title={HITORI_HOJIN_CATEGORIES.consider.label}
         subtitle={HITORI_HOJIN_CATEGORIES.consider.subtitle}
         items={considerPosts}
-        footerLink={{ label: '①から順番に読みたい方はこちら', href: `${HITORI_HOJIN_SITE_URL}/blog?series=${SERIES}` }}
+        footerLink={{ label: 'すべての記事を見る', href: `${HITORI_HOJIN_SITE_URL}/blog` }}
       />
 
       {/* 管理する（法人資産管理ツールPhase1への導線）。計算する（CompanyState実装待ち）は
           引き続き非表示のままにする。 */}
       <HitoriHojinManageSection />
-
-      {/* ブログ一覧への導線 */}
-      <section className="py-12 text-center">
-        <a href={`${HITORI_HOJIN_SITE_URL}/blog`} className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
-          すべての記事を見る →
-        </a>
-      </section>
 
       {/* FIRE資産シミュレーターへのCTA */}
       <section className="py-12">

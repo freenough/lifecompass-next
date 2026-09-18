@@ -56,7 +56,7 @@ export default function Header() {
   const logoContent = (
     <>
       <Image src={withBasePath('/images/compass_logo.png')} alt="" width={28} height={28} className="shrink-0" />
-      資産シミュレーター
+      {isHitoriHojin ? '一人法人' : '資産シミュレーター'}
     </>
   );
   const logoClassName = 'flex items-center gap-2 text-base sm:text-lg font-bold text-slate-800 tracking-tight';
