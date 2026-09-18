@@ -39,7 +39,7 @@ export default function HitoriHojinLandingPage() {
           <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold text-[#0F2A4A] leading-snug [word-break:keep-all]">
             一人法人を、<wbr />FIREの選択肢に。
           </h1>
-          <p className="mt-4 max-w-3xl mx-auto text-sm md:text-base text-slate-600 leading-relaxed">
+          <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed">
             これから法人化を考える人にも、すでに一人法人を運営している人にも。
             税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。
           </p>
@@ -48,7 +48,7 @@ export default function HitoriHojinLandingPage() {
 
       {/* Intro */}
       <section className="py-12">
-        <div className="mx-auto max-w-3xl px-6 text-sm md:text-base text-slate-700 leading-relaxed space-y-4">
+        <div className="mx-auto max-w-5xl px-6 text-sm md:text-base text-slate-700 leading-relaxed space-y-4">
           <p>
             FIREというと、「完全に働くのをやめること」だけをイメージしがちです。でも、完全リタイアと会社員の間には、仕事を続けながら働き方や収入の持ち方を変え、資産形成を続けるという選択肢もあります。その選択肢の一つとして、一人法人があります。
           </p>
@@ -58,20 +58,24 @@ export default function HitoriHojinLandingPage() {
         </div>
       </section>
 
-      {/* 一人法人を知る */}
-      <HitoriHojinContentSection
-        title={HITORI_HOJIN_CATEGORIES.knowledge.label}
-        subtitle={HITORI_HOJIN_CATEGORIES.knowledge.subtitle}
-        items={knowledgePosts}
-      />
+      {/* 「一人法人を知る」「一人法人を考える」をまとめて薄いグレー背景で囲む
+          （資産シミュレーター側の白/グレー切り替え構成に合わせる）。 */}
+      <div className="bg-slate-50">
+        {/* 一人法人を知る */}
+        <HitoriHojinContentSection
+          title={HITORI_HOJIN_CATEGORIES.knowledge.label}
+          subtitle={HITORI_HOJIN_CATEGORIES.knowledge.subtitle}
+          items={knowledgePosts}
+        />
 
-      {/* 一人法人を考える */}
-      <HitoriHojinContentSection
-        title={HITORI_HOJIN_CATEGORIES.consider.label}
-        subtitle={HITORI_HOJIN_CATEGORIES.consider.subtitle}
-        items={considerPosts}
-        footerLink={{ label: 'すべての記事を見る', href: `${HITORI_HOJIN_SITE_URL}/blog` }}
-      />
+        {/* 一人法人を考える */}
+        <HitoriHojinContentSection
+          title={HITORI_HOJIN_CATEGORIES.consider.label}
+          subtitle={HITORI_HOJIN_CATEGORIES.consider.subtitle}
+          items={considerPosts}
+          footerLink={{ label: 'すべての記事を見る', href: `${HITORI_HOJIN_SITE_URL}/blog` }}
+        />
+      </div>
 
       {/* 管理する（法人資産管理ツールPhase1への導線）。計算する（CompanyState実装待ち）は
           引き続き非表示のままにする。 */}
@@ -80,7 +84,7 @@ export default function HitoriHojinLandingPage() {
       {/* FIRE資産シミュレーターへのCTA */}
       <section className="py-12">
         <div className="mx-auto max-w-3xl px-6">
-          <div className="bg-[#EFF6FF] border border-blue-100 rounded-xl p-8 text-center">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
             <p className="text-sm text-slate-600 leading-relaxed mb-6">
               一人法人を考える前に、まずは自分の必要資産額を確認してみてください。一人法人はFIREを実現するための選択肢の一つです。
             </p>
