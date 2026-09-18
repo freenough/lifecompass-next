@@ -32,11 +32,14 @@ export default function HitoriHojinLandingPage() {
     <main>
       {/* Hero */}
       <section className="py-16 bg-[#EFF6FF]">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold text-[#0F2A4A] leading-snug">
-            一人法人を、FIREの選択肢に。
+        <div className="mx-auto max-w-5xl px-6 text-center">
+          {/* 下の本文・セクション群(max-w-5xl)と同じ幅のコンテナに広げた上で、
+              word-break: keep-all + wbrで「一人法人を、」/「FIREの選択肢に。」の
+              意味の区切りでのみ改行させる(幅に余裕があれば1行に収まる)。 */}
+          <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold text-[#0F2A4A] leading-snug [word-break:keep-all]">
+            一人法人を、<wbr />FIREの選択肢に。
           </h1>
-          <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed">
+          <p className="mt-4 max-w-3xl mx-auto text-sm md:text-base text-slate-600 leading-relaxed">
             これから法人化を考える人にも、すでに一人法人を運営している人にも。
             税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。
           </p>
