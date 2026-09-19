@@ -22,6 +22,7 @@ import type { Icon } from '@tabler/icons-react';
 import { getFeaturedPosts } from '@/lib/blog';
 import ConcernBlockLP from '@/components/concerns/ConcernBlockLP';
 import AssetManagementPromoSection from '@/components/lp/AssetManagementPromoSection';
+import SectionHeading from '@/components/layout/SectionHeading';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
@@ -151,7 +152,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/app"
-              className="mt-12 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
+              className="mt-12 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
               style={{ backgroundColor: '#334155' }}
             >
               今すぐシミュレーションする →
@@ -195,19 +196,18 @@ export default function HomePage() {
       {/* ③.5 FIREガイド */}
       <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-900">FIREガイド</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              シミュレーターをより活用するための解説記事を公開しています
-            </p>
-          </div>
+          <SectionHeading
+            label="FIREガイド"
+            heading="FIREガイド"
+            body="シミュレーターをより活用するための解説記事を公開しています"
+          />
 
           <div className="grid gap-5 sm:grid-cols-2">
             {featuredPosts.map((post) => (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="rounded-xl border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
+                className="rounded border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
               >
                 {/* サムネイル: 固定幅190px・3:2比率固定（高さに追従させない）。
                     stretchにするとタイトルが増えた分だけサムネ幅も伸びてテキストエリアを
@@ -246,23 +246,22 @@ export default function HomePage() {
       {/* ③.6 かんたん計算ツール */}
       <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-900">かんたん計算ツール</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              シミュレーターの前に、気になる数字だけサクッと試せます
-            </p>
-          </div>
+          <SectionHeading
+            label="ツール"
+            heading="かんたん計算ツール"
+            body="シミュレーターの前に、気になる数字だけサクッと試せます"
+          />
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-x-6 lg:grid-cols-4 lg:gap-x-8">
             {lpTools.map((tool) => (
               <Link
                 key={tool.href}
                 href={tool.href}
-                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
+                className="border-y border-slate-200 rounded-none p-6 hover:bg-white transition-colors"
               >
                 <tool.Icon size={32} className="text-slate-600 mb-3" />
                 <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
-                <p className="mt-2 text-sm text-slate-500 leading-relaxed">{tool.body}</p>
+                <p className="mt-2 text-xs lg:text-sm text-slate-500 leading-relaxed">{tool.body}</p>
               </Link>
             ))}
           </div>
@@ -281,9 +280,11 @@ export default function HomePage() {
       {/* ④ あなたはどのタイプ？ */}
       <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
-            あなたはどのタイプ？
-          </h2>
+          <SectionHeading
+            label="ケーススタディ"
+            heading="あなたはどのタイプ？"
+            body="年齢や家族構成が近いケースのシミュレーション結果を、参考として確認できます"
+          />
           <div className="grid gap-5 sm:grid-cols-2">
             {characters.map((c) => {
               const cardInner = (
@@ -320,14 +321,14 @@ export default function HomePage() {
                   href={c.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-slate-300 transition-all"
+                  className="rounded border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-slate-300 transition-all"
                 >
                   {cardInner}
                 </a>
               ) : (
                 <div
                   key={c.name}
-                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 cursor-default"
+                  className="rounded border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 cursor-default"
                 >
                   {cardInner}
                 </div>
@@ -379,7 +380,7 @@ export default function HomePage() {
           <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
           <Link
             href="/app"
-            className="mt-8 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
+            className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
             style={{ backgroundColor: '#334155' }}
           >
             シミュレーターを開く →

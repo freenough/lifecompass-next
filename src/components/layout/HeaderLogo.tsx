@@ -15,15 +15,18 @@ export default function HeaderLogo({ isHitoriHojin, className, onClick }: Header
   // instruction_header_logo_underline_accent.md: FREENOUGH TOP側(freenough-main/
   // app/components/Header.tsx)の「2つ目のE」に緑下線を入れる実装をそのまま踏襲
   // （underline decoration-2 underline-offset-4 decoration-[#3F9C6D]）。
+  {/* instruction_asset_simulator_lp_polish.md 3節: FREENOUGHとセクション名の主従関係を明確にする。
+      親要素のレスポンシブ指定(Header.tsxのlogoClassName)をそのまま継承できるよう、
+      絶対サイズではなくem指定で拡大/縮小する(比率1.2/0.8=1.5倍)。 */}
   const content = (
     <>
-      <span className="font-extrabold">
+      <span className="text-[1.2em] font-extrabold">
         FRE
         <span className="underline decoration-2 underline-offset-4 decoration-[#3F9C6D]">E</span>
         NOUGH
       </span>
       <span className="mx-1.5 font-normal text-slate-300" aria-hidden="true">｜</span>
-      <span className="font-medium">{sectionLabel}</span>
+      <span className="text-[0.8em] font-medium text-slate-500">{sectionLabel}</span>
     </>
   );
 
