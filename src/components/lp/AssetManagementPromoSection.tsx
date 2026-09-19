@@ -37,7 +37,7 @@ export default function AssetManagementPromoSection() {
 
             {/* 左：テキスト＋CTA */}
             <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
-              <h2 className="text-[2rem] sm:text-4xl font-bold text-slate-900 text-balance">
+              <h2 className="text-[1.75rem] sm:text-4xl font-bold text-slate-900 text-balance">
                 毎月の資産を、記録する。
               </h2>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">

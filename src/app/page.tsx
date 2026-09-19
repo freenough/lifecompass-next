@@ -338,7 +338,7 @@ export default function HomePage() {
       {/* ⑤ 使い方（3ステップ） */}
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
-          <h2 className="text-[2rem] sm:text-4xl font-bold text-slate-900 text-center mb-12">使い方</h2>
+          <h2 className="text-[1.75rem] sm:text-4xl font-bold text-slate-900 text-center mb-12">使い方</h2>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
             {steps.map((s) => (
               <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
@@ -362,7 +362,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-xl px-6 text-center">
           {/* instruction_asset_simulator_lp_polish_addendum4.md 修正1: 自動折り返しに任せず、
               幅に関わらず常に2行(「まず、自分の数字を」/「入れてみる。」)で表示する */}
-          <h2 className="text-[2rem] sm:text-4xl font-bold text-slate-900">
+          <h2 className="text-[1.75rem] sm:text-4xl font-bold text-slate-900">
             まず、自分の数字を<br />入れてみる。
           </h2>
           <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
