@@ -200,6 +200,8 @@ export default function HomePage() {
             label="FIREガイド"
             heading="FIREガイド"
             body="シミュレーターをより活用するための解説記事を公開しています"
+            linkHref="/blog"
+            linkLabel="記事一覧を見る→"
           />
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -235,11 +237,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="mt-10 text-center">
-            <Link href="/blog" className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
-              記事一覧を見る →
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -250,6 +247,8 @@ export default function HomePage() {
             label="ツール"
             heading="かんたん計算ツール"
             body="シミュレーターの前に、気になる数字だけサクッと試せます"
+            linkHref="/tools"
+            linkLabel="ツール一覧を見る→"
           />
 
           <div className="grid grid-cols-2 gap-x-6 lg:grid-cols-4 lg:gap-x-8">
@@ -266,11 +265,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="mt-10 text-center">
-            <Link href="/tools" className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
-              ツール一覧を見る →
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -284,6 +278,9 @@ export default function HomePage() {
             label="ケーススタディ"
             heading="あなたはどのタイプ？"
             body="年齢や家族構成が近いケースのシミュレーション結果を、参考として確認できます"
+            linkHref="https://note.com/freenough"
+            linkLabel="NOTEを見る→"
+            linkExternal
           />
           <div className="grid gap-5 sm:grid-cols-2">
             {characters.map((c) => {
@@ -335,24 +332,13 @@ export default function HomePage() {
               );
             })}
           </div>
-          <div className="mt-10 text-center">
-            <a
-              href="https://note.com/freenough"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-semibold hover:underline"
-              style={{ color: '#334155' }}
-            >
-              それぞれのシミュレーション結果をnoteで読む →
-            </a>
-          </div>
         </div>
       </section>
 
       {/* ⑤ 使い方（3ステップ） */}
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
+          <h2 className="text-4xl font-bold text-slate-900 text-center mb-12">使い方</h2>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
             {steps.map((s) => (
               <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
@@ -374,7 +360,7 @@ export default function HomePage() {
           Footer.tsx側は変更対象外のため、直前要素のマージンで打ち消す形で対応している。 */}
       <section className="bg-slate-50 py-20 -mb-16">
         <div className="mx-auto max-w-xl px-6 text-center">
-          <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
+          <h2 className="text-4xl font-bold text-slate-900 text-balance">
             まず、自分の数字を入れてみる。
           </h2>
           <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
