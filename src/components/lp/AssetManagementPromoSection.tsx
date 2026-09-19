@@ -55,7 +55,7 @@ export default function AssetManagementPromoSection() {
 
               <Link
                 href={ASSET_MANAGEMENT_PATH}
-                className="mt-8 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
+                className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
                 style={{ backgroundColor: '#334155' }}
               >
                 資産管理ツールを開く →
