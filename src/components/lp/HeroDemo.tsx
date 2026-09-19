@@ -181,7 +181,7 @@ export default function HeroDemo() {
   const yTicks = [0, Math.round(yMax / 2), yMax];
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 px-6 pt-6 pb-3 w-full">
+    <div className="bg-white rounded shadow-2xl border border-slate-200 px-6 pt-6 pb-3 w-full">
 
       {/* KPI ブロック — シミュレーター実機と同じ白背景+状態色カード・フェードイン */}
       <div className="grid grid-cols-3 gap-2">

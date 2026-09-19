@@ -32,12 +32,12 @@ export default function AssetManagementPromoSection() {
   return (
     <section className="py-12">
       <div className="mx-auto max-w-5xl px-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-8 sm:p-10">
+        <div className="rounded border border-slate-200 bg-white p-8 sm:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center gap-10">
 
             {/* 左：テキスト＋CTA */}
             <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
-              <h2 className="text-2xl font-bold text-slate-900 text-balance">
+              <h2 className="text-4xl font-bold text-slate-900 text-balance">
                 毎月の資産を、記録する。
               </h2>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
@@ -65,7 +65,7 @@ export default function AssetManagementPromoSection() {
 
             {/* 右：ミニダッシュボード（イラスト風の静的モック） */}
             <div className="w-full lg:w-[340px] lg:shrink-0">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+              <div className="rounded border border-slate-200 bg-slate-50 p-6">
                 <p className="text-xs font-semibold text-slate-500 mb-4">資産の内訳</p>
 
                 <div className="flex items-center justify-center mb-4">

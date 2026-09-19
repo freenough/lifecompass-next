@@ -11,8 +11,8 @@ import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 // （URLクリーンURル化・ヘッダー実装時に発生した既知の不具合と同一原理）。
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-slate-200 bg-slate-50 pt-8 pb-6 text-xs text-slate-500 sm:pt-10 sm:pb-8 sm:text-sm">
-      <div className="mx-auto max-w-7xl px-4">
+    <footer className="mt-16 border-t border-slate-200 bg-slate-50 pt-8 text-xs text-slate-500 sm:pt-10 sm:text-sm">
+      <div className="mx-auto max-w-7xl px-4 pb-6 sm:pb-8">
         {/* ①2カラムのコンテンツ列。モバイルでも2カラムのまま、フォント・余白のみ圧縮する
             （instruction_freenough_footer_unification.md モバイルA案：アコーディオン化はしない）。
             grid-cols-2だとコンテナ幅(max-w-7xl)いっぱいに列が引き伸ばされ、②③の
@@ -57,11 +57,16 @@ export default function Footer() {
           <Link href="/disclaimer" className="hover:text-slate-700">免責事項</Link>
           <Link href="/about" className="hover:text-slate-700">運営者情報</Link>
         </nav>
+      </div>
 
-        {/* ④コピーライト */}
-        <div className="flex flex-col items-center gap-1.5 pt-4 text-center sm:gap-2 sm:pt-6">
-          <p>© {new Date().getFullYear()} FREENOUGH</p>
-          <p className="text-[11px] text-slate-400 sm:text-xs">本サービスは情報提供を目的としており、投資助言ではありません。</p>
+      {/* ④コピーライト: instruction_asset_simulator_lp_polish.md 6節。
+          CTAボタンと同じ濃紺(bg-accent, #334155)の全幅バンドとして最下部を締める
+          （キオミル社フッターと同型）。footer自体のpb-*を上のコンテナ側に移し、
+          このバンドがfooter要素の一番下端まで達するようにしている。 */}
+      <div className="bg-accent">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-1.5 px-4 py-4 text-center sm:gap-2 sm:py-6">
+          <p className="text-white">© {new Date().getFullYear()} FREENOUGH</p>
+          <p className="text-[11px] text-slate-300 sm:text-xs">本サービスは情報提供を目的としており、投資助言ではありません。</p>
         </div>
       </div>
     </footer>

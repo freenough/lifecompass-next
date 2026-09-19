@@ -22,6 +22,7 @@ import type { Icon } from '@tabler/icons-react';
 import { getFeaturedPosts } from '@/lib/blog';
 import ConcernBlockLP from '@/components/concerns/ConcernBlockLP';
 import AssetManagementPromoSection from '@/components/lp/AssetManagementPromoSection';
+import SectionHeading from '@/components/layout/SectionHeading';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
@@ -151,7 +152,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/app"
-              className="mt-12 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
+              className="mt-12 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
               style={{ backgroundColor: '#334155' }}
             >
               今すぐシミュレーションする →
@@ -195,19 +196,20 @@ export default function HomePage() {
       {/* ③.5 FIREガイド */}
       <section className="py-12">
         <div className="mx-auto max-w-5xl px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-900">FIREガイド</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              シミュレーターをより活用するための解説記事を公開しています
-            </p>
-          </div>
+          <SectionHeading
+            label="FIREガイド"
+            heading="FIREガイド"
+            body="シミュレーターをより活用するための解説記事を公開しています"
+            linkHref="/blog"
+            linkLabel="記事一覧を見る→"
+          />
 
           <div className="grid gap-5 sm:grid-cols-2">
             {featuredPosts.map((post) => (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="rounded-xl border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
+                className="rounded border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
               >
                 {/* サムネイル: 固定幅190px・3:2比率固定（高さに追従させない）。
                     stretchにするとタイトルが増えた分だけサムネ幅も伸びてテキストエリアを
@@ -235,43 +237,34 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="mt-10 text-center">
-            <Link href="/blog" className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
-              記事一覧を見る →
-            </Link>
-          </div>
         </div>
       </section>
 
       {/* ③.6 かんたん計算ツール */}
       <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-900">かんたん計算ツール</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              シミュレーターの前に、気になる数字だけサクッと試せます
-            </p>
-          </div>
+          <SectionHeading
+            label="ツール"
+            heading="かんたん計算ツール"
+            body="シミュレーターの前に、気になる数字だけサクッと試せます"
+            linkHref="/tools"
+            linkLabel="ツール一覧を見る→"
+          />
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-x-6 lg:grid-cols-4 lg:gap-x-8">
             {lpTools.map((tool) => (
               <Link
                 key={tool.href}
                 href={tool.href}
-                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
+                className="border-y border-slate-200 rounded-none p-6 hover:bg-white transition-colors"
               >
                 <tool.Icon size={32} className="text-slate-600 mb-3" />
                 <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
-                <p className="mt-2 text-sm text-slate-500 leading-relaxed">{tool.body}</p>
+                <p className="mt-2 text-xs lg:text-sm text-slate-500 leading-relaxed">{tool.body}</p>
               </Link>
             ))}
           </div>
 
-          <div className="mt-10 text-center">
-            <Link href="/tools" className="text-sm font-semibold hover:underline" style={{ color: '#334155' }}>
-              ツール一覧を見る →
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -281,9 +274,14 @@ export default function HomePage() {
       {/* ④ あなたはどのタイプ？ */}
       <section className="bg-slate-50 py-12">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">
-            あなたはどのタイプ？
-          </h2>
+          <SectionHeading
+            label="ケーススタディ"
+            heading="あなたはどのタイプ？"
+            body="年齢や家族構成が近いケースのシミュレーション結果を、参考として確認できます"
+            linkHref="https://note.com/freenough"
+            linkLabel="NOTEを見る→"
+            linkExternal
+          />
           <div className="grid gap-5 sm:grid-cols-2">
             {characters.map((c) => {
               const cardInner = (
@@ -320,30 +318,19 @@ export default function HomePage() {
                   href={c.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-slate-300 transition-all"
+                  className="rounded border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-slate-300 transition-all"
                 >
                   {cardInner}
                 </a>
               ) : (
                 <div
                   key={c.name}
-                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 cursor-default"
+                  className="rounded border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 cursor-default"
                 >
                   {cardInner}
                 </div>
               );
             })}
-          </div>
-          <div className="mt-10 text-center">
-            <a
-              href="https://note.com/freenough"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-semibold hover:underline"
-              style={{ color: '#334155' }}
-            >
-              それぞれのシミュレーション結果をnoteで読む →
-            </a>
           </div>
         </div>
       </section>
@@ -351,7 +338,7 @@ export default function HomePage() {
       {/* ⑤ 使い方（3ステップ） */}
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">使い方</h2>
+          <h2 className="text-4xl font-bold text-slate-900 text-center mb-12">使い方</h2>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
             {steps.map((s) => (
               <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
@@ -373,13 +360,13 @@ export default function HomePage() {
           Footer.tsx側は変更対象外のため、直前要素のマージンで打ち消す形で対応している。 */}
       <section className="bg-slate-50 py-20 -mb-16">
         <div className="mx-auto max-w-xl px-6 text-center">
-          <h2 className="text-xl font-bold text-slate-900 text-balance sm:text-2xl">
+          <h2 className="text-[clamp(1.35rem,4.8vw,2.25rem)] font-bold text-slate-900 text-balance">
             まず、自分の数字を入れてみる。
           </h2>
           <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
           <Link
             href="/app"
-            className="mt-8 inline-block rounded-lg px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
+            className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
             style={{ backgroundColor: '#334155' }}
           >
             シミュレーターを開く →
