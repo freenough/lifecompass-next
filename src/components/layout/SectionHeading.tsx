@@ -18,6 +18,9 @@ interface SectionHeadingProps {
 // Heroとの比率連動をやめ、モバイル32px/sm以上36pxの2段階固定に変更する
 // (現状比で約1.5倍・目安28〜32pxの範囲に収める)。
 //
+// instruction_asset_simulator_lp_polish_addendum5.md 修正1: 上記32pxは実機(iPhone SE幅)で
+// 見ると大きすぎたため、28px(現状比87.5%)に縮小する。sm以上の36pxは変更なし。
+//
 // instruction_asset_simulator_lp_polish_addendum3.md 修正1: 「○○一覧を見る→」リンクは
 // 見出し本体の行ではなく、ラベル行(線+ラベル)と同じ行に右寄せ配置する(justify-between)。
 // 見出し本体・補足文は全幅の別行になるため、見出しの文字数がリンクの位置に影響しない
@@ -42,7 +45,7 @@ export default function SectionHeading({ label, heading, body, linkHref, linkLab
           </Link>
         )}
       </div>
-      <h2 className="text-[2rem] sm:text-4xl font-bold text-slate-900">{heading}</h2>
+      <h2 className="text-[1.75rem] sm:text-4xl font-bold text-slate-900">{heading}</h2>
       {body && <p className="mt-3 text-sm text-slate-500 leading-relaxed">{body}</p>}
     </div>
   );
