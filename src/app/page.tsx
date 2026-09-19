@@ -360,7 +360,7 @@ export default function HomePage() {
           Footer.tsx側は変更対象外のため、直前要素のマージンで打ち消す形で対応している。 */}
       <section className="bg-slate-50 py-20 -mb-16">
         <div className="mx-auto max-w-xl px-6 text-center">
-          <h2 className="text-4xl font-bold text-slate-900 text-balance">
+          <h2 className="text-[clamp(1.35rem,4.8vw,2.25rem)] font-bold text-slate-900 text-balance">
             まず、自分の数字を入れてみる。
           </h2>
           <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
