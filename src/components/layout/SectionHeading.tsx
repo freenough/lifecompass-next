@@ -13,9 +13,10 @@ interface SectionHeadingProps {
 // instruction_asset_simulator_lp_polish_addendum2.md 修正1: 線とラベルは
 // 同一のflex行の直接の子として横並びにする(別々のブロック要素にしない)。
 //
-// instruction_asset_simulator_lp_polish_addendum2.md 修正2: 見出し本体のモバイル縮小率は、
-// Hero見出し(page.tsxのh1、clamp(2.25rem,8vw,3.75rem))の実測縮小率(36px/60px=60%)と
-// 同じ比率・同じvw係数(閾値幅450px/750pxを維持)で追随させる。
+// instruction_asset_simulator_lp_polish_addendum4.md 修正2: Hero見出しの縮小率に合わせた
+// モバイルサイズ(21.6px)は本文(14px)との差が小さくセクション区切りとして機能しにくかったため、
+// Heroとの比率連動をやめ、モバイル32px/sm以上36pxの2段階固定に変更する
+// (現状比で約1.5倍・目安28〜32pxの範囲に収める)。
 //
 // instruction_asset_simulator_lp_polish_addendum3.md 修正1: 「○○一覧を見る→」リンクは
 // 見出し本体の行ではなく、ラベル行(線+ラベル)と同じ行に右寄せ配置する(justify-between)。
@@ -41,7 +42,7 @@ export default function SectionHeading({ label, heading, body, linkHref, linkLab
           </Link>
         )}
       </div>
-      <h2 className="text-[clamp(1.35rem,4.8vw,2.25rem)] font-bold text-slate-900">{heading}</h2>
+      <h2 className="text-[2rem] sm:text-4xl font-bold text-slate-900">{heading}</h2>
       {body && <p className="mt-3 text-sm text-slate-500 leading-relaxed">{body}</p>}
     </div>
   );
