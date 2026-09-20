@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { HitoriHojinBlogPostMeta } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 
@@ -9,11 +10,12 @@ export default function HitoriHojinArticleCard({ post }: { post: HitoriHojinBlog
     >
       <div className="relative w-[190px] aspect-[3/2] shrink-0 self-center overflow-hidden bg-slate-100">
         {post.eyecatch && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={post.eyecatch}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            sizes="190px"
+            className="object-cover"
           />
         )}
       </div>

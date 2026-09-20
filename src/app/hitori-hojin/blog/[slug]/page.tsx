@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getAllHitoriHojinPosts, getHitoriHojinPostBySlug } from '@/lib/hitoriHojinBlog';
@@ -53,9 +54,15 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
 
       {/* アイキャッチ画像 */}
       {post.eyecatch && (
-        <div className="mb-8 rounded-xl overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.eyecatch} alt={post.title} className="w-full object-cover" />
+        <div className="relative mb-8 aspect-[3/2] rounded-xl overflow-hidden">
+          <Image
+            src={post.eyecatch}
+            alt={post.title}
+            fill
+            priority
+            sizes="(min-width: 768px) 736px, 100vw"
+            className="object-cover"
+          />
         </div>
       )}
 

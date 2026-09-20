@@ -22,12 +22,15 @@ export const metadata: Metadata = {
   // 末尾スラッシュ必須: new URL()の相対パス解決はスラッシュなしだとbasePathの
   // 最後のセグメントを置き換えてしまい、basePathが消えたURLになる。
   metadataBase: new URL(`${SITE_URL}/`),
+  // OGP画像はsrc/app/api/og/route.tsx（next/ogによる動的生成・軽量）。
+  // opengraph-image.tsxのファイル規約を使わない理由はそのRoute Handlerのコメント参照
+  // （basePath二重化・openGraph側だけ自動解決が優先される問題の回避）。
   openGraph: {
-    images: [{ url: 'images/ogp.png', width: 1200, height: 630 }],
+    images: [{ url: `${SITE_URL}/api/og`, width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['images/ogp.png'],
+    images: [`${SITE_URL}/api/og`],
   },
 };
 

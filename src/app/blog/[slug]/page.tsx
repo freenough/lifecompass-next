@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/blog';
@@ -23,13 +24,15 @@ export async function generateMetadata({
       title: post.title,
       description: post.description,
       url: `${SITE_URL}/blog/${post.slug}`,
-      images: [{ url: 'images/ogp.png', width: 1200, height: 630 }],
+      // OGP画像はsrc/app/api/og/blog/[slug]/route.tsx（記事タイトルを動的描画）。
+      // opengraph-image.tsxのファイル規約を使わない理由はそのRoute Handlerのコメント参照。
+      images: [{ url: `${SITE_URL}/api/og/blog/${post.slug}`, width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.description,
-      images: ['images/ogp.png'],
+      images: [`${SITE_URL}/api/og/blog/${post.slug}`],
     },
     alternates: {
       canonical: `${SITE_URL}/blog/${post.slug}`,
@@ -57,11 +60,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       {/* アイキャッチ画像 */}
       {post.eyecatch && (
-        <div className="mb-8 rounded-xl overflow-hidden">
-          <img
+        <div className="relative mb-8 aspect-[3/2] rounded-xl overflow-hidden">
+          <Image
             src={post.eyecatch}
             alt={post.title}
-            className="w-full object-cover"
+            fill
+            priority
+            sizes="(min-width: 768px) 736px, 100vw"
+            className="object-cover"
           />
         </div>
       )}
