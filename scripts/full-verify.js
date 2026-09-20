@@ -874,3 +874,14 @@ console.log('\n' + '='.repeat(100));
 console.log('【資産構成内訳バー】verify-asset-composition-bar.js');
 console.log('='.repeat(100));
 require('./verify-asset-composition-bar.js');
+
+// ================================================================
+// FAQPage構造化データ抽出（remark ASTベース） src/lib/faqExtraction.ts
+// claude_instruction_faq_logo_implementation_v2.md の回帰テスト。extractFaqFromMarkdown()が
+// 動的import()を使い非同期のため、full-verify.js内の他のverify-*.jsとの出力の前後入れ替わりを
+// 避けるべく、requireチェーンの最後に置く（verify-faq-extraction.js冒頭のコメント参照）。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【FAQPage構造化データ抽出】verify-faq-extraction.js');
+console.log('='.repeat(100));
+require('./verify-faq-extraction.js');

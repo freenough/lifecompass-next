@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/blog';
+import { getAllPosts, getPostBySlug, getPostFaq, getRelatedPosts } from '@/lib/blog';
 import { ORGANIZATION_REF, SITE_URL } from '@/lib/siteConfig';
 import type { Metadata } from 'next';
 
@@ -46,6 +46,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post) notFound();
 
   const related = getRelatedPosts(post.slug, post.primaryTopic, post.topics);
+  const faq = await getPostFaq(post.slug);
 
   // 更新日を別管理する仕組みが現状ないため、dateModifiedはdatePublishedと意図的に同値にしている
   // （docs/fixes/active/claude_instruction_structured_data_implementation_v2.md セクションC）。
@@ -61,6 +62,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     author: ORGANIZATION_REF,
     publisher: ORGANIZATION_REF,
   };
+  const faqJsonLd =
+    faq.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faq.map((item) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: { '@type': 'Answer', text: item.answer },
+          })),
+        }
+      : null;
 
   return (
     <>
@@ -68,6 +81,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <main className="max-w-3xl mx-auto px-4 py-12">
       {/* パンくず */}
       <nav className="text-sm text-slate-400 mb-8 flex items-center gap-1">

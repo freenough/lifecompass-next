@@ -12,6 +12,7 @@ import { BASE_PATH, withBasePath } from '@/lib/siteConfig';
 import { getAffiliateLink } from '@/lib/affiliateLinks';
 import { BLOG_DESCRIPTION } from '@/lib/siteCopy';
 import type { ConcernStage } from '@/data/concerns';
+import { extractFaqFromMarkdown, type FaqItem } from '@/lib/faqExtraction';
 
 const POSTS_DIR = path.join(process.cwd(), 'src/content/blog');
 
@@ -232,6 +233,19 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     stages:      data.stages ?? [],
     content:     applyBasePathToHtml(processed.toString()),
   };
+}
+
+/**
+ * 記事本文の「よくある質問」セクションをFAQPage構造化データ用に抽出する（faqExtraction.ts参照）。
+ * 既存のgetPostBySlug()とは独立に生Markdownを再読込・再パースする(remarkHtml等のレンダリング用
+ * パイプラインは経由しない、bareなAST走査のみ)。
+ */
+export async function getPostFaq(slug: string): Promise<FaqItem[]> {
+  const filepath = path.join(POSTS_DIR, `${slug}.md`);
+  if (!fs.existsSync(filepath)) return [];
+  const raw = fs.readFileSync(filepath, 'utf-8');
+  const { content: markdown } = matter(raw);
+  return extractFaqFromMarkdown(markdown);
 }
 
 /**

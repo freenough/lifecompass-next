@@ -44,6 +44,10 @@ export const ORGANIZATION_SCHEMA = {
   '@type': 'Organization',
   name: 'freenough',
   url: 'https://www.freenough.com',
+  // freenough-mainがドメインルート(www.freenough.com)で配信する967×967pxのブランドロゴ。
+  // lifecompass-next自体はbasePath('/asset-simulator')配下にしか存在しないため、
+  // サイト共通のOrganization schemaにはfreenough-main側の絶対URLを使う。
+  logo: 'https://www.freenough.com/images/compass_logo.png',
   sameAs: ['https://x.com/freenough', 'https://note.com/freenough'],
 } as const;
 

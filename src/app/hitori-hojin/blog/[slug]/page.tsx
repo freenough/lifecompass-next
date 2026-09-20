@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getAllHitoriHojinPosts, getHitoriHojinPostBySlug } from '@/lib/hitoriHojinBlog';
+import { getAllHitoriHojinPosts, getHitoriHojinPostBySlug, getHitoriHojinPostFaq } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_CATEGORIES } from '@/lib/hitoriHojinCategories';
 import { HITORI_HOJIN_SITE_URL, ORGANIZATION_REF, SITE_URL } from '@/lib/siteConfig';
 
@@ -40,6 +40,7 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
   const { slug } = await params;
   const post = await getHitoriHojinPostBySlug(slug);
   if (!post) notFound();
+  const faq = await getHitoriHojinPostFaq(slug);
 
   // 更新日を別管理する仕組みが現状ないため、dateModifiedはdatePublishedと意図的に同値にしている
   // （docs/fixes/active/claude_instruction_structured_data_implementation_v2.md セクションC）。
@@ -56,6 +57,18 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
     author: ORGANIZATION_REF,
     publisher: ORGANIZATION_REF,
   };
+  const faqJsonLd =
+    faq.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faq.map((item) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: { '@type': 'Answer', text: item.answer },
+          })),
+        }
+      : null;
 
   return (
     <>
@@ -63,6 +76,12 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <main className="max-w-3xl mx-auto px-4 py-12">
       {/* パンくず */}
       <nav className="text-sm text-slate-400 mb-8 flex items-center gap-1">
