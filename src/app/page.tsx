@@ -19,9 +19,10 @@ import {
   IconClockDollar,
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
-import { getFeaturedPosts } from '@/lib/blog';
+import { getFeaturedPosts, getAllPosts } from '@/lib/blog';
 import ConcernBlockLP from '@/components/concerns/ConcernBlockLP';
 import AssetManagementPromoSection from '@/components/lp/AssetManagementPromoSection';
+import FireGuideCarousel from '@/components/lp/FireGuideCarousel';
 import SectionHeading from '@/components/layout/SectionHeading';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
@@ -119,7 +120,15 @@ const steps: { step: string; label: string; Icon: Icon }[] = [
 ];
 
 export default function HomePage() {
+  // FIREガイドセクション表示記事：既存4件（featured: true・priority順、blog.ts改修なし）
+  // ＋ それ以外の記事からdate降順で2件を追加し、計6件をカルーセルに渡す。
   const featuredPosts = getFeaturedPosts().slice(0, 4);
+  const featuredSlugs = new Set(featuredPosts.map((p) => p.slug));
+  const latestNonFeaturedPosts = getAllPosts()
+    .filter((post) => !featuredSlugs.has(post.slug))
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 2);
+  const guidePosts = [...featuredPosts, ...latestNonFeaturedPosts];
 
   return (
     <div className="flex flex-col">
@@ -204,38 +213,11 @@ export default function HomePage() {
             linkLabel="記事一覧を見る→"
           />
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            {featuredPosts.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="rounded border border-slate-200 bg-white shadow-sm flex overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
-              >
-                {/* サムネイル: 固定幅190px・3:2比率固定（高さに追従させない）。
-                    stretchにするとタイトルが増えた分だけサムネ幅も伸びてテキストエリアを
-                    圧迫し、さらに折り返しが増えて高さが伸びる…という悪循環が起きるため、
-                    意図的に固定サイズ+self-centerにしている。 */}
-                <div className="relative w-[190px] aspect-[3/2] shrink-0 self-center overflow-hidden bg-slate-100">
-                  {post.eyecatch && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={post.eyecatch}
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 p-[14px] flex flex-col gap-1">
-                  <h3 className="text-base font-semibold text-slate-900 leading-snug line-clamp-3">
-                    {post.title}
-                  </h3>
-                  <p className="text-xs text-slate-500">{post.excerpt}</p>
-                  {/* 「◯分で読む→」は表示しない（noteのタイプ診断カードとの統一感を優先。
-                      readingTimeフィールド自体は将来の用途のため残す） */}
-                </div>
-              </Link>
-            ))}
-          </div>
+          {/* 横スクロールカルーセル（CSS Scroll Snapのみ、ライブラリ不使用）。
+              矢印ボタン＋クリック&ドラッグスクロールはFireGuideCarousel（Client Component）側で
+              実装する。「◯分で読む→」は表示しない（noteのタイプ診断カードとの統一感を優先。
+              readingTimeフィールド自体は将来の用途のため残す） */}
+          <FireGuideCarousel posts={guidePosts} />
 
         </div>
       </section>
