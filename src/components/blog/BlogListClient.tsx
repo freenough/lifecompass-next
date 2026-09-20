@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { IconCheck } from '@tabler/icons-react';
 import type { BlogPostMeta } from '@/lib/blog';
@@ -109,11 +110,12 @@ export default function BlogListClient({ posts }: { posts: BlogPostMeta[] }) {
                 <article className="flex gap-3 border border-slate-200 rounded-xl p-3 hover:shadow-md transition-shadow">
                   <div className="relative w-[100px] sm:w-[120px] lg:w-[130px] aspect-[3/2] shrink-0 self-start overflow-hidden rounded-lg bg-slate-100">
                     {post.eyecatch && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={post.eyecatch}
                         alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
+                        fill
+                        sizes="(min-width: 1024px) 130px, (min-width: 640px) 120px, 100px"
+                        className="object-cover"
                       />
                     )}
                   </div>

@@ -25,14 +25,15 @@ export const STATIC_PATHS: { path: string; title: string }[] = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // 実際の更新日が分からない固定ページ・ツールページはlastModifiedを付けない
+  // (ビルド時刻由来の不正確な日付をGoogleに申告し続けるくらいなら省略する方針。
+  // docs/fixes/active/claude_instruction_image_sitemap_fix.md セクションC参照)
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map(({ path }) => ({
     url: `${SITE_URL}${path}`,
-    lastModified: new Date(),
   }));
 
   const toolEntries: MetadataRoute.Sitemap = PUBLISHED_TOOLS.map((tool) => ({
     url: `${SITE_URL}${tool.href}`,
-    lastModified: new Date(),
   }));
 
   const postEntries: MetadataRoute.Sitemap = getAllPosts().map((post) => ({
@@ -42,8 +43,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // hitori-hojin(一人法人)関連URL。既存ロジックには影響しない別変数として追加。
   const hitoriHojinEntries: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/hitori-hojin`, lastModified: new Date() },
-    { url: `${SITE_URL}/hitori-hojin/blog`, lastModified: new Date() },
+    { url: `${SITE_URL}/hitori-hojin` },
+    { url: `${SITE_URL}/hitori-hojin/blog` },
   ];
   const hitoriHojinPostEntries: MetadataRoute.Sitemap = getAllHitoriHojinPosts().map((post) => ({
     url: `${SITE_URL}/hitori-hojin/blog/${post.slug}`,
