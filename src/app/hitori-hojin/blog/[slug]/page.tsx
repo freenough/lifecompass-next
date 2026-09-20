@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getAllHitoriHojinPosts, getHitoriHojinPostBySlug } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_CATEGORIES } from '@/lib/hitoriHojinCategories';
-import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
+import { HITORI_HOJIN_SITE_URL, ORGANIZATION_REF, SITE_URL } from '@/lib/siteConfig';
 
 export async function generateStaticParams() {
   return getAllHitoriHojinPosts().map((post) => ({ slug: post.slug }));
@@ -41,8 +41,29 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
   const post = await getHitoriHojinPostBySlug(slug);
   if (!post) notFound();
 
+  // 更新日を別管理する仕組みが現状ないため、dateModifiedはdatePublishedと意図的に同値にしている
+  // （docs/fixes/active/claude_instruction_structured_data_implementation_v2.md セクションC）。
+  // imageは記事ごとのeyecatchが現状未設定のため、サイト共通のOGP画像URLをそのまま使う。
+  const datePublished = new Date(post.date).toISOString();
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.description,
+    image: `${SITE_URL}/api/og`,
+    datePublished,
+    dateModified: datePublished,
+    author: ORGANIZATION_REF,
+    publisher: ORGANIZATION_REF,
+  };
+
   return (
-    <main className="max-w-3xl mx-auto px-4 py-12">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <main className="max-w-3xl mx-auto px-4 py-12">
       {/* パンくず */}
       <nav className="text-sm text-slate-400 mb-8 flex items-center gap-1">
         <a href={HITORI_HOJIN_SITE_URL} className="hover:text-[#0F2A4A]">一人法人</a>
@@ -99,6 +120,7 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
           prose-blockquote:border-l-4 prose-blockquote:border-blue-300 prose-blockquote:text-slate-500"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
-    </main>
+      </main>
+    </>
   );
 }

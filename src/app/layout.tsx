@@ -4,7 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { SITE_URL } from '@/lib/siteConfig';
+import { ORGANIZATION_SCHEMA, SITE_URL } from '@/lib/siteConfig';
 import { UnsavedChangesProvider } from '@/lib/UnsavedChangesContext';
 
 // 旧HTML版から引き継ぐ測定ID（新規プロパティは作成しない）
@@ -38,6 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja" className={notoSansJP.className}>
       <body className="bg-white text-slate-800 antialiased min-h-screen flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
+        />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
