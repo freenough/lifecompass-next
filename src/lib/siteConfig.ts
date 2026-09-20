@@ -33,3 +33,23 @@ export function withBasePath<T extends string | undefined>(path: T): T {
  * 他ページのcanonical/OGPには影響させない）。
  */
 export const HITORI_HOJIN_SITE_URL = 'https://www.freenough.com/hitori-hojin';
+
+/**
+ * サイト全体のJSON-LD（Organization）。個人著者は立てず、freenoughブランドのOrganizationのみで
+ * 構造化データを実装する方針（docs/fixes/active/claude_instruction_structured_data_implementation_v2.md）。
+ * ルートlayout.tsxでの埋め込みと、記事ページのArticle構造化データのauthor/publisherの両方から参照する。
+ */
+export const ORGANIZATION_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'freenough',
+  url: 'https://www.freenough.com',
+  sameAs: ['https://x.com/freenough', 'https://note.com/freenough'],
+} as const;
+
+/** Article構造化データのauthor/publisherで使う、Organizationの参照用サブセット（sameAsは含まない）。 */
+export const ORGANIZATION_REF = {
+  '@type': 'Organization',
+  name: ORGANIZATION_SCHEMA.name,
+  url: ORGANIZATION_SCHEMA.url,
+} as const;

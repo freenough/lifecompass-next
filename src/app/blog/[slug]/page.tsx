@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/blog';
-import { SITE_URL } from '@/lib/siteConfig';
+import { ORGANIZATION_REF, SITE_URL } from '@/lib/siteConfig';
 import type { Metadata } from 'next';
 
 export async function generateStaticParams() {
@@ -47,8 +47,28 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const related = getRelatedPosts(post.slug, post.primaryTopic, post.topics);
 
+  // 更新日を別管理する仕組みが現状ないため、dateModifiedはdatePublishedと意図的に同値にしている
+  // （docs/fixes/active/claude_instruction_structured_data_implementation_v2.md セクションC）。
+  const datePublished = new Date(post.date).toISOString();
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.description,
+    image: `${SITE_URL}/api/og/blog/${post.slug}`,
+    datePublished,
+    dateModified: datePublished,
+    author: ORGANIZATION_REF,
+    publisher: ORGANIZATION_REF,
+  };
+
   return (
-    <main className="max-w-3xl mx-auto px-4 py-12">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <main className="max-w-3xl mx-auto px-4 py-12">
       {/* パンくず */}
       <nav className="text-sm text-slate-400 mb-8 flex items-center gap-1">
         <Link href="/" className="hover:text-[#0F2A4A]">Home</Link>
@@ -144,6 +164,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </ul>
         </section>
       )}
-    </main>
+      </main>
+    </>
   );
 }

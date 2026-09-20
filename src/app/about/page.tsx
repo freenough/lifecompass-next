@@ -48,7 +48,7 @@ export default function AboutPage() {
           <li>
             X（旧Twitter）：
             <a
-              href="https://twitter.com/freenough"
+              href="https://x.com/freenough"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
