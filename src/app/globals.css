@@ -26,3 +26,71 @@
   margin-top: -0.5rem;
   margin-bottom: 1.5rem;
 }
+
+/* LPトップ「FIREガイド」セクションの横スクロールカルーセル（CSS Scroll Snapのみ、
+   カルーセル用ライブラリは導入しない）。トラックはスクロールバーを非表示にし、
+   カードは`scroll-snap-align: start`でスナップする。 */
+.fireguide-track {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+.fireguide-track::-webkit-scrollbar {
+  display: none;
+}
+.fireguide-card {
+  scroll-snap-align: start;
+  flex: 0 0 82%;
+  min-width: 260px;
+  user-select: none;
+}
+/* ネイティブの画像ドラッグ（半透明ゴーストがカーソルに追従する既定挙動）を無効化する。
+   独自実装のドラッグスクロール（FireGuideCarousel.tsx）とブラウザ標準のimg要素dragstartが
+   同時に発生し操作感を損なっていたための対処（dragstartのpreventDefaultと併用）。 */
+.fireguide-card img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  user-select: none;
+}
+@media (min-width: 640px) {
+  .fireguide-card {
+    flex: 0 0 30%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fireguide-track {
+    scroll-behavior: auto;
+  }
+}
+
+/* FIREガイドカルーセルの矢印ボタン。マウス操作（pointer: fine）でのみ表示し、
+   タッチデバイスでは非表示にする（スワイプのみで操作させる）。 */
+.fireguide-arrow {
+  display: none;
+  position: absolute;
+  top: 35%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  color: var(--color-accent);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+}
+@media (pointer: fine) {
+  .fireguide-arrow {
+    display: flex;
+  }
+}
+.fireguide-arrow-left {
+  left: -8px;
+}
+.fireguide-arrow-right {
+  right: -8px;
+}
