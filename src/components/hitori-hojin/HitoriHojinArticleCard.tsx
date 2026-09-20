@@ -12,7 +12,7 @@ export default function HitoriHojinArticleCard({ post }: { post: HitoriHojinBlog
         {post.eyecatch && (
           <Image
             src={post.eyecatch}
-            alt=""
+            alt={post.title}
             fill
             sizes="190px"
             className="object-cover"
