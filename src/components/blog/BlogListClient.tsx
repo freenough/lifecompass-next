@@ -112,7 +112,7 @@ export default function BlogListClient({ posts }: { posts: BlogPostMeta[] }) {
                     {post.eyecatch && (
                       <Image
                         src={post.eyecatch}
-                        alt=""
+                        alt={post.title}
                         fill
                         sizes="(min-width: 1024px) 130px, (min-width: 640px) 120px, 100px"
                         className="object-cover"
