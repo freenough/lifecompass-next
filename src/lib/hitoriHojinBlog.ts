@@ -5,6 +5,7 @@ import { remark } from 'remark';
 import remarkGfm from 'remark-gfm';
 import remarkHtml from 'remark-html';
 import { BASE_PATH, withBasePath } from '@/lib/siteConfig';
+import { extractFaqFromMarkdown, type FaqItem } from '@/lib/faqExtraction';
 
 const POSTS_DIR = path.join(process.cwd(), 'src/content/hitori-hojin-blog');
 
@@ -51,6 +52,18 @@ function readMeta(filename: string): HitoriHojinBlogPostMeta {
     excerpt: data.excerpt,
     eyecatch: withBasePath(data.eyecatch),
   };
+}
+
+/**
+ * 記事本文の「よくある質問」セクションをFAQPage構造化データ用に抽出する（faqExtraction.ts参照）。
+ * blog.tsのgetPostFaq()と同じ共有ヘルパーを使うが、hitoriHojinBlog.ts自体は独立実装のため複製する。
+ */
+export async function getHitoriHojinPostFaq(slug: string): Promise<FaqItem[]> {
+  const filepath = path.join(POSTS_DIR, `${slug}.md`);
+  if (!fs.existsSync(filepath)) return [];
+  const raw = fs.readFileSync(filepath, 'utf-8');
+  const { content: markdown } = matter(raw);
+  return extractFaqFromMarkdown(markdown);
 }
 
 export function getAllHitoriHojinPosts(): HitoriHojinBlogPostMeta[] {
