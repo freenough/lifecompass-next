@@ -320,24 +320,36 @@ export default function HomePage() {
           />
           <div className="flex flex-col divide-y divide-slate-200">
             {characters.map((c, i) => {
-              const avatarBlock = (
-                <div className="flex items-center shrink-0">
-                  <PersonaAvatar {...c.persona} dashed={!c.href} />
-                  {c.personaSpouse && (
-                    <PersonaAvatar
-                      {...c.personaSpouse}
-                      className="-ml-5 z-10 ring-2 ring-white"
-                    />
-                  )}
+              /* モバイル（640px未満）ではアバター＋名前・属性を横並びのヘッダー行にまとめる
+                 （デスクトップではavatarのみ・名前属性はtextBlock側に表示、sm:hiddenで出し分け）。
+                 モバイル対応前に発生していた崩れ（本文列がshrink-0要素に押し潰され引用文が
+                 7行折り返し→items-centerで行の縦中央に再配置されたアバター/バッジが本文と重なる）
+                 の対策として、モバイルはflex-col + items-start、デスクトップはflex-row(-reverse) +
+                 items-centerの既存挙動を維持する。 */
+              const avatarHeader = (
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center shrink-0">
+                    <PersonaAvatar {...c.persona} dashed={!c.href} />
+                    {c.personaSpouse && (
+                      <PersonaAvatar
+                        {...c.personaSpouse}
+                        className="-ml-5 z-10 ring-2 ring-white"
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-2 sm:hidden">
+                    <span className="text-sm font-semibold text-slate-700">{c.name}</span>
+                    <span className="text-xs text-slate-400">{c.sub}</span>
+                  </div>
                 </div>
               );
 
               const textBlock = (
-                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <div className="w-full sm:w-auto flex-1 min-w-0 flex flex-col gap-1">
                   <p className="text-lg sm:text-xl font-bold text-slate-900 leading-snug before:content-['「'] after:content-['」']">
                     {c.worry}
                   </p>
-                  <div className="flex items-baseline gap-2">
+                  <div className="hidden sm:flex items-baseline gap-2">
                     <span className="text-sm font-semibold text-slate-700">{c.name}</span>
                     <span className="text-xs text-slate-400">{c.sub}</span>
                   </div>
@@ -346,7 +358,7 @@ export default function HomePage() {
               );
 
               const badgeAndLink = (
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0">
+                <div className="flex w-full sm:w-auto sm:flex-col items-center sm:items-end justify-end sm:justify-center gap-2 shrink-0">
                   {c.href ? (
                     <span
                       className="text-[10px] font-semibold text-white rounded-full px-2 py-0.5 shrink-0"
@@ -367,11 +379,11 @@ export default function HomePage() {
 
               const rowContent = (
                 <div
-                  className={`flex ${
-                    i % 2 === 1 ? 'flex-row-reverse' : 'flex-row'
-                  } items-center gap-4 sm:gap-6 py-6`}
+                  className={`flex flex-col ${
+                    i % 2 === 1 ? 'sm:flex-row-reverse' : 'sm:flex-row'
+                  } items-start sm:items-center gap-4 sm:gap-6 py-6`}
                 >
-                  {avatarBlock}
+                  {avatarHeader}
                   {textBlock}
                   {badgeAndLink}
                 </div>
