@@ -1,7 +1,16 @@
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { IconChartDonut, IconTarget, IconTrendingUp } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
+
+// Rechartsコンポーネントは必ずssr:falseの動的importで読み込む（ResponsiveContainerがDOM
+// 計測に依存するため。HeroDemo.tsx/src/app/page.tsxの既存パターンを踏襲）。
+// AssetAllocationDemo（本体AssetAllocationChart.tsxを直接呼ぶ版）は今回不使用（明細テーブルを
+// 隠せないため）。ファイルとしては削除せず残置し、今後別の用途で使う可能性に備える
+// （claude_instruction_asset_card_redesign_unified.md参照）。
+const AssetProgressBadges = dynamic(() => import('./AssetProgressBadges'), { ssr: false });
+const AssetBreakdownDonut = dynamic(() => import('./AssetBreakdownDonut'), { ssr: false });
 
 const features: { label: string; Icon: Icon }[] = [
   { label: 'カテゴリ別に資産を入力するだけ', Icon: IconChartDonut },
@@ -9,29 +18,10 @@ const features: { label: string; Icon: Icon }[] = [
   { label: '前回記録との増減がひと目でわかる', Icon: IconTrendingUp },
 ];
 
-// 右側のミニダッシュボードは実データ非連動の静的モック（2.4節）。資産管理ツール本体の
-// 実装が変わってもLP側の修正が不要になるよう、固定値のみで構成する。
-const DONUT_SLICES: { label: string; color: string; deg: number }[] = [
-  { label: '株式・投信', color: 'rgba(59,130,246,0.45)', deg: 158 },
-  { label: '現金', color: 'rgba(147,197,253,0.55)', deg: 94 },
-  { label: 'iDeCo', color: 'rgba(148,163,184,0.4)', deg: 54 },
-  { label: 'その他', color: 'rgba(74,222,128,0.45)', deg: 54 },
-];
-
-function buildDonutGradient(): string {
-  let acc = 0;
-  const stops = DONUT_SLICES.map((s) => {
-    const start = acc;
-    acc += s.deg;
-    return `${s.color} ${start}deg ${acc}deg`;
-  });
-  return `conic-gradient(${stops.join(', ')})`;
-}
-
 export default function AssetManagementPromoSection() {
   return (
     <section className="py-12">
-      <div className="mx-auto max-w-5xl px-6">
+      <div className="mx-auto max-w-6xl px-6">
         <div className="rounded border border-slate-200 bg-white p-8 sm:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center gap-10">
 
@@ -63,42 +53,19 @@ export default function AssetManagementPromoSection() {
               <p className="mt-4 text-sm text-slate-400">無料・登録不要・データは端末内に保存</p>
             </div>
 
-            {/* 右：ミニダッシュボード（イラスト風の静的モック） */}
-            <div className="w-full lg:w-[340px] lg:shrink-0">
-              <div className="rounded border border-slate-200 bg-slate-50 p-6">
-                <p className="text-xs font-semibold text-slate-500 mb-4">資産の内訳</p>
+            {/* 右：ミニダッシュボード。ヒーロー（HeroDemo.tsx）と同じ「上にKPIバッジ3枠、
+                下にグラフ」構成。KPI3枠は資産管理ツール本体の「FIRE進捗」ブロックと同じ情報
+                構成（目標資産額／目標までの進捗／前回記録比）を、ヒーローのバッジと同じ寸法感で
+                実装したもの。ドーナツは本体AssetAllocationChart.tsxを直接呼ばず、色・ラベルの
+                分類ロジックだけ共有するLP専用の軽量実装（AssetBreakdownDonut.tsx、明細テーブルなし）。
+                詳細はclaude_instruction_asset_card_redesign_unified.md参照。 */}
+            <div className="w-full lg:w-[420px] lg:shrink-0">
+              <div className="rounded border border-slate-200 bg-white p-6">
+                <AssetProgressBadges />
 
-                <div className="flex items-center justify-center mb-4">
-                  <div
-                    className="relative rounded-full"
-                    style={{ width: 140, height: 140, background: buildDonutGradient() }}
-                  >
-                    <div className="absolute inset-[24px] rounded-full bg-slate-50" />
-                  </div>
-                </div>
-
-                <ul className="flex flex-col gap-1.5 mb-4">
-                  {DONUT_SLICES.map((s) => (
-                    <li key={s.label} className="flex items-center gap-2 text-xs text-slate-600">
-                      <span
-                        className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: s.color }}
-                        aria-hidden="true"
-                      />
-                      {s.label}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg bg-white p-3">
-                    <p className="text-[11px] text-slate-400">目標達成率</p>
-                    <p className="mt-0.5 text-lg font-bold text-slate-900">68%</p>
-                  </div>
-                  <div className="rounded-lg bg-white p-3">
-                    <p className="text-[11px] text-slate-400">前回比</p>
-                    <p className="mt-0.5 text-lg font-bold text-slate-900">+3.2%</p>
-                  </div>
+                <div className="mt-4 pt-4 border-t border-slate-200">
+                  <p className="text-xs font-semibold text-slate-500 mb-2">資産の内訳</p>
+                  <AssetBreakdownDonut />
                 </div>
               </div>
             </div>
