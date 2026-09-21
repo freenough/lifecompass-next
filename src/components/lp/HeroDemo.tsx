@@ -5,50 +5,12 @@ import {
   ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer,
 } from 'recharts';
 import { simulate, analyze, runMC } from '@/lib';
-import type { SimParams, LifeEvent } from '@/lib/types';
 import KpiCard from '@/components/simulator/KpiCard';
 import { formatYen, addFireLines, FireLines, EventLines } from '@/components/simulator/AssetChart';
 import { assetLongevityVariant, fireSafetyVariant } from '@/lib/kpi-thresholds';
 import { useEqualHeight } from '@/hooks/useEqualHeight';
-
-const DEMO_PROFILE: SimParams = {
-  curAge: 35, lifeEx: 90,
-  baseInc: 750, baseExp: 360, inflR: 1,
-  retAge: 60, penAge: 65, penAmt: 120,
-  mcStd: 12, mcStdR: 8,
-  hasIdeco: true, idecoYrs: 10,
-  idecoReceiveType: 'pension', idecoReceiveYears: 15, idecoSplitRatio: 50, idecoStartAge: 60,
-  sevYrs: 12,
-  acct: {
-    nisa:  { bal: 400, con: 120, toAge: 60, rW: 5, rR: 3.5 },
-    ideco: { bal: 300, con: 27.6, toAge: 60, rW: 5, rR: 3.5 },
-    tax:   { bal: 500, con: 0,    toAge: 60, rW: 5, rR: 3.5, costBasis: 500 },
-    cash:  { bal: 300 },
-  },
-  spouse: null,
-};
-
-const DEMO_EVENTS: LifeEvent[] = [
-  { category: 'expense', subtype: 'base_change', age: 60, amount: 300, name: '', years: 0 },
-];
-
-function useCountUp(target: number | null, duration = 1200, decimals = 0): number {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (target === null) return;
-    const start = Date.now();
-    let frame: number;
-    const step = () => {
-      const t = Math.min((Date.now() - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setVal(parseFloat((target * eased).toFixed(decimals)));
-      if (t < 1) frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [target, duration, decimals]);
-  return val;
-}
+import { useCountUp } from '@/hooks/useCountUp';
+import { DEMO_PROFILE, DEMO_EVENTS } from '@/lib/lp/demoProfile';
 
 interface ChartRow {
   age: number;
