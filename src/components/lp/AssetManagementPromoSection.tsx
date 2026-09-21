@@ -21,7 +21,7 @@ const features: { label: string; Icon: Icon }[] = [
 export default function AssetManagementPromoSection() {
   return (
     <section className="py-12">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-5xl px-6">
         <div className="rounded border border-slate-200 bg-white p-8 sm:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center gap-10">
 
