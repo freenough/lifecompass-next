@@ -33,7 +33,9 @@ export default function SectionHeading({ label, heading, body, linkHref, linkLab
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="h-px w-6 bg-slate-300" aria-hidden="true" />
-          <span className="text-sm font-medium text-slate-500">{label}</span>
+          {/* claude_instruction_lp_polish_round2.md 2節: text-slate-500はコントラストが低く
+              可読性に欠けるため、1段階濃いslate-600に変更（新規トークン追加なし） */}
+          <span className="text-sm font-medium text-slate-600">{label}</span>
         </div>
         {linkExternal ? (
           <a href={linkHref} target="_blank" rel="noopener noreferrer" className={linkClassName}>
