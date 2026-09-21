@@ -15,7 +15,9 @@ export default function ConcernCard({ concern, location }: ConcernCardProps) {
       <h3 className="text-base font-semibold text-slate-900">{concern.question}</h3>
       <p className="mt-2 text-sm text-slate-500 leading-relaxed">{concern.outcome}</p>
       {/* CTAとの視覚的な強弱関係(悩みCTA>詳しく読む)を保ちつつ、Hero CTAの塗りボタンとは
-          差別化するため枠線ボタンにする。PC幅ではCTAと「詳しく読む」を横並びにする。 */}
+          差別化するため枠線ボタンにする。PC幅ではCTAと「詳しく読む」を横並びにする。
+          背景は常時visibleなbg-bg-sub（ホバー時のみ色が付く実装だとタッチデバイスで
+          テキストリンクと見分けがつかないため。claude_instruction_lp_polish_round2.md 1節）。 */}
       <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-3">
         <Link
           href={concern.ctaUrl}
@@ -27,7 +29,7 @@ export default function ConcernCard({ concern, location }: ConcernCardProps) {
               location,
             })
           }
-          className="w-full sm:w-auto text-center border-2 border-accent text-accent font-bold px-6 py-2.5 rounded hover:bg-accent/10 transition-colors"
+          className="w-full sm:w-auto text-center bg-bg-sub border border-border text-accent font-bold px-6 py-2.5 rounded hover:bg-border transition-colors"
         >
           {concern.ctaLabel}
         </Link>
