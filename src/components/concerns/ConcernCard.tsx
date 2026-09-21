@@ -19,7 +19,7 @@ export default function ConcernCard({ concern, location }: ConcernCardProps) {
           背景は常時visibleなbg-bg-subを追加（ホバー時のみ色が付く実装だとタッチデバイスで
           テキストリンクと見分けがつかないため）。枠線（border-2 border-accent）・ホバー色
           （hover:bg-accent/10）は元のまま変更しない（bg-bg-sub追加の1点のみの差分。
-          枠線自体まで変えてボタンの存在感が弱まっていた反省を踏まえる。
+          過去2回、枠線自体まで変えてしまいボタンの存在感が弱まっていた反省を踏まえる。
           claude_instruction_concern_button_only_final.md）。 */}
       <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-3">
         <Link
