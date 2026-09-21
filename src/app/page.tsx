@@ -6,10 +6,6 @@ import {
   IconChartBar,
   IconBuildingBank,
   IconLock,
-  IconUser,
-  IconUsers,
-  IconBriefcase,
-  IconCode,
   IconPencil,
   IconPlayerPlay,
   IconChartLine,
@@ -19,10 +15,12 @@ import {
   IconClockDollar,
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
+import type { BustPoseType, HairType, FaceType, AccessoryType } from 'react-peeps';
 import { getFeaturedPosts, getAllPosts } from '@/lib/blog';
 import ConcernBlockLP from '@/components/concerns/ConcernBlockLP';
 import AssetManagementPromoSection from '@/components/lp/AssetManagementPromoSection';
 import FireGuideCarousel from '@/components/lp/FireGuideCarousel';
+import PersonaAvatar from '@/components/lp/PersonaAvatar';
 import SectionHeading from '@/components/layout/SectionHeading';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
@@ -79,13 +77,38 @@ const lpTools: { title: string; body: string; href: string; Icon: Icon }[] = [
   },
 ];
 
-const characters: { name: string; sub: string; worry: string; label: string; Icon: Icon; href?: string }[] = [
+interface PersonaParts {
+  body: BustPoseType;
+  hair: HairType;
+  face: FaceType;
+  accessory: AccessoryType;
+  backgroundColor: string;
+  strokeColor: string;
+}
+
+const characters: {
+  name: string;
+  sub: string;
+  worry: string;
+  label: string;
+  persona: PersonaParts;
+  /** 中村夫婦のみ、配偶者分のパーツを重ねて表示する */
+  personaSpouse?: PersonaParts;
+  href?: string;
+}[] = [
   {
     name: '田中さん',
     sub: '42歳・既婚（サラリーマン）',
     worry: 'NISAもiDeCoも続けてきた。でもゴールが見えない',
     label: '貯めてきた。でも、いつ辞められる？',
-    Icon: IconUser,
+    persona: {
+      body: 'BlazerBlackTee',
+      hair: 'Short',
+      face: 'Calm',
+      accessory: 'GlassRound',
+      backgroundColor: '#DCEEF5',
+      strokeColor: '#0F2A4A',
+    },
     href: 'https://note.com/freenough/m/m2d3fea55a06e',
   },
   {
@@ -93,7 +116,14 @@ const characters: { name: string; sub: string; worry: string; label: string; Ico
     sub: '34歳・独身エンジニア',
     worry: '積立額を増やしても、開始年齢が本当のボトルネックだった',
     label: 'FIRE達成は、いつ始めるかで決まる。',
-    Icon: IconCode,
+    persona: {
+      body: 'Device',
+      hair: 'ShortMessy',
+      face: 'Driven',
+      accessory: 'GlassRoundThick',
+      backgroundColor: '#DCEEF5',
+      strokeColor: '#0F2A4A',
+    },
     href: 'https://note.com/freenough/m/m426fdd7bec8c',
   },
   {
@@ -101,7 +131,22 @@ const characters: { name: string; sub: string; worry: string; label: string; Ico
     sub: '共働き',
     worry: '収入は高いのに、いつ辞められるか見えない',
     label: '教育費とFIREを両立したい。',
-    Icon: IconUsers,
+    persona: {
+      body: 'ButtonShirt',
+      hair: 'Short',
+      face: 'Smile',
+      accessory: 'None',
+      backgroundColor: '#DCEEF5',
+      strokeColor: '#0F2A4A',
+    },
+    personaSpouse: {
+      body: 'PoloSweater',
+      hair: 'MediumLong',
+      face: 'Smile',
+      accessory: 'None',
+      backgroundColor: '#DCEEF5',
+      strokeColor: '#0F2A4A',
+    },
     href: 'https://note.com/freenough/m/m9e4bd2e0a99b',
   },
   {
@@ -109,7 +154,16 @@ const characters: { name: string; sub: string; worry: string; label: string; Ico
     sub: '53歳',
     worry: '退職金・年金・NISAをまとめて計算したい',
     label: '早期退職しても大丈夫？',
-    Icon: IconBriefcase,
+    persona: {
+      body: 'ShirtCoat',
+      hair: 'GrayShort',
+      // 「Serious」は72px表示だと眉・目・口のパーツが淡く表情が視認しづらいため、
+      // 実機確認の結果「Calm」に変更（doc記載の判断委任事項）
+      face: 'Calm',
+      accessory: 'None',
+      backgroundColor: '#e2e8f0',
+      strokeColor: '#94a3b8',
+    },
   },
 ];
 
@@ -264,34 +318,63 @@ export default function HomePage() {
             linkLabel="NOTEを見る→"
             linkExternal
           />
-          <div className="grid gap-5 sm:grid-cols-2">
-            {characters.map((c) => {
-              const cardInner = (
-                <>
-                  <div className="flex items-start justify-between">
-                    <c.Icon size={32} className="text-slate-600" />
-                    {c.href ? (
-                      <span
-                        className="text-[10px] font-semibold text-white rounded-full px-2 py-0.5 shrink-0"
-                        style={{ backgroundColor: '#334155' }}
-                      >
-                        公開中
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 rounded-full px-2 py-0.5 shrink-0">
-                        近日公開
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-base font-semibold text-slate-900">{c.name}</span>
-                    <span className="text-sm text-slate-400">{c.sub}</span>
-                  </div>
-                  <p className="text-sm text-slate-600">{c.label}</p>
-                  <p className="text-sm text-slate-400 before:content-['「'] after:content-['」']">
+          <div className="flex flex-col divide-y divide-slate-200">
+            {characters.map((c, i) => {
+              const avatarBlock = (
+                <div className="flex items-center shrink-0">
+                  <PersonaAvatar {...c.persona} dashed={!c.href} />
+                  {c.personaSpouse && (
+                    <PersonaAvatar
+                      {...c.personaSpouse}
+                      className="-ml-5 z-10 ring-2 ring-white"
+                    />
+                  )}
+                </div>
+              );
+
+              const textBlock = (
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <p className="text-lg sm:text-xl font-bold text-slate-900 leading-snug before:content-['「'] after:content-['」']">
                     {c.worry}
                   </p>
-                </>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-semibold text-slate-700">{c.name}</span>
+                    <span className="text-xs text-slate-400">{c.sub}</span>
+                  </div>
+                  <p className="text-xs text-slate-500">{c.label}</p>
+                </div>
+              );
+
+              const badgeAndLink = (
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0">
+                  {c.href ? (
+                    <span
+                      className="text-[10px] font-semibold text-white rounded-full px-2 py-0.5 shrink-0"
+                      style={{ backgroundColor: '#334155' }}
+                    >
+                      公開中
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 rounded-full px-2 py-0.5 shrink-0">
+                      近日公開
+                    </span>
+                  )}
+                  {c.href && (
+                    <span className="text-xs font-semibold text-accent whitespace-nowrap">noteで読む→</span>
+                  )}
+                </div>
+              );
+
+              const rowContent = (
+                <div
+                  className={`flex ${
+                    i % 2 === 1 ? 'flex-row-reverse' : 'flex-row'
+                  } items-center gap-4 sm:gap-6 py-6`}
+                >
+                  {avatarBlock}
+                  {textBlock}
+                  {badgeAndLink}
+                </div>
               );
 
               return c.href ? (
@@ -300,16 +383,13 @@ export default function HomePage() {
                   href={c.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-slate-300 transition-all"
+                  className="hover:bg-white/60 transition-colors"
                 >
-                  {cardInner}
+                  {rowContent}
                 </a>
               ) : (
-                <div
-                  key={c.name}
-                  className="rounded border border-slate-200 bg-white p-6 shadow-sm flex flex-col gap-2 cursor-default"
-                >
-                  {cardInner}
+                <div key={c.name} className="cursor-default">
+                  {rowContent}
                 </div>
               );
             })}
