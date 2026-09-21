@@ -30,7 +30,7 @@ export const CONCERNS: Concern[] = [
     id: 'fire-age',
     stage: 'saving',
     question: '今のペースで資産は足りる?',
-    outcome: '今の積立ペースなら何歳でFIRE達成できるか分かります',
+    outcome: '今の積立ペースなら何歳で目標資産に到達できるか分かります',
     ctaType: 'lightTool',
     ctaLabel: '60秒で試算する',
     ctaUrl: '/tools/fire-age?utm_source=lp&utm_medium=concern_card&utm_campaign=fire_age',

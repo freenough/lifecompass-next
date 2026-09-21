@@ -319,7 +319,7 @@ export default function HomePage() {
             linkExternal
           />
           <div className="flex flex-col divide-y divide-slate-200">
-            {characters.map((c, i) => {
+            {characters.map((c) => {
               /* モバイル（640px未満）ではアバター＋名前・属性を横並びのヘッダー行にまとめる
                  （デスクトップではavatarのみ・名前属性はtextBlock側に表示、sm:hiddenで出し分け）。
                  モバイル対応前に発生していた崩れ（本文列がshrink-0要素に押し潰され引用文が
@@ -377,11 +377,12 @@ export default function HomePage() {
                 </div>
               );
 
+              // claude_instruction_lp_polish_round2.md 4節: テキストは常に左詰めのままなのに
+              // アバターだけi%2で左右交互反転していると"完全な鏡写し"にならず揃っていない
+              // 印象になるため、アバター・バッジとも全カード左固定（sm:flex-row固定）に統一する。
               const rowContent = (
                 <div
-                  className={`flex flex-col ${
-                    i % 2 === 1 ? 'sm:flex-row-reverse' : 'sm:flex-row'
-                  } items-start sm:items-center gap-4 sm:gap-6 py-6`}
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 py-6"
                 >
                   {avatarHeader}
                   {textBlock}
