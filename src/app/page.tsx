@@ -22,6 +22,7 @@ import AssetManagementPromoSection from '@/components/lp/AssetManagementPromoSec
 import FireGuideCarousel from '@/components/lp/FireGuideCarousel';
 import PersonaAvatar from '@/components/lp/PersonaAvatar';
 import SectionHeading from '@/components/layout/SectionHeading';
+import Container from '@/components/layout/Container';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
@@ -194,8 +195,9 @@ export default function HomePage() {
           （実測: scrollWidth=807px固定 vs viewport 640〜806pxで確認）があった。この幅では
           モバイル同様の縦積み・w-full表示にすることで解消する。1024px以上は十分な横幅が
           あるため従来通り固定460pxの2カラム表示のまま。 */}
-      <section className="mx-auto max-w-5xl w-full px-6 py-16">
-        <div className="flex flex-col lg:flex-row lg:items-start gap-8">
+      <section className="py-16">
+        <Container>
+          <div className="flex flex-col lg:flex-row lg:items-start gap-8">
 
           {/* 左カラム：テキスト */}
           <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
@@ -228,15 +230,17 @@ export default function HomePage() {
               応じた高さ（可変・auto）になる。以前はself-stretchでテキスト列と同じ高さまで
               引き伸ばされ、カード内部に余分な空白ができていた（実測: 900px幅でカード下部に
               88px分の空白を確認）。 */}
-          <div className="hidden lg:flex lg:w-[460px] lg:shrink-0">
+          <div className="hidden lg:flex lg:w-(--lp-hero-chart-width) lg:shrink-0">
             <HeroDemo />
           </div>
 
         </div>
+        </Container>
       </section>
 
       {/* ③ 差別化（3カラム） */}
-      <section className="mx-auto max-w-5xl px-6 py-12 w-full">
+      <section className="py-12">
+        <Container>
         <div className="grid gap-8 sm:grid-cols-3">
           {features.map((f) => (
             <div key={f.title} className="flex flex-col items-center text-center">
@@ -248,6 +252,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+        </Container>
       </section>
 
       {/* AD_SLOT_A: 差別化〜キャラクター間 */}
@@ -258,7 +263,7 @@ export default function HomePage() {
 
       {/* ③.5 FIREガイド */}
       <section className="py-12">
-        <div className="mx-auto max-w-5xl px-6">
+        <Container>
           <SectionHeading
             label="FIREガイド"
             heading="FIREガイド"
@@ -273,12 +278,12 @@ export default function HomePage() {
               readingTimeフィールド自体は将来の用途のため残す） */}
           <FireGuideCarousel posts={guidePosts} />
 
-        </div>
+        </Container>
       </section>
 
       {/* ③.6 かんたん計算ツール */}
       <section className="bg-slate-50 py-12">
-        <div className="mx-auto max-w-5xl px-6">
+        <Container>
           <SectionHeading
             label="ツール"
             heading="かんたん計算ツール"
@@ -301,7 +306,7 @@ export default function HomePage() {
             ))}
           </div>
 
-        </div>
+        </Container>
       </section>
 
       {/* ③.8 資産管理ツール導線 */}
@@ -309,7 +314,7 @@ export default function HomePage() {
 
       {/* ④ あなたはどのタイプ？ */}
       <section className="bg-slate-50 py-12">
-        <div className="mx-auto max-w-5xl px-6">
+        <Container>
           <SectionHeading
             label="ケーススタディ"
             heading="あなたはどのタイプ？"
@@ -407,7 +412,7 @@ export default function HomePage() {
               );
             })}
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* ⑤ 使い方（3ステップ） */}

@@ -1,13 +1,14 @@
 import { CONCERNS } from '@/data/concerns';
 import ConcernCard from './ConcernCard';
 import SectionHeading from '@/components/layout/SectionHeading';
+import Container from '@/components/layout/Container';
 
 export default function ConcernBlockLP() {
   const featuredConcerns = CONCERNS.filter((c) => c.featured);
 
   return (
     <section className="bg-slate-50 py-12">
-      <div className="mx-auto max-w-5xl px-6">
+      <Container>
         <SectionHeading
           label="お悩み"
           heading="こんな悩みはありませんか?"
@@ -21,7 +22,7 @@ export default function ConcernBlockLP() {
             <ConcernCard key={concern.id} concern={concern} location="lp" />
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
