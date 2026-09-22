@@ -201,7 +201,7 @@ export default function HomePage() {
 
           {/* 左カラム：テキスト */}
           <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
-            <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold tracking-tight text-slate-900 text-balance">
+            <h1 className="text-[clamp(3rem,8vw,4.5rem)] font-bold tracking-tight text-slate-900 text-balance">
               あなたのFIREは、<br />
               何歳？
             </h1>
@@ -323,7 +323,9 @@ export default function HomePage() {
             linkLabel="NOTEを見る→"
             linkExternal
           />
-          <div className="flex flex-col divide-y divide-slate-200">
+          {/* 見出しエリアは6xl(Container)のまま、リスト本体だけさらに1段狭める
+              （各行の左(アバター+テキスト)と右(バッジ+リンク)の間の空白を縮めるため）。 */}
+          <div className="flex flex-col divide-y divide-slate-200 max-w-[1048px] mx-auto">
             {characters.map((c) => {
               /* モバイル（640px未満）ではアバター＋名前・属性を横並びのヘッダー行にまとめる
                  （デスクトップではavatarのみ・名前属性はtextBlock側に表示、sm:hiddenで出し分け）。

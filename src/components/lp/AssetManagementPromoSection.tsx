@@ -25,9 +25,11 @@ export default function AssetManagementPromoSection() {
       <Container>
         <div className="flex flex-col lg:flex-row lg:items-center gap-10">
 
-          {/* 左：テキスト＋CTA */}
-          <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
-            <h2 className="text-[1.75rem] sm:text-4xl font-bold text-slate-900 text-balance">
+          {/* 左：テキスト＋CTA。lg:max-w-[540px]は右カード(520px)と視覚ボリュームを
+              概ね半々にするための上限（instruction_lp_container_width_and_block_frame.md
+              追加対応3節）。 */}
+          <div className="flex-1 lg:max-w-[540px] flex flex-col items-center text-center lg:items-start lg:text-left">
+            <h2 className="text-[2rem] sm:text-5xl font-bold text-slate-900 text-balance">
               毎月の資産を、記録する。
             </h2>
             <p className="mt-3 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
@@ -59,7 +61,7 @@ export default function AssetManagementPromoSection() {
               実装したもの。ドーナツは本体AssetAllocationChart.tsxを直接呼ばず、色・ラベルの
               分類ロジックだけ共有するLP専用の軽量実装（AssetBreakdownDonut.tsx、明細テーブルなし）。
               詳細はclaude_instruction_asset_card_redesign_unified.md参照。 */}
-          <div className="w-full lg:w-[420px] lg:shrink-0">
+          <div className="w-full lg:w-[520px] lg:shrink-0">
             <div className="rounded border border-slate-200 bg-white p-6">
               <AssetProgressBadges />
 

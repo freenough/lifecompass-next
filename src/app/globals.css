@@ -18,9 +18,10 @@
      従来のmax-w-5xl(64rem/1024px)より広げる前提で導入(claude_instruction_lp_container_width_and_block_frame.md)。 */
   --lp-container-width: 72rem;
 
-  /* Heroライブデモカードの幅（デスクトップのみ）。--lp-container-widthを広げた場合、
-     左テキスト列とのバランスを見ながらこの値も一緒に調整する（数式で自動連動はさせない）。 */
-  --lp-hero-chart-width: 460px;
+  /* Heroライブデモカードの幅（デスクトップのみ）。--lp-container-width(72rem)拡大に伴い、
+     460px→520pxに確定(claude_instruction_lp_container_width_and_block_frame.mdでの
+     520/560px比較Previewを踏まえKENZOが確定)。 */
+  --lp-hero-chart-width: 520px;
 }
 
 /* ブログ記事内、画像直後のキャプション行（remarkImageCaption()が付与、src/lib/blog.ts参照）。
