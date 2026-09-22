@@ -201,7 +201,12 @@ export default function HomePage() {
 
           {/* 左カラム：テキスト */}
           <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
-            <h1 className="text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900 text-balance">
+            {/* モバイル(sm未満)は「あなたのFIREは、」が1行に収まる最大サイズとして
+                375px幅で実測確定した2.5rem(40px)を固定値で使用する（375px時326px要／327px利用
+                可能幅で約8.5pxの余裕。41px=2.5625remだと0.55pxしか余裕がなくデバイス差で
+                崩れるリスクがあるため採用しない）。sm以上はコンテナ拡大時に確定した既存の
+                clampをそのまま維持（デスクトップ・タブレットは変更なし）。 */}
+            <h1 className="text-[2.5rem] sm:text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900 text-balance">
               あなたのFIREは、<br />
               何歳？
             </h1>
