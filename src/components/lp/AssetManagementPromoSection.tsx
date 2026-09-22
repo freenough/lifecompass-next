@@ -23,12 +23,12 @@ export default function AssetManagementPromoSection() {
   return (
     <section className="py-12">
       <Container>
-        <div className="flex flex-col lg:flex-row lg:items-center gap-10">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
 
-          {/* 左：テキスト＋CTA。lg:max-w-[540px]は右カード(520px)と視覚ボリュームを
-              概ね半々にするための上限（instruction_lp_container_width_and_block_frame.md
-              追加対応3節）。 */}
-          <div className="flex-1 lg:max-w-[540px] flex flex-col items-center text-center lg:items-start lg:text-left">
+          {/* 左：テキスト＋CTA。lg:max-w-[620px]は見出し「毎月の資産を、記録する。」が
+              1行に収まる幅を確保しつつ、右カードとの視覚ボリュームのバランスを取るための上限
+              （instruction_lp_container_width_and_block_frame.md 追加対応4節）。 */}
+          <div className="flex-1 lg:max-w-[620px] flex flex-col items-center text-center lg:items-start lg:text-left">
             <h2 className="text-[2rem] sm:text-5xl font-bold text-slate-900 text-balance">
               毎月の資産を、記録する。
             </h2>
@@ -61,7 +61,7 @@ export default function AssetManagementPromoSection() {
               実装したもの。ドーナツは本体AssetAllocationChart.tsxを直接呼ばず、色・ラベルの
               分類ロジックだけ共有するLP専用の軽量実装（AssetBreakdownDonut.tsx、明細テーブルなし）。
               詳細はclaude_instruction_asset_card_redesign_unified.md参照。 */}
-          <div className="w-full lg:w-[520px] lg:shrink-0">
+          <div className="w-full lg:w-[480px] lg:shrink-0">
             <div className="rounded border border-slate-200 bg-white p-6">
               <AssetProgressBadges />
 

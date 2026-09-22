@@ -69,6 +69,10 @@ function XAxisTick({ x, y, payload }: XAxisTickProps) {
 // シミュレーター本体のKpiGridより短い表記にする（LP独自のラベルのため他画面には影響しない）。
 const KPI_LABELS = ['FIRE達成', '資産寿命', 'MC破綻率'];
 
+// チャート縦幅。左テキスト列（見出し+本文+CTA+注記）の高さとできるだけ揃うよう調整した値
+// （instruction_lp_container_width_and_block_frame.md 追加対応4節。元は230固定）。
+const CHART_HEIGHT = 300;
+
 export default function HeroDemo() {
   const [fireAge, setFireAge] = useState<number | null>(null);
   const [minRatio, setMinRatio] = useState<number | null>(null);
@@ -166,7 +170,7 @@ export default function HeroDemo() {
       {/* MC ファンチャート — 左から描画アニメーション */}
       <div className="mt-2">
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={230}>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
             <ComposedChart data={chartData} margin={{ top: 4, right: 2, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
@@ -224,7 +228,7 @@ export default function HeroDemo() {
             </ComposedChart>
           </ResponsiveContainer>
         ) : (
-          <div style={{ height: 230 }} className="flex items-center justify-center text-slate-300 text-sm">
+          <div style={{ height: CHART_HEIGHT }} className="flex items-center justify-center text-slate-300 text-sm">
             計算中…
           </div>
         )}

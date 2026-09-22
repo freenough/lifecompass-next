@@ -197,11 +197,11 @@ export default function HomePage() {
           あるため従来通り固定460pxの2カラム表示のまま。 */}
       <section className="py-16">
         <Container>
-          <div className="flex flex-col lg:flex-row lg:items-start gap-8">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-4">
 
           {/* 左カラム：テキスト */}
           <div className="flex-1 flex flex-col items-center text-center sm:items-start sm:text-left">
-            <h1 className="text-[clamp(3rem,8vw,4.5rem)] font-bold tracking-tight text-slate-900 text-balance">
+            <h1 className="text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900 text-balance">
               あなたのFIREは、<br />
               何歳？
             </h1>
