@@ -32,11 +32,21 @@ export default function AssetManagementPromoSection() {
             <h2 className="text-[2rem] sm:text-5xl font-bold text-slate-900 text-balance">
               毎月の資産を、記録する。
             </h2>
-            <p className="mt-3 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
-              シミュレーションで描いた未来と、実際の資産を突き合わせる。目標との差分がひと目でわかります。
+            {/* text-balanceは自動改行の結果「突き合わせる」のような複合動詞の途中で
+                折り返される場合があったため外し、文の切れ目で明示的に改行する。
+                「突き合わせる。」はinline-blockで囲み、モバイル幅で1行目自体がさらに
+                折り返す場合でもこの語の途中では割れないようにする。 */}
+            <p className="mt-3 text-sm text-slate-500 leading-relaxed sm:text-base">
+              シミュレーションで描いた未来と、実際の資産を<span className="inline-block">突き合わせる。</span><br />
+              目標との差分がひと目でわかります。
             </p>
 
-            <ul className="mt-6 flex flex-col gap-3 w-full max-w-sm">
+            {/* inline-flexで3行のまとまり自体を最も長い行の幅に収縮させ、mx-auto(モバイル)で
+                ブロックごと中央寄せする。ブロック内部はitems-startで左揃えのため、行ごとの
+                アイコンのx位置が常に揃う（以前のw-full max-w-smでは各行が個別に中央寄せされ、
+                アイコンの横位置が行ごとにズレて見えていた）。lg以上はlg:mx-0で親のlg:items-start
+                に委ね、デスクトップの見た目は変更しない。 */}
+            <ul className="mt-6 inline-flex flex-col items-start gap-3 mx-auto lg:mx-0">
               {features.map((f) => (
                 <li key={f.label} className="flex items-center gap-3">
                   <f.Icon size={22} className="text-slate-600 shrink-0" />
