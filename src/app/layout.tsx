@@ -4,11 +4,10 @@ import Script from 'next/script';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import AnalyticsScripts from '@/components/layout/AnalyticsScripts';
 import { ORGANIZATION_SCHEMA, SITE_URL } from '@/lib/siteConfig';
+import { ADSENSE_CLIENT_ID, IS_PRODUCTION_BUILD } from '@/lib/analytics';
 import { UnsavedChangesProvider } from '@/lib/UnsavedChangesContext';
-
-// 旧HTML版から引き継ぐ測定ID（新規プロパティは作成しない）
-const GA_MEASUREMENT_ID = 'G-KQNTWNKPJ7';
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
@@ -42,24 +41,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
         />
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="ga4-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
-          `}
-        </Script>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1493291567641534"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        {/* GA4は本番ビルドかつ本番ドメインのときだけ（ホスト名はクライアント側で判定）。
+            AdSenseは本番ビルドのときだけで、ホスト名では絞らない。読み込み方（strategy）は従来のまま
+            （claude_instruction_ga4_production_only.md）。 */}
+        <AnalyticsScripts />
+        {IS_PRODUCTION_BUILD && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
         <UnsavedChangesProvider>
           <Header />
           <main className="flex-1">{children}</main>
