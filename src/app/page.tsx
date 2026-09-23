@@ -296,12 +296,11 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* ③.6 かんたん計算ツール。左右余白のみpx-2(paddingX="tight")に圧縮。
-          カード自体はborder-yのみ(左右ボーダーなし)+内部p-6を持つため、外側余白を絞っても
-          テキストと画面端の実質距離は確保される
-          （implementation_hero_spacing_chart_aspect_tool_section.md 4節）。 */}
+      {/* ③.6 かんたん計算ツール。外側余白は他セクションと揃えるためdefault(px-6)に戻し、
+          その代わり内側(カード間・カード内部)をさらに圧縮する方針に変更
+          （implementation_tool_section_outer_padding_realign_inner_tighten.md 1節）。 */}
       <section className="bg-slate-50 py-12">
-        <Container paddingX="tight">
+        <Container>
           <SectionHeading
             label="ツール"
             heading="かんたん計算ツール"
@@ -310,14 +309,14 @@ export default function HomePage() {
             linkLabel="ツール一覧を見る→"
           />
 
-          {/* gap-x-4/p-4はモバイル限定。デスクトップ(lg:gap-x-8/lg:p-6)は現状のまま変更しない
-              （implementation_desktop_hero_padding_tool_card_gap.md 2節）。 */}
-          <div className="grid grid-cols-2 gap-x-4 lg:grid-cols-4 lg:gap-x-8">
+          {/* gap-x-3/p-3はモバイル限定。デスクトップ(lg:gap-x-8/lg:p-6)は現状のまま変更しない
+              （implementation_tool_section_outer_padding_realign_inner_tighten.md 2節）。 */}
+          <div className="grid grid-cols-2 gap-x-3 lg:grid-cols-4 lg:gap-x-8">
             {lpTools.map((tool) => (
               <Link
                 key={tool.href}
                 href={tool.href}
-                className="border-y border-slate-200 rounded-none p-4 lg:p-6 hover:bg-white transition-colors"
+                className="border-y border-slate-200 rounded-none p-3 lg:p-6 hover:bg-white transition-colors"
               >
                 <tool.Icon size={32} className="text-slate-600 mb-3" />
                 <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
