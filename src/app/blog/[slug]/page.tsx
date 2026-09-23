@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllPosts, getPostBySlug, getPostFaq, getRelatedPosts } from '@/lib/blog';
 import { ORGANIZATION_REF, SITE_URL } from '@/lib/siteConfig';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import type { Metadata } from 'next';
 
 export async function generateStaticParams() {
@@ -74,17 +75,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           })),
         }
       : null;
-  // パンくずUI（下の<nav>）の表示テキスト・リンク先と完全に一致させる
-  const breadcrumbJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
-      { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
-    ],
-  };
-
   return (
     <>
       <script
@@ -97,19 +87,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
       )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <main className="max-w-3xl mx-auto px-4 py-12">
-      {/* パンくず */}
-      <nav className="text-sm text-slate-400 mb-8 flex items-center gap-1">
-        <Link href="/" className="hover:text-[#0F2A4A]">Home</Link>
-        <span>›</span>
-        <Link href="/blog" className="hover:text-[#0F2A4A]">Blog</Link>
-        <span>›</span>
-        <span className="text-slate-600 truncate max-w-[200px]">{post.title}</span>
-      </nav>
+      {/* layout.tsxの<main>の内側のため、入れ子にならないようdivにしている */}
+      <div className="max-w-3xl mx-auto px-4 py-12">
+      {/* パンくず（表示とBreadcrumbListのJSON-LDを同じ配列から出力。記事タイトルは表示のみ1行で省略） */}
+      <div className="mb-8">
+        <Breadcrumb
+          items={[
+            { name: '資産シミュレーター', href: '/' },
+            { name: 'ブログ', href: '/blog' },
+            { name: post.title, href: `/blog/${post.slug}` },
+          ]}
+          truncateLast
+        />
+      </div>
 
       {/* アイキャッチ画像 */}
       {post.eyecatch && (
@@ -197,7 +187,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </ul>
         </section>
       )}
-      </main>
+      </div>
     </>
   );
 }
