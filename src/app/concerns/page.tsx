@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/siteConfig';
 import { CONCERNS, STAGE_LABELS, STAGE_ORDER } from '@/data/concerns';
+import { CONCERN_CTA_LABELS } from '@/lib/concernCtaLabels';
 import ConcernCard from '@/components/concerns/ConcernCard';
+import Container from '@/components/layout/Container';
+import PageHeader from '@/components/layout/PageHeader';
+import JumpChips from '@/components/layout/JumpChips';
+import ListSectionHeading from '@/components/layout/ListSectionHeading';
 
 export const metadata: Metadata = {
   title: 'お悩み一覧 | FREENOUGH 資産シミュレーター',
@@ -13,22 +18,34 @@ export const metadata: Metadata = {
 
 export default function ConcernsPage() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#0F2A4A] leading-snug">お悩み一覧</h1>
-      <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-        よくある悩みと、シミュレーターで分かることをまとめました
-      </p>
+    <Container className="py-12">
+      <PageHeader
+        title="お悩み一覧"
+        description="よくある悩みと、シミュレーターで分かることをまとめました"
+        breadcrumbs={[
+          { name: '資産シミュレーター', href: '/' },
+          { name: 'お悩み一覧', href: '/concerns' },
+        ]}
+      />
+
+      <div className="mt-6">
+        <JumpChips items={STAGE_ORDER.map((stage) => ({ id: stage, label: STAGE_LABELS[stage] }))} />
+      </div>
 
       {STAGE_ORDER.map((stage) => (
-        <div key={stage} className="mt-10 first:mt-8">
-          <h2 className="text-lg font-semibold text-slate-700 mb-4">{STAGE_LABELS[stage]}</h2>
+        <div key={stage} className="mt-10">
+          <ListSectionHeading id={stage}>{STAGE_LABELS[stage]}</ListSectionHeading>
           <div className="grid gap-5 sm:grid-cols-2">
             {CONCERNS.filter((c) => c.stage === stage).map((concern) => (
-              <ConcernCard key={concern.id} concern={concern} location="concerns_list" />
+              <ConcernCard
+                key={concern.id}
+                concern={{ ...concern, ctaLabel: CONCERN_CTA_LABELS[concern.ctaType] }}
+                location="concerns_list"
+              />
             ))}
           </div>
         </div>
       ))}
-    </div>
+    </Container>
   );
 }

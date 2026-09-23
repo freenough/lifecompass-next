@@ -1,4 +1,5 @@
 import { CONCERNS } from '@/data/concerns';
+import { CONCERN_CTA_LABELS } from '@/lib/concernCtaLabels';
 import ConcernCard from './ConcernCard';
 import SectionHeading from '@/components/layout/SectionHeading';
 import Container from '@/components/layout/Container';
@@ -19,7 +20,11 @@ export default function ConcernBlockLP() {
 
         <div className="grid gap-5 sm:grid-cols-2">
           {featuredConcerns.map((concern) => (
-            <ConcernCard key={concern.id} concern={concern} location="lp" />
+            <ConcernCard
+              key={concern.id}
+              concern={{ ...concern, ctaLabel: CONCERN_CTA_LABELS[concern.ctaType] }}
+              location="lp"
+            />
           ))}
         </div>
       </Container>
