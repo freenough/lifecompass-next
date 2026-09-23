@@ -216,8 +216,12 @@ export default function HomePage() {
                 既存clampの値(8vw=51.2px=3.2rem)へ一気に下がる不自然なジャンプが生じるため、
                 あえてsm:側の640px時点の値と同じ3.2remを上限にして継続的に繋げている
                 （640px以上は既存のclampのまま変更しない）。 */}
-            <h1 className="text-[clamp(2.5rem,1.5094rem+4.2264vw,3.2rem)] sm:text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900 text-balance">
-              あなたのFIREは、<br />
+            {/* text-balanceは削除。「あなたのFIREは、」をinline-block化し、360px幅で
+                「あなたの」/「FIREは、」に途中折り返しされる回帰バグを修正
+                （implementation_hero_heading_linebreak_fix.md参照。「毎月の資産を、記録する。」
+                ブロックの「突き合わせる。」修正と同様のパターン）。 */}
+            <h1 className="text-[clamp(2.5rem,1.5094rem+4.2264vw,3.2rem)] sm:text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900">
+              <span className="inline-block whitespace-nowrap">あなたのFIREは、</span><br />
               何歳？
             </h1>
             {/* ライブデモ（1024px未満・見出しの直下） */}
