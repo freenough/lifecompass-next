@@ -69,9 +69,15 @@ function XAxisTick({ x, y, payload }: XAxisTickProps) {
 // シミュレーター本体のKpiGridより短い表記にする（LP独自のラベルのため他画面には影響しない）。
 const KPI_LABELS = ['FIRE達成', '資産寿命', 'MC破綻率'];
 
-// チャート縦幅。左テキスト列（見出し+本文+CTA+注記）の高さとできるだけ揃うよう調整した値
-// （instruction_lp_container_width_and_block_frame.md 追加対応4節。元は230固定）。
-const CHART_HEIGHT = 300;
+// チャートエリアの縦幅はaspect-ratioで幅から算出する(固定pxではない)。
+// モバイル: aspect-[277/220]（実測チャート幅277pxを基準に約220px相当）。
+// デスクトップ(lg:): aspect-[470/300]（実測チャート幅470pxを基準に、従来のCHART_HEIGHT=300pxと
+// 同じ高さを維持）。max-h-[300px]は640〜1023px(1カラムのままaspect-*が適用され続ける範囲)で
+// 幅が広がるにつれ高さが際限なく伸びるのを防ぐ安全弁（lg:未満は横幅がw-fullで最大1023pxまで
+// 伸びうるため、aspect比だけだとlg直前で700px超まで伸びてからlg:1024pxで一気に300pxへ落ちる
+// 不自然なジャンプが生じる。300pxで頭打ちにすることでlg:のaspect-[470/300](=300px)へ
+// 連続的につながる）。詳細はimplementation_hero_spacing_chart_aspect_tool_section.md参照。
+const CHART_ASPECT_CLASS = 'aspect-[277/220] max-h-[300px] lg:aspect-[470/300] lg:max-h-none';
 
 export default function HeroDemo() {
   const [fireAge, setFireAge] = useState<number | null>(null);
@@ -147,7 +153,7 @@ export default function HeroDemo() {
   const yTicks = [0, Math.round(yMax / 2), yMax];
 
   return (
-    <div className="bg-white rounded shadow-2xl border border-slate-200 px-6 pt-6 pb-3 w-full">
+    <div className="bg-white rounded shadow-2xl border border-slate-200 px-6 pt-6 pb-1 w-full">
 
       {/* KPI ブロック — シミュレーター実機と同じ白背景+状態色カード・フェードイン */}
       <div className="grid grid-cols-3 gap-2">
@@ -168,9 +174,9 @@ export default function HeroDemo() {
       </div>
 
       {/* MC ファンチャート — 左から描画アニメーション */}
-      <div className="mt-2">
+      <div className={`mt-1 ${CHART_ASPECT_CLASS}`}>
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+          <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 4, right: 2, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
@@ -228,7 +234,7 @@ export default function HeroDemo() {
             </ComposedChart>
           </ResponsiveContainer>
         ) : (
-          <div style={{ height: CHART_HEIGHT }} className="flex items-center justify-center text-slate-300 text-sm">
+          <div className="h-full flex items-center justify-center text-slate-300 text-sm">
             計算中…
           </div>
         )}

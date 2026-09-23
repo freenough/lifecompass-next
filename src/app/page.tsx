@@ -195,7 +195,15 @@ export default function HomePage() {
           （実測: scrollWidth=807px固定 vs viewport 640〜806pxで確認）があった。この幅では
           モバイル同様の縦積み・w-full表示にすることで解消する。1024px以上は十分な横幅が
           あるため従来通り固定460pxの2カラム表示のまま。 */}
-      <section className="py-16">
+      {/* pt-4 pb-16の非対称パディング: 上部はheader直下の余白を詰めてファーストビューを
+          稼ぐ、下部は従来のpy-16(64px)のまま維持
+          （implementation_hero_spacing_chart_aspect_tool_section.md 2節）。
+          lg:pt-24は、デスクトップでファーストビュー最下部に「お悩み」セクションの見出しが
+          中途半端に覗く問題への対応(A案)。1920×1080では実効高さ(Chrome込み970px相当)で
+          見切れ24pxまで縮小することを許容範囲として採用。B案(lg:pt-56)は1440×900で
+          差別化セクションのテキストが逆に見切れる問題があり不採用
+          （implementation_desktop_hero_padding_tool_card_gap.md 1節）。 */}
+      <section className="pt-4 lg:pt-24 pb-16">
         <Container>
           <div className="flex flex-col lg:flex-row lg:items-start gap-4">
 
@@ -288,9 +296,12 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* ③.6 かんたん計算ツール */}
+      {/* ③.6 かんたん計算ツール。左右余白のみpx-2(paddingX="tight")に圧縮。
+          カード自体はborder-yのみ(左右ボーダーなし)+内部p-6を持つため、外側余白を絞っても
+          テキストと画面端の実質距離は確保される
+          （implementation_hero_spacing_chart_aspect_tool_section.md 4節）。 */}
       <section className="bg-slate-50 py-12">
-        <Container>
+        <Container paddingX="tight">
           <SectionHeading
             label="ツール"
             heading="かんたん計算ツール"
@@ -299,12 +310,14 @@ export default function HomePage() {
             linkLabel="ツール一覧を見る→"
           />
 
-          <div className="grid grid-cols-2 gap-x-6 lg:grid-cols-4 lg:gap-x-8">
+          {/* gap-x-4/p-4はモバイル限定。デスクトップ(lg:gap-x-8/lg:p-6)は現状のまま変更しない
+              （implementation_desktop_hero_padding_tool_card_gap.md 2節）。 */}
+          <div className="grid grid-cols-2 gap-x-4 lg:grid-cols-4 lg:gap-x-8">
             {lpTools.map((tool) => (
               <Link
                 key={tool.href}
                 href={tool.href}
-                className="border-y border-slate-200 rounded-none p-6 hover:bg-white transition-colors"
+                className="border-y border-slate-200 rounded-none p-4 lg:p-6 hover:bg-white transition-colors"
               >
                 <tool.Icon size={32} className="text-slate-600 mb-3" />
                 <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
