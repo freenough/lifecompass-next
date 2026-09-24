@@ -54,11 +54,13 @@ export default function HitoriHojinLandingPage() {
 
       {/* Intro。本文の幅はContainer（本体LPと同じ基準幅）に合わせ、段落はmax-w-2xl（1行およそ40字）に
           絞る。[line-break:strict]は和文の禁則処理（impl_hitori_hojin_lp_ui.md 3節）。
-          ブロックはHeroに合わせて中央に置き、ブロック内のテキストは左寄せのまま。text-prettyは
-          最終行が「す。」のように短くなるのを防ぐ（impl_hitori_hojin_lp_ui_followup.md 2節）。 */}
+          ブロックはHeroに合わせて中央に置き、ブロック内のテキストは左寄せのまま
+          （impl_hitori_hojin_lp_ui_followup.md 2節）。
+          text-prettyは付けない：Safari（WebKit）では段落全体の行長をそろえる挙動になり、375px幅で
+          すべての行が右端の50〜60px手前で折り返されていた（fix_hitori_hojin_intro_safari.md）。 */}
       <section className="py-12">
         <Container>
-          <div className="mx-auto max-w-2xl text-sm md:text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict] text-pretty">
+          <div className="mx-auto max-w-2xl text-sm md:text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict]">
             <p>
               FIREというと、「完全に働くのをやめること」だけをイメージしがちです。でも、完全リタイアと会社員の間には、仕事を続けながら働き方や収入の持ち方を変え、資産形成を続けるという選択肢もあります。その選択肢の一つとして、一人法人があります。
             </p>
@@ -88,10 +90,11 @@ export default function HitoriHojinLandingPage() {
             ボタン文言はctaCopy.tsの定数（お悩みカード・SimulatorCtaCardと同じ「シミュレーターで試算」、
             SimulatorCtaCardに合わせて矢印なし）。行き先はLPトップではなくシミュレーター本体（/app）。
             説明文は文の切れ目で改行する（全幅で有効。1文目はmax-w-xlで1440・768px幅なら1行に収まる。
-            375px幅では2文目の最終行が「す。」だけになったため、text-prettyを付ける。
-            impl_hitori_hojin_lp_ui_followup.md 5節）。 */}
+            impl_hitori_hojin_lp_ui_followup.md 5節）。
+            text-prettyは付けない：Safari（WebKit）では行が不自然に短くなるため（fix_hitori_hojin_intro_safari.md）。
+            そのため375px幅では2文目の最終行が「す。」だけになる。 */}
         <div className="mx-auto max-w-xl px-6 text-center">
-          <p className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict] text-pretty">
+          <p className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict]">
             一人法人を考える前に、まずは自分の必要資産額を確認してみてください。
             <br />
             一人法人はFIREを実現するための選択肢の一つです。
