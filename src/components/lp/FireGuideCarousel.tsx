@@ -140,29 +140,31 @@ export default function FireGuideCarousel({ posts }: { posts: BlogPostMeta[] }) 
             href={`/blog/${post.slug}`}
             className="fireguide-card rounded border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
           >
-            <div className="relative w-full aspect-[3/2] shrink-0 overflow-hidden bg-slate-100">
+            {/* サムネイル型（claude_instruction_fireguide_card_thumbnail.md）：アイキャッチは雰囲気を伝える画像と割り切り、
+                16:9の枠で切り抜く（画像内の文字は読めなくてよい）。切り抜き方は比較のうえ「1.4倍に拡大して右寄せ・上下中央」に確定
+                （右側のグラフ部分を大きく見せる。transform-originを右端にして、右端を固定したまま拡大する）。
+                タイトルは全幅でテキストで読ませるため、画像のaltは空にする（リンク内のテキストと二重に読み上げられないように）。
+                sizesは実際のカード幅（globals.cssの.fireguide-card：640px未満は82%、以上は30%・最小260px、
+                1152px以上はコンテナ上限で約332px）の1.4倍にしている（拡大してもDPR 2で引き伸ばされないように）。 */}
+            <div className="relative w-full aspect-video shrink-0 overflow-hidden bg-slate-100">
               {post.eyecatch && (
                 <Image
                   src={post.eyecatch}
-                  alt={post.title}
+                  alt=""
                   fill
-                  sizes="(min-width: 640px) 33vw, 85vw"
-                  className="object-cover"
+                  sizes="(min-width: 1152px) 465px, (min-width: 640px) 48vw, 115vw"
+                  className="object-cover object-right scale-[1.4] origin-right"
                   draggable={false}
                 />
               )}
             </div>
+            {/* バッジ（全記事同じカテゴリで情報にならない）とexcerptは出さない。excerptは検索インデックスで使うためデータはそのまま。
+                タイトルは2行分の高さを確保し、1行の記事でも日付の位置がそろうようにする（text-base・leading-snugの2行＝2.75rem）。 */}
             <div className="flex-1 min-w-0 p-[14px] flex flex-col gap-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium bg-[#EFF6FF] text-[#0F2A4A] px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap">
-                  {post.category}
-                </span>
-                <time className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{post.date}</time>
-              </div>
-              <h3 className="text-base font-semibold text-slate-900 leading-snug line-clamp-3">
+              <h3 className="min-h-[2.75rem] text-base font-semibold text-slate-900 leading-snug line-clamp-2 [line-break:strict]">
                 {post.title}
               </h3>
-              <p className="text-xs text-slate-500">{post.excerpt}</p>
+              <time className="text-xs text-slate-500 whitespace-nowrap">{post.date}</time>
             </div>
           </Link>
         ))}
