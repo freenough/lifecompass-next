@@ -42,18 +42,23 @@ export default function HitoriHojinLandingPage() {
           <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold text-[#0F2A4A] leading-snug [word-break:keep-all]">
             一人法人を、<wbr />FIREの選択肢に。
           </h1>
-          <p className="mt-4 text-sm md:text-base text-slate-600 leading-relaxed">
+          {/* 説明文だけが見出しより横に広がらないようmax-w-3xlで中央に置き、md以上は文の切れ目で改行する
+              （md未満は自然に折り返す。impl_hitori_hojin_lp_ui_followup.md 1節）。 */}
+          <p className="mx-auto mt-4 max-w-3xl text-sm md:text-base text-slate-600 leading-relaxed [line-break:strict]">
             これから法人化を考える人にも、すでに一人法人を運営している人にも。
+            <br className="hidden md:inline" />
             税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。
           </p>
         </div>
       </section>
 
       {/* Intro。本文の幅はContainer（本体LPと同じ基準幅）に合わせ、段落はmax-w-2xl（1行およそ40字）に
-          絞って左寄せにする。[line-break:strict]は和文の禁則処理（impl_hitori_hojin_lp_ui.md 3節）。 */}
+          絞る。[line-break:strict]は和文の禁則処理（impl_hitori_hojin_lp_ui.md 3節）。
+          ブロックはHeroに合わせて中央に置き、ブロック内のテキストは左寄せのまま。text-prettyは
+          最終行が「す。」のように短くなるのを防ぐ（impl_hitori_hojin_lp_ui_followup.md 2節）。 */}
       <section className="py-12">
         <Container>
-          <div className="max-w-2xl text-sm md:text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict]">
+          <div className="mx-auto max-w-2xl text-sm md:text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict] text-pretty">
             <p>
               FIREというと、「完全に働くのをやめること」だけをイメージしがちです。でも、完全リタイアと会社員の間には、仕事を続けながら働き方や収入の持ち方を変え、資産形成を続けるという選択肢もあります。その選択肢の一つとして、一人法人があります。
             </p>
@@ -81,10 +86,15 @@ export default function HitoriHojinLandingPage() {
       <section className="bg-slate-50 py-16 -mb-16">
         {/* 説明文はmax-w-xlに絞り、[line-break:strict]で和文の禁則処理をかける（impl_hitori_hojin_lp_ui.md 5-3節）。
             ボタン文言はctaCopy.tsの定数（お悩みカード・SimulatorCtaCardと同じ「シミュレーターで試算」、
-            SimulatorCtaCardに合わせて矢印なし）。行き先はLPトップではなくシミュレーター本体（/app）。 */}
+            SimulatorCtaCardに合わせて矢印なし）。行き先はLPトップではなくシミュレーター本体（/app）。
+            説明文は文の切れ目で改行する（全幅で有効。1文目はmax-w-xlで1440・768px幅なら1行に収まる。
+            375px幅では2文目の最終行が「す。」だけになったため、text-prettyを付ける。
+            impl_hitori_hojin_lp_ui_followup.md 5節）。 */}
         <div className="mx-auto max-w-xl px-6 text-center">
-          <p className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict]">
-            一人法人を考える前に、まずは自分の必要資産額を確認してみてください。一人法人はFIREを実現するための選択肢の一つです。
+          <p className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict] text-pretty">
+            一人法人を考える前に、まずは自分の必要資産額を確認してみてください。
+            <br />
+            一人法人はFIREを実現するための選択肢の一つです。
           </p>
           <Link
             href="/app?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp"

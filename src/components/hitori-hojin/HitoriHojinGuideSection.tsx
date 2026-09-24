@@ -26,7 +26,7 @@ export default function HitoriHojinGuideSection({ knowledgePosts, considerPosts 
       <Container>
         <SectionHeading
           label="一人法人ガイド"
-          heading="一人法人を、知る・考える"
+          heading="一人法人を知る・考える"
           body="法人化の基本から、自分に合うかどうかの判断まで、FIREの視点で整理しています"
           linkHref={`${HITORI_HOJIN_SITE_URL}/blog`}
           linkLabel="記事一覧を見る→"

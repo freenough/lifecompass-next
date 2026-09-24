@@ -28,8 +28,11 @@ export default function HitoriHojinManageSection() {
 
           {/* 左：テキスト＋CTA */}
           <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
-            <h2 className="text-2xl font-bold text-slate-900 text-balance">
-              法人の資産も、FIREの進捗に。
+            {/* 大きさ・太さ・行間は本体LP（AssetManagementPromoSection.tsx）の「毎月の資産を、記録する。」と
+                同じクラス。折り返す幅では「法人の資産も、／FIREの進捗に。」でだけ切れるよう、Heroのh1と同じ
+                word-break: keep-all＋wbrにする（impl_hitori_hojin_lp_ui_followup.md 4節）。 */}
+            <h2 className="text-[2rem] sm:text-5xl font-bold text-slate-900 text-balance [word-break:keep-all]">
+              法人の資産も、<wbr />FIREの進捗に。
             </h2>
             <p className="mt-3 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
               法人に保有している資産を記録し、個人資産と合わせたFIRE進捗を確認できます。
