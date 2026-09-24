@@ -440,7 +440,7 @@ console.log('='.repeat(90));
 
 console.log('\n' + '='.repeat(90));
 console.log('【給与所得控除の速算表近似:別表第五との誤差上限(区分ごとに一意、令和7年分のみ検証済み)】');
-console.log('出典: docs/fixes/active/betsuhyo5-extraction/investigation_report.md');
+console.log('出典: docs/fixes/done/betsuhyo5-extraction/investigation_report.md');
 console.log('='.repeat(90));
 {
   check('[2025年]190万円以下:差なし', calcSalaryDeductionApproxMaxError(1_900_000, 2025), 0);
