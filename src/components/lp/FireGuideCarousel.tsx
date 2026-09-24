@@ -141,18 +141,19 @@ export default function FireGuideCarousel({ posts }: { posts: BlogPostMeta[] }) 
             className="fireguide-card rounded border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden hover:shadow-md hover:border-slate-300 transition-all"
           >
             {/* サムネイル型（claude_instruction_fireguide_card_thumbnail.md）：アイキャッチは雰囲気を伝える画像と割り切り、
-                16:9の枠で中央を切り抜く（画像内の文字は読めなくてよい）。タイトルは全幅でテキストで読ませるため、
-                画像のaltは空にする（リンク内のテキストと二重に読み上げられないように）。
+                16:9の枠で切り抜く（画像内の文字は読めなくてよい）。切り抜き方は比較のうえ「1.4倍に拡大して右寄せ・上下中央」に確定
+                （右側のグラフ部分を大きく見せる。transform-originを右端にして、右端を固定したまま拡大する）。
+                タイトルは全幅でテキストで読ませるため、画像のaltは空にする（リンク内のテキストと二重に読み上げられないように）。
                 sizesは実際のカード幅（globals.cssの.fireguide-card：640px未満は82%、以上は30%・最小260px、
-                1152px以上はコンテナ上限で約332px）に合わせている。 */}
+                1152px以上はコンテナ上限で約332px）の1.4倍にしている（拡大してもDPR 2で引き伸ばされないように）。 */}
             <div className="relative w-full aspect-video shrink-0 overflow-hidden bg-slate-100">
               {post.eyecatch && (
                 <Image
                   src={post.eyecatch}
                   alt=""
                   fill
-                  sizes="(min-width: 1152px) 332px, (min-width: 640px) 34vw, 82vw"
-                  className="object-cover object-center"
+                  sizes="(min-width: 1152px) 465px, (min-width: 640px) 48vw, 115vw"
+                  className="object-cover object-right scale-[1.4] origin-right"
                   draggable={false}
                 />
               )}
