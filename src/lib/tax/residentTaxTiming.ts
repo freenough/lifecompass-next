@@ -115,7 +115,7 @@ function calcSalaryIncomeDeductionUpperBrackets(incomeYen: number): number {
 /**
  * calcSalaryIncomeDeduction()の速算表近似が生む、所得税法別表第五との誤差の上限(円)。
  * **令和7年分(incomeYear<=2025)のみ検証済み**(e-Gov法令API v2で取得した所得税法別表第五との
- * 8点照合、docs/fixes/active/betsuhyo5-extraction/investigation_report.md参照)。
+ * 8点照合、docs/fixes/done/betsuhyo5-extraction/investigation_report.md参照)。
  * 令和8年分以降は別表第五との照合を行っていないため、誤差の上限は不明。呼び出し側
  * (salaryDeductionApproxNote())はnullの場合「誤差未検証」の注記に切り替えること。
  */
