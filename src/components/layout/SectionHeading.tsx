@@ -9,6 +9,10 @@ interface SectionHeadingProps {
   linkLabel: string;
   // ケーススタディ(note.com)のみ外部リンクのためtarget="_blank"の<a>で描画する
   linkExternal?: boolean;
+  // 同じタブで開く<a>で描画する（linkHrefは絶対URLを渡す）。next/linkはbasePath('/asset-simulator')を
+  // 自動付与するため、一人法人LPから一人法人ブログ（クリーンURL）へ移動するときに使う
+  // （Header.tsxのabsolute: trueと同じ理由。impl_hitori_hojin_lp_ui.md 2節）。
+  linkAbsolute?: boolean;
 }
 
 // instruction_asset_simulator_lp_polish_addendum2.md 修正1: 線とラベルは
@@ -26,7 +30,7 @@ interface SectionHeadingProps {
 // 見出し本体の行ではなく、ラベル行(線+ラベル)と同じ行に右寄せ配置する(justify-between)。
 // 見出し本体・補足文は全幅の別行になるため、見出しの文字数がリンクの位置に影響しない
 // (見出し側の折り返し対応・flex-wrap/ml-autoの仕組みは不要になったため撤去した)。
-export default function SectionHeading({ label, heading, body, linkHref, linkLabel, linkExternal }: SectionHeadingProps) {
+export default function SectionHeading({ label, heading, body, linkHref, linkLabel, linkExternal, linkAbsolute }: SectionHeadingProps) {
   const linkClassName = 'shrink-0 whitespace-nowrap text-sm font-semibold hover:underline text-accent';
 
   return (
@@ -40,6 +44,10 @@ export default function SectionHeading({ label, heading, body, linkHref, linkLab
         </div>
         {linkExternal ? (
           <a href={linkHref} target="_blank" rel="noopener noreferrer" className={linkClassName}>
+            {linkLabel}
+          </a>
+        ) : linkAbsolute ? (
+          <a href={linkHref} className={linkClassName}>
             {linkLabel}
           </a>
         ) : (
