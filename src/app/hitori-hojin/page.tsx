@@ -4,6 +4,7 @@ import { getHitoriHojinPostsBySeries } from '@/lib/hitoriHojinBlog';
 import HitoriHojinGuideSection from '@/components/hitori-hojin/HitoriHojinGuideSection';
 import HitoriHojinManageSection from '@/components/hitori-hojin/HitoriHojinManageSection';
 import Container from '@/components/layout/Container';
+import PhraseBreak from '@/components/text/PhraseBreak';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 import { SIMULATOR_CTA_LABEL } from '@/lib/ctaCopy';
 
@@ -92,12 +93,13 @@ export default function HitoriHojinLandingPage() {
             説明文は文の切れ目で改行する（全幅で有効。1文目はmax-w-xlで1440・768px幅なら1行に収まる。
             impl_hitori_hojin_lp_ui_followup.md 5節）。
             text-prettyは付けない：Safari（WebKit）では行が不自然に短くなるため（fix_hitori_hojin_intro_safari.md）。
-            そのため375px幅では2文目の最終行が「す。」だけになる。 */}
+            代わりにBudouX（PhraseBreak）で文節の区切りに<wbr />を入れ、keep-allでその位置だけで折り返させる
+            （overflow-wrap:anywhereは長すぎる文節の保険。experiment_budoux_hitori_hojin.md）。 */}
         <div className="mx-auto max-w-xl px-6 text-center">
-          <p className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict]">
-            一人法人を考える前に、まずは自分の必要資産額を確認してみてください。
+          <p className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict] [word-break:keep-all] [overflow-wrap:anywhere]">
+            <PhraseBreak text="一人法人を考える前に、まずは自分の必要資産額を確認してみてください。" />
             <br />
-            一人法人はFIREを実現するための選択肢の一つです。
+            <PhraseBreak text="一人法人はFIREを実現するための選択肢の一つです。" />
           </p>
           <Link
             href="/app?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp"
