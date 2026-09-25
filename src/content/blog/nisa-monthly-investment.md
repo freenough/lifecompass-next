@@ -55,7 +55,7 @@ topics: ["nisa"]
 ---
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
-[積立額シミュレーターで試算する](/asset-simulator/tools/monthly-investment?utm_source=blog&utm_medium=referral&utm_campaign=nisa_monthly_investment&utm_content=mid_cta)
+[積立額シミュレーターで試算する](/asset-simulator/tools/monthly-investment)
 
 ## 積立額シミュレーターで試算してみる
 
@@ -123,7 +123,7 @@ topics: ["nisa"]
 では、目標資産到達年齢シミュレーターとモンテカルロ法を使って、到達年齢と
 そのブレ幅を検証しています。
 
-[積立額シミュレーターで試算する](/asset-simulator/tools/monthly-investment?utm_source=blog&utm_medium=referral&utm_campaign=nisa_monthly_investment&utm_content=bottom_cta)
+[積立額シミュレーターで試算する](/asset-simulator/tools/monthly-investment)
 
 [PR] <AffiliateLink provider="matsui" landing="nisa" />
 

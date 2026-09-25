@@ -68,7 +68,7 @@ topics: ["nisa", "fire_age"]
 実際の見通しに近づきそうです。
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、
-[目標資産到達年齢シミュレーター](/asset-simulator/tools/fire-age?utm_source=blog&utm_medium=referral&utm_campaign=nisa_achievement_age)
+[目標資産到達年齢シミュレーター](/asset-simulator/tools/fire-age)
 で一度試算してみてください。
 
 ## モンテカルロ法で検証する
@@ -122,10 +122,10 @@ topics: ["nisa", "fire_age"]
 今回は35歳・毎月6.89万円という条件で試算しましたが、年齢や積立額、
 目標資産額はご自身の状況に置き換えて確認できます。
 
-- [目標資産到達年齢シミュレーター](/asset-simulator/tools/fire-age?utm_source=blog&utm_medium=referral&utm_campaign=nisa_achievement_age)
+- [目標資産到達年齢シミュレーター](/asset-simulator/tools/fire-age)
   なら、5項目の入力だけで概算とモンテカルロ結果まで数十秒で確認できます
 - NISA・iDeCoの口座区分や、目標到達後の取り崩しまで含めて具体的に
-  計画したい場合は、[本格資産シミュレーター](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=nisa_achievement_age)
+  計画したい場合は、[本格資産シミュレーター](/asset-simulator/app)
   もあわせてご利用ください
 
 入力したデータはブラウザ内で計算されるだけで、外部に保存されることは

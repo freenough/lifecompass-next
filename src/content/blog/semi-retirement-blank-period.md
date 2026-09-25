@@ -25,7 +25,7 @@ topics: ["retirement_tax", "pension"]
 
 退職金や貯蓄はあっても、公的年金がもらえる65歳までは、収入がゼロになる期間が発生します。この期間、資産を取り崩し続けるだけでいいのか、それとも何らかの形で収入を確保すべきなのか。今回は、この問いをFREENOUGH 資産シミュレーターで検証してみます。
 
-この退職金の手取り額が気になる方は、[退職金手取り計算ツール](/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)で試算できます。
+この退職金の手取り額が気になる方は、[退職金手取り計算ツール](/asset-simulator/tools/retirement-tax)で試算できます。
 
 ### この記事の結論
 
@@ -84,7 +84,7 @@ topics: ["retirement_tax", "pension"]
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
 
-→ [FREENOUGH 資産シミュレーターで試算する](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=semi-retirement-blank-period)
+→ [FREENOUGH 資産シミュレーターで試算する](/asset-simulator/app)
 
 ## 収入を得る期間を変えるとどうなる?
 
@@ -127,7 +127,7 @@ topics: ["retirement_tax", "pension"]
 
 あなたの退職年齢・資産・退職金を入力すれば、「空白期間を何年働けば十分か」を数分で確認できます。入力したデータは端末内に保存され、外部に送信されることはありません。
 
-→ [FREENOUGH 資産シミュレーターで試算する](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=semi-retirement-blank-period)
+→ [FREENOUGH 資産シミュレーターで試算する](/asset-simulator/app)
 
 ## よくある質問
 

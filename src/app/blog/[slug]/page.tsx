@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getAllPosts, getPostBySlug, getPostFaq, getRelatedPosts } from '@/lib/blog';
 import { ORGANIZATION_REF, SITE_URL } from '@/lib/siteConfig';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import ArticleLinkTracker from '@/components/blog/ArticleLinkTracker';
 import type { Metadata } from 'next';
 
 export async function generateStaticParams() {
@@ -131,7 +132,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       <hr className="border-slate-200 mb-8" />
 
-      {/* 記事本文 */}
+      {/* 記事本文。本文中のサイト内リンクのクリックはArticleLinkTrackerでGA4イベントとして計測する */}
+      <ArticleLinkTracker postSlug={post.slug} section="blog">
       <article
         className="prose prose-lg max-w-none
           prose-headings:text-[#0F2A4A] prose-headings:font-bold
@@ -148,6 +150,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           prose-blockquote:border-l-4 prose-blockquote:border-blue-300 prose-blockquote:text-slate-500"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+      </ArticleLinkTracker>
 
       {/* CTA */}
       <div className="mt-12 bg-[#EFF6FF] border border-blue-100 rounded-xl p-8 text-center">

@@ -46,7 +46,7 @@ FIRE後、生活費は保有資産を取り崩しながら賄うことになり�
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
 
-→ [資産シミュレーターで試算する](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=withdrawal_strategy&utm_content=mid_cta)
+→ [資産シミュレーターで試算する](/asset-simulator/app)
 
 ---
 
@@ -120,7 +120,7 @@ FIRE後、生活費は保有資産を取り崩しながら賄うことになり�
 - データはブラウザ内で処理され、保存されません
 - NISA・iDeCo・特定口座・現金の残高を入力するだけで比較可能
 
-→ [自分の資産で試算してみる](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=withdrawal_strategy&utm_content=bottom_cta)
+→ [自分の資産で試算してみる](/asset-simulator/app)
 
 ---
 
@@ -148,7 +148,7 @@ A. 資産シミュレーターでは、1回の試算につき1つの取り崩し
 
 **Q. iDeCoは取り崩し戦略の比較に含まれていますか?**
 
-A. iDeCo自体の受給タイミング(受給開始年齢)や受取方式(一時金・年金)は、取り崩し戦略とは関係なく、iDeCoの設定だけで決まります。一時金であれば受給開始年に、年金であれば毎年、税引き後の金額が自動的に生活費の原資(収入・現金)に組み込まれます。今回比較した3戦略の違いが影響するのは、それでもなお生活費が不足する場合に、NISA・特定口座・現金のどれを先に取り崩すか、という部分です(不足がさらに大きい場合の最終手段として、まだ受け取っていないiDeCo残高が使われる場合もあります)。受取方式(一時金・年金)による手取りの違いは、[iDeCo受取シミュレーター](/asset-simulator/tools/ideco-withdrawal?utm_source=blog&utm_medium=referral&utm_campaign=ideco_withdrawal_blog)で試算できます。
+A. iDeCo自体の受給タイミング(受給開始年齢)や受取方式(一時金・年金)は、取り崩し戦略とは関係なく、iDeCoの設定だけで決まります。一時金であれば受給開始年に、年金であれば毎年、税引き後の金額が自動的に生活費の原資(収入・現金)に組み込まれます。今回比較した3戦略の違いが影響するのは、それでもなお生活費が不足する場合に、NISA・特定口座・現金のどれを先に取り崩すか、という部分です(不足がさらに大きい場合の最終手段として、まだ受け取っていないiDeCo残高が使われる場合もあります)。受取方式(一時金・年金)による手取りの違いは、[iDeCo受取シミュレーター](/asset-simulator/tools/ideco-withdrawal)で試算できます。
 
 ---
 
