@@ -2,6 +2,7 @@ import { IconChevronRight } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import type { HitoriHojinBlogPostMeta } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
+import PhraseBreak from '@/components/text/PhraseBreak';
 
 interface HitoriHojinArticleListProps {
   posts: HitoriHojinBlogPostMeta[];
@@ -18,8 +19,10 @@ interface HitoriHojinArticleListProps {
 // - アイコンはタイトル1行目の高さ（text-base・leading-snug＝22px）の枠に入れ、タイトルが2行になっても1行目の横に留める。
 // - タイトル・説明文は全文表示（line-clampなし）。[line-break:strict]は小書きの仮名等が行頭に来るのを防ぐ和文の禁則処理。
 //   375px幅では行のテキスト幅が約220pxしかなく、禁則処理だけでは「る？」「構造」のような1〜2文字の行が残るため、
-//   文節の切れ目で改行する[word-break:auto-phrase]を併用する。auto-phraseはChrome/Edge 119以降のみ対応で、
-//   未対応ブラウザ（Safari等）では従来の改行になる。
+//   BudouX（PhraseBreak）でサーバー側から文節の区切りに<wbr />を入れ、[word-break:keep-all]でその位置だけで
+//   折り返させる（ブラウザに関係なく同じ区切り方になる）。1つの文節が行に収まらない場合の保険として
+//   [overflow-wrap:anywhere]を付ける。以前のCSS word-break: auto-phraseはChrome/Edgeにしかなく、
+//   keep-allと役割が重なるため外した（experiment_budoux_hitori_hojin.md）。
 //   text-pretty（text-wrap: pretty）は付けない：Safari（WebKit）では行長をそろえる挙動になり、375px幅で
 //   1行目が13字入る幅に9字前後で折り返されていた（fix_hitori_hojin_intro_safari.md）。
 export default function HitoriHojinArticleList({ posts, icon: RowIcon }: HitoriHojinArticleListProps) {
@@ -39,11 +42,11 @@ export default function HitoriHojinArticleList({ posts, icon: RowIcon }: HitoriH
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-base font-semibold leading-snug text-slate-900 [line-break:strict] [word-break:auto-phrase]">
-                    {post.title}
+                  <p className="text-base font-semibold leading-snug text-slate-900 [line-break:strict] [word-break:keep-all] [overflow-wrap:anywhere]">
+                    <PhraseBreak text={post.title} />
                   </p>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-500 [line-break:strict] [word-break:auto-phrase]">
-                    {post.excerpt ?? post.description}
+                  <p className="mt-1 text-sm leading-relaxed text-slate-500 [line-break:strict] [word-break:keep-all] [overflow-wrap:anywhere]">
+                    <PhraseBreak text={post.excerpt ?? post.description} />
                   </p>
                 </div>
               </div>
