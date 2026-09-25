@@ -1,0 +1,113 @@
+{
+ "blockedHosts": [],
+ "results": [
+  {
+   "name": "ブログ一覧のCTA（SimulatorCtaCard）",
+   "from": "/asset-simulator/blog",
+   "linkTag": "A",
+   "href": "/asset-simulator/app",
+   "landedUrl": "/asset-simulator/app",
+   "navigation": "クライアント側遷移（ページの再読み込みなし）",
+   "callsBeforeClick": [],
+   "callsAtOrAfterClick": [
+    {
+     "args": [
+      "event",
+      "blog_cta_click",
+      {
+       "location": "sidebar"
+      }
+     ],
+     "msFromClick": 39,
+     "page": "/asset-simulator/blog"
+    }
+   ]
+  },
+  {
+   "name": "ツールページ→シミュレーター（fire-age）",
+   "from": "/asset-simulator/tools/fire-age",
+   "linkTag": "A",
+   "href": "/asset-simulator/app?utm_source=tools&utm_medium=referral&utm_campaign=fire_age_tool",
+   "landedUrl": "/asset-simulator/app?utm_source=tools&utm_medium=referral&utm_campaign=fire_age_tool",
+   "navigation": "クライアント側遷移（ページの再読み込みなし）",
+   "callsBeforeClick": [
+    [
+     "event",
+     "tool_calculate"
+    ]
+   ],
+   "callsAtOrAfterClick": [
+    {
+     "args": [
+      "event",
+      "tool_to_simulator_cta_click"
+     ],
+     "msFromClick": 51,
+     "page": "/asset-simulator/tools/fire-age"
+    }
+   ]
+  },
+  {
+   "name": "一人法人LPの下部CTA",
+   "from": "/asset-simulator/hitori-hojin",
+   "linkTag": "A",
+   "href": "/asset-simulator/app?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp",
+   "landedUrl": "/asset-simulator/app?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp",
+   "navigation": "クライアント側遷移（ページの再読み込みなし）",
+   "callsBeforeClick": [],
+   "callsAtOrAfterClick": []
+  },
+  {
+   "name": "（参考）LPのお悩みカードCTA（1枚目）",
+   "from": "/asset-simulator",
+   "linkTag": "A",
+   "href": "/asset-simulator/tools/fire-age?utm_source=lp&utm_medium=concern_card&utm_campaign=fire_age",
+   "landedUrl": "/asset-simulator/tools/fire-age?utm_source=lp&utm_medium=concern_card&utm_campaign=fire_age",
+   "navigation": "クライアント側遷移（ページの再読み込みなし）",
+   "callsBeforeClick": [],
+   "callsAtOrAfterClick": [
+    {
+     "args": [
+      "event",
+      "concern_cta_click",
+      {
+       "concern_id": "fire-age",
+       "stage": "saving",
+       "cta_type": "lightTool",
+       "location": "lp"
+      }
+     ],
+     "msFromClick": 75,
+     "page": "/asset-simulator"
+    },
+    {
+     "args": [
+      "event",
+      "tool_calculate"
+     ],
+     "msFromClick": 727,
+     "page": "/asset-simulator/tools/fire-age?utm_source=lp&utm_medium=concern_card&utm_campaign=fire_age"
+    }
+   ]
+  },
+  {
+   "name": "（参考）ブログ記事本文のutm付きリンク（4percent-rule）",
+   "from": "/asset-simulator/blog/4percent-rule",
+   "linkTag": "A",
+   "href": "/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog",
+   "landedUrl": "/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog",
+   "navigation": "ページの再読み込みを伴う遷移",
+   "callsBeforeClick": [],
+   "callsAtOrAfterClick": [
+    {
+     "args": [
+      "event",
+      "tool_calculate"
+     ],
+     "msFromClick": 1905,
+     "page": "/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog"
+    }
+   ]
+  }
+ ]
+}

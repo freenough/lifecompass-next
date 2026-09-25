@@ -1,0 +1,181 @@
+{
+ "blockedHosts": [
+  "www.googletagmanager.com"
+ ],
+ "blockedCount": 1,
+ "results": [
+  {
+   "name": "ブログ記事本文のサイト内リンク（4percent-rule、1件目）",
+   "from": "/asset-simulator/blog/4percent-rule",
+   "href": "/asset-simulator/tools/retirement-tax",
+   "target": null,
+   "landed": "/asset-simulator/tools/retirement-tax",
+   "navigation": "ページの再読み込み",
+   "navigationRequestMsFromClick": 53,
+   "calls": [
+    {
+     "args": [
+      "event",
+      "article_link_click",
+      {
+       "post_slug": "4percent-rule",
+       "link_path": "/asset-simulator/tools/retirement-tax",
+       "link_text": "退職金手取り計算ツール",
+       "section": "blog",
+       "transport_type": "beacon"
+      }
+     ],
+     "msFromClick": 48,
+     "recordedOn": "/asset-simulator/blog/4percent-rule"
+    },
+    {
+     "args": [
+      "event",
+      "tool_calculate"
+     ],
+     "msFromClick": 1981,
+     "recordedOn": "/asset-simulator/tools/retirement-tax"
+    }
+   ]
+  },
+  {
+   "name": "ブログ記事本文のシミュレーターへのリンク（4percent-rule、/app）",
+   "from": "/asset-simulator/blog/4percent-rule",
+   "href": "/asset-simulator/app",
+   "target": null,
+   "landed": "/asset-simulator/app",
+   "navigation": "ページの再読み込み",
+   "navigationRequestMsFromClick": 59,
+   "calls": [
+    {
+     "args": [
+      "event",
+      "article_link_click",
+      {
+       "post_slug": "4percent-rule",
+       "link_path": "/asset-simulator/app",
+       "link_text": "資産シミュレーターで試算する",
+       "section": "blog",
+       "transport_type": "beacon"
+      }
+     ],
+     "msFromClick": 54,
+     "recordedOn": "/asset-simulator/blog/4percent-rule"
+    }
+   ]
+  },
+  {
+   "name": "一人法人ブログ記事本文のリンク（what-is）",
+   "from": "/asset-simulator/hitori-hojin/blog/what-is",
+   "href": "/asset-simulator",
+   "target": null,
+   "landed": "/asset-simulator",
+   "navigation": "ページの再読み込み",
+   "navigationRequestMsFromClick": 53,
+   "calls": [
+    {
+     "args": [
+      "event",
+      "article_link_click",
+      {
+       "post_slug": "what-is",
+       "link_path": "/asset-simulator",
+       "link_text": "資産シミュレーターで試算する",
+       "section": "hitori_hojin",
+       "transport_type": "beacon"
+      }
+     ],
+     "msFromClick": 47,
+     "recordedOn": "/asset-simulator/hitori-hojin/blog/what-is"
+    }
+   ]
+  },
+  {
+   "name": "ブログ記事本文の新しいタブで開くリンク（対象外の確認）",
+   "from": "/asset-simulator/blog/4percent-rule",
+   "href": "https://px.a8.net/svt/ejp?a8mat=4B8791+7118VM+3XCC+69HAA",
+   "target": "_blank",
+   "landed": "（新しいタブ）https://www.matsui.co.jp/event/nisa-05/?modal=show&utm_source=a8&utm_campaign=nisa&utm_medium=affiliate&argument=0p7Lzdhu&dmai=a67611ada209c6&a8=WQDdiQ7OU43uz4MeqyMkqbDdcDJhMc34tyMQAJ3P-afOUbDkAbtbM5tezbX_2_t9jaK4HwDejQDd6s00000018318001",
+   "navigation": "新しいタブ",
+   "navigationRequestMsFromClick": null,
+   "calls": []
+  },
+  {
+   "name": "ツールページ→シミュレーター（fire-age）",
+   "from": "/asset-simulator/tools/fire-age",
+   "href": "/asset-simulator/app",
+   "target": null,
+   "landed": "/asset-simulator/app",
+   "navigation": "クライアント側遷移",
+   "navigationRequestMsFromClick": null,
+   "calls": [
+    {
+     "args": [
+      "event",
+      "tool_to_simulator_cta_click",
+      {
+       "tool": "fire_age"
+      }
+     ],
+     "msFromClick": 46,
+     "recordedOn": "/asset-simulator/tools/fire-age"
+    }
+   ]
+  },
+  {
+   "name": "一人法人LPの下部CTA",
+   "from": "/asset-simulator/hitori-hojin",
+   "href": "/asset-simulator/app",
+   "target": null,
+   "landed": "/asset-simulator/app",
+   "navigation": "クライアント側遷移",
+   "navigationRequestMsFromClick": null,
+   "calls": [
+    {
+     "args": [
+      "event",
+      "hojin_lp_cta_click",
+      {
+       "location": "bottom"
+      }
+     ],
+     "msFromClick": 60,
+     "recordedOn": "/asset-simulator/hitori-hojin"
+    }
+   ]
+  },
+  {
+   "name": "LPのお悩みカード（1枚目）",
+   "from": "/asset-simulator",
+   "href": "/asset-simulator/tools/fire-age",
+   "target": null,
+   "landed": "/asset-simulator/tools/fire-age",
+   "navigation": "クライアント側遷移",
+   "navigationRequestMsFromClick": null,
+   "calls": [
+    {
+     "args": [
+      "event",
+      "concern_cta_click",
+      {
+       "concern_id": "fire-age",
+       "stage": "saving",
+       "cta_type": "lightTool",
+       "location": "lp"
+      }
+     ],
+     "msFromClick": 59,
+     "recordedOn": "/asset-simulator"
+    },
+    {
+     "args": [
+      "event",
+      "tool_calculate"
+     ],
+     "msFromClick": 679,
+     "recordedOn": "/asset-simulator/tools/fire-age"
+    }
+   ]
+  }
+ ]
+}
