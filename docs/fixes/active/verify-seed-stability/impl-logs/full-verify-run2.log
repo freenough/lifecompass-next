@@ -1,0 +1,2087 @@
+
+================================================================================
+【山本シリーズ】全14シナリオ 期待値 vs 実際値
+================================================================================
+シナリオ                         | ①期待    | ①実際    | ②期待    | ②実際    | ③期待    | ③実際    | 結果    
+--------------------------------------------------------------------------------
+基本（支出264万）                   | 55歳    | 55歳    | 51歳    | 51歳    | 57歳    | 57歳    | PASS  
+支出288万（+月2万）                 | 58歳    | 58歳    | 52歳    | 52歳    | 59歳    | 59歳    | PASS  
+支出228万（-月3万）                 | 51歳    | 51歳    | 48歳    | 48歳    | 53歳    | 53歳    | PASS  
+支出180万（極限）                   | 46歳    | 46歳    | 44歳    | 44歳    | 49歳    | 49歳    | PASS  
+利回り4%（基本）                    | 55歳    | 55歳    | 51歳    | 51歳    | 57歳    | 57歳    | PASS  
+利回り5%                        | 54歳    | 54歳    | 49歳    | 49歳    | 54歳    | 54歳    | PASS  
+利回り6%                        | 53歳    | 53歳    | 47歳    | 47歳    | 53歳    | 53歳    | PASS  
+利回り7%                        | 51歳    | 51歳    | 45歳    | 45歳    | 51歳    | 51歳    | PASS  
+転職（積立170万・手取506万）            | 52歳    | 52歳    | 48歳    | 48歳    | 53歳    | 53歳    | PASS  
+転職+生活上昇（支出320万）              | 58歳    | 58歳    | 52歳    | 52歳    | 58歳    | 58歳    | PASS  
+34歳開始（基準）                    | 55歳    | 55歳    | 51歳    | 51歳    | 57歳    | 57歳    | PASS  
+40歳開始                        | 61歳    | 61歳    | 55歳    | 55歳    | 62歳    | 62歳    | PASS  
+44歳開始                        | 65歳    | 65歳    | 58歳    | 58歳    | 65歳    | 65歳    | PASS  
+積立156万（+月3万）                 | 54歳    | 54歳    | 50歳    | 50歳    | 55歳    | 55歳    | PASS  
+--------------------------------------------------------------------------------
+合計: 14 PASS / 0 FAIL
+
+====================================================================================================
+【中村夫婦シリーズ】年次資産表 期待値 vs 実際値
+  パラメータ: rW=7% rR=4% inflR=2% idecoYrs=13 sevYrs=42 idecoStartAge=65 pension×15年
+====================================================================================================
+年齢     | 総資産(期待)      | 総資産(実際)      | 差異       | 収入表示(期待)       | 収入表示(実際)       | 支出(期待)     | 支出(実際)     | 結果    
+----------------------------------------------------------------------------------------------------
+38歳    | 2608万        | 2608万        | +0万      | 835万           | 835万           | 518万       | 518万       | PASS  
+49歳    | 7930万        | 7930万        | +0万      | 835万           | 835万           | 856万       | 856万       | PASS  
+52歳    | 8986万        | 8986万        | +0万      | 835万           | 835万           | 1133万      | 1133万      | PASS  
+55歳    | 10547万       | 10547万       | +0万      | 835万           | 835万           | 1012万      | 1012万      | PASS  
+56歳    | 11345万       | 11345万       | +0万      | 835万           | 835万           | 772万       | 772万       | PASS  
+57歳    | 12192万       | 12192万       | +0万      | 835万           | 835万           | 783万       | 783万       | PASS  
+58歳    | 14271万       | 14271万       | +0万      | 2299万          | 2299万          | 693万       | 693万       | PASS  
+65歳    | 12403万       | 12403万       | +0万      | 254万           | 254万           | 773万       | 773万       | PASS  
+68歳    | 12344万       | 12344万       | +0万      | 385万           | 385万           | 435万       | 435万       | PASS  
+80歳    | 15507万       | 15507万       | +0万      | 290万           | 290万           | 551万       | 551万       | PASS  
+90歳    | 18441万       | 18441万       | +0万      | 290万           | 290万           | 672万       | 672万       | PASS  
+----------------------------------------------------------------------------------------------------
+合計（総資産一致基準）: 11 PASS / 0 FAIL
+  ※収入表示 = snap.income + snap.severanceNet（HTML CSV形式）
+  ※収入表示の差異は sevYrs パラメータ（退職金控除年数）によって変わります
+
+================================================================================
+【山本シリーズ】モンテカルロ 参考値（乱数・シードなし、目安。PASS/FAIL件数・終了コードには数えない）(N=1000)
+  ※判定に数える検証は「モンテカルロ 固定シード検証」セクションを参照
+  退職年齢: 両シナリオ共に55歳（KENZO確認）
+================================================================================
+計算中 (4%シナリオ, N=1000)...
+計算中 (7%シナリオ, N=1000)...
+
+  設定            | 期待破綻率 | 実際破綻率 | 許容±3% | 参考判定
+  ----------------+------------+------------+---------+------
+  利回り4%・σ10%  |    14.3%   |   12.7%   |  ±3%  | 範囲内
+  利回り7%・σ16%  |     6.0%   |   5.0%   |  ±3%  | 範囲内
+  ※モンテカルロは乱数のため毎回微妙に変動します
+
+================================================================================
+【中村夫婦シリーズ】モンテカルロ 参考値（乱数・シードなし、目安。PASS/FAIL件数・終了コードには数えない）(N=1000)
+  ※判定に数える検証は「モンテカルロ 固定シード検証」セクションを参照
+================================================================================
+計算中...
+
+  指標                   | 期待値        | 実際値
+  -----------------------+---------------+---------------
+  破綻率（90歳）         |     20.4%     |    21.0%   範囲内（参考・許容±5%）
+  平均枯渇年齢           |     80歳      |    78歳
+  最短枯渇年齢           |     64歳      |    63歳
+  90歳時点 p10           |  0万（破綻）  |    0万
+  90歳時点 p50（中央値） |  11,400万     |    10399万
+  90歳時点 p90           |  50,400万     |    52518万
+  ※特定口座課税（約20%）の影響で実機破綻率は数%高めになる場合があります
+
+====================================================================================================
+【田中シリーズ】完全FIRE（inflR=1%・教育なし・退職金800万・retAge55）
+  パラメータ: rW=4% rR=4%（全口座共通） inflR=1% sevYrs=5 idecoYrs=13 lump@65
+====================================================================================================
+年齢     | 総資産(期待)      | 総資産(実際)      | 差異       | 収入表示(期待)       | 収入表示(実際)       | 支出(期待)     | 支出(実際)     | 結果    
+----------------------------------------------------------------------------------------------------
+42歳    | 2934万        | 2934万        | +0万      | 850万           | 850万           | 480万       | 480万       | PASS  
+45歳    | 4272万        | 4272万        | +0万      | 850万           | 850万           | 495万       | 495万       | PASS  
+54歳    | 8710万        | 8710万        | +0万      | 850万           | 850万           | 541万       | 541万       | PASS  
+55歳    | 9369万        | 9369万        | +0万      | 972万           | 972万           | 546万       | 546万       | PASS  
+56歳    | 9251万        | 9251万        | +0万      | 200万           | 200万           | 552万       | 552万       | PASS  
+57歳    | 8925万        | 8925万        | +0万      | 0万             | 0万             | 557万       | 557万       | PASS  
+65歳    | 5914万        | 5914万        | +0万      | 150万           | 150万           | 603万       | 603万       | PASS  
+67歳    | 5289万        | 5289万        | +0万      | 230万           | 230万           | 616万       | 616万       | PASS  
+82歳    | 0万           | 0万           | +0万      | 230万           | 230万           | 715万       | 715万       | PASS  
+90歳    | 0万           | 0万           | +0万      | 230万           | 230万           | 715万       | 715万       | PASS  
+----------------------------------------------------------------------------------------------------
+合計（総資産一致基準）: 10 PASS / 0 FAIL
+
+====================================================================================================
+【田中シリーズ】セミリタイヤ（生活費300万/年に削減）
+====================================================================================================
+年齢     | 総資産(期待)      | 総資産(実際)      | 差異       | 収入表示(期待)       | 収入表示(実際)       | 支出(期待)     | 支出(実際)     | 結果    
+----------------------------------------------------------------------------------------------------
+42歳    | 2934万        | 2934万        | +0万      | 850万           | 850万           | 480万       | 480万       | PASS  
+55歳    | 9369万        | 9369万        | +0万      | 972万           | 972万           | 546万       | 546万       | PASS  
+56歳    | 9462万        | 9462万        | +0万      | 200万           | 200万           | 345万       | 345万       | PASS  
+57歳    | 9353万        | 9353万        | +0万      | 0万             | 0万             | 348万       | 348万       | PASS  
+65歳    | 8402万        | 8402万        | +0万      | 150万           | 150万           | 377万       | 377万       | PASS  
+67歳    | 8387万        | 8387万        | +0万      | 230万           | 230万           | 385万       | 385万       | PASS  
+90歳    | 8902万        | 8902万        | +0万      | 230万           | 230万           | 484万       | 484万       | PASS  
+----------------------------------------------------------------------------------------------------
+合計（総資産一致基準）: 7 PASS / 0 FAIL
+
+====================================================================================================
+【田中シリーズ】インフレ2%（セミリタイヤ+教育費250万×2・inflR=2%）
+====================================================================================================
+年齢     | 総資産(期待)      | 総資産(実際)      | 差異       | 収入表示(期待)       | 収入表示(実際)       | 支出(期待)     | 支出(実際)     | 結果    
+----------------------------------------------------------------------------------------------------
+42歳    | 2934万        | 2934万        | +0万      | 850万           | 850万           | 480万       | 480万       | PASS  
+45歳    | 3993万        | 3993万        | +0万      | 850万           | 850万           | 759万       | 759万       | PASS  
+48歳    | 4316万        | 4316万        | +0万      | 850万           | 850万           | 1041万      | 1041万      | PASS  
+52歳    | 5368万        | 5368万        | +0万      | 850万           | 850万           | 585万       | 585万       | PASS  
+55歳    | 6872万        | 6872万        | +0万      | 972万           | 972万           | 621万       | 621万       | PASS  
+56歳    | 6906万        | 6906万        | +0万      | 200万           | 200万           | 396万       | 396万       | PASS  
+84歳    | 0万           | 0万           | +0万      | 230万           | 230万           | 676万       | 676万       | PASS  
+90歳    | 0万           | 0万           | +0万      | 230万           | 230万           | 676万       | 676万       | PASS  
+----------------------------------------------------------------------------------------------------
+合計（総資産一致基準）: 8 PASS / 0 FAIL
+  ※田中シリーズ確定値（2026-06-21 CSV突き合わせ完了）
+
+====================================================================================================
+【田中シリーズ】教育費込み・インフレ1%（セミリタイヤ+教育費250万×2・inflR=1%・note第4話結果④相当）
+====================================================================================================
+年齢     | 総資産(期待)      | 総資産(実際)      | 差異       | 収入表示(期待)       | 収入表示(実際)       | 支出(期待)     | 支出(実際)     | 結果    
+----------------------------------------------------------------------------------------------------
+42歳    | 2934万        | 2934万        | +0万      | 850万           | 850万           | 480万       | 480万       | PASS  
+55歳    | 7367万        | 7367万        | +0万      | 972万           | 972万           | 546万       | 546万       | PASS  
+60歳    | 6965万        | 6965万        | +0万      | 0万             | 0万             | 359万       | 359万       | PASS  
+65歳    | 6242万        | 6242万        | +0万      | 150万           | 150万           | 377万       | 377万       | PASS  
+70歳    | 6154万        | 6154万        | +0万      | 230万           | 230万           | 396万       | 396万       | PASS  
+80歳    | 5933万        | 5933万        | +0万      | 230万           | 230万           | 438万       | 438万       | PASS  
+90歳    | 5277万        | 5277万        | +0万      | 230万           | 230万           | 484万       | 484万       | PASS  
+----------------------------------------------------------------------------------------------------
+合計（総資産一致基準）: 7 PASS / 0 FAIL
+
+================================================================================
+【田中シリーズ】MCシナリオ比較 参考値（乱数・シードなし、目安。PASS/FAIL件数・終了コードには数えない）(N=1000) [HTML実機突き合わせ済み]
+  ※判定に数える検証は「モンテカルロ 固定シード検証」セクションを参照
+  mcStd=10%（積立期）mcStdR=16%（取崩期・ポートフォリオσ）
+  取崩期: rRNisa=4%/rRIdeco=2%/rRTax=1%（sameAsWorking=false時の保存値）
+================================================================================
+  計算中: MCbase（セミリタイヤ基本） ... 完了
+  破綻率（90歳）: 22.2%  (HTML実機: 25.4%  許容±5%  参考判定: 範囲内)
+  90歳時点 p10=0万  p50=3500万  p90=17200万
+  平均枯渇年齢=85歳  最短枯渇=74歳
+
+  計算中: MC-10%（生活費270万） ... 完了
+  破綻率（90歳）: 11.4%  (HTML実機: 10.5%  許容±5%  参考判定: 範囲内)
+  90歳時点 p10=0万  p50=4500万  p90=20200万
+  平均枯渇年齢=87歳  最短枯渇=78歳
+
+  計算中: MC+2years（両者57歳退職） ... 完了
+  破綻率（90歳）: 11.0%  (HTML実機: 9.8%  許容±5%  参考判定: 範囲内)
+  90歳時点 p10=0万  p50=5400万  p90=22800万
+  平均枯渇年齢=87歳  最短枯渇=79歳
+
+  計算中: MCCFall（余剰CF全額投資） ... 完了
+  破綻率（90歳）: 18.1%  (HTML実機: 20.6%  許容±5%  参考判定: 範囲内)
+  90歳時点 p10=0万  p50=4400万  p90=23300万
+  平均枯渇年齢=85歳  最短枯渇=74歳
+
+
+================================================================================
+
+================================================================================
+【モンテカルロ 固定シード検証】7シナリオ (N=1000、固定シードのショック列) — PASS/FAIL件数・終了コードに数える
+================================================================================
+  PASS  山本 利回り4%・σ10%  破綻率=14.6%  期待値=14.6%
+  PASS  山本 利回り7%・σ16%  破綻率=6.3%  期待値=6.3%
+  PASS  中村夫婦 破綻率（90歳）  破綻率=21.9%  期待値=21.9%
+  PASS  田中 MCbase（セミリタイヤ基本）  破綻率=26.3%  期待値=26.3%
+  PASS  田中 MC-10%（生活費270万）  破綻率=10.5%  期待値=10.5%
+  PASS  田中 MC+2years（両者57歳退職）  破綻率=11.7%  期待値=11.7%
+  PASS  田中 MCCFall（余剰CF全額投資）  破綻率=18.3%  期待値=18.3%
+--------------------------------------------------------------------------------
+合計: 7 PASS / 0 FAIL
+
+================================================================================
+
+====================================================================================================
+【佐々木シリーズ】年次資産表 期待値 vs 実際値
+  パラメータ: rW=7% rR=4% inflR=1% idecoYrs=20 sevYrs=30 idecoStartAge=65 pension×15年
+  events: severance@60(2000万) / reemploy@61×5年(350万) / reemploy@66×5年(100万)
+====================================================================================================
+53歳    | 6889万        | 6889万        | +0万      | 720万           | 720万           | 360万       | 360万       | PASS  
+59歳    | 11734万       | 11734万       | +0万      | 720万           | 720万           | 382万       | 382万       | PASS  
+60歳    | 13742万       | 13742万       | +0万      | 2049万          | 2049万          | 386万       | 386万       | PASS  
+61歳    | 14163万       | 14163万       | +0万      | 450万           | 450万           | 390万       | 390万       | PASS  
+62歳    | 14492万       | 14492万       | +0万      | 350万           | 350万           | 394万       | 394万       | PASS  
+65歳    | 15655万       | 15655万       | +0万      | 646万           | 646万           | 406万       | 406万       | PASS  
+66歳    | 15883万       | 15883万       | +0万      | 402万           | 402万           | 410万       | 410万       | PASS  
+67歳    | 16196万       | 16196万       | +0万      | 489万           | 489万           | 414万       | 414万       | PASS  
+70歳    | 17160万       | 17160万       | +0万      | 509万           | 509万           | 426万       | 426万       | PASS  
+71歳    | 17390万       | 17390万       | +0万      | 417万           | 417万           | 431万       | 431万       | PASS  
+79歳    | 19350万       | 19350万       | +0万      | 488万           | 488万           | 466万       | 466万       | PASS  
+80歳    | 19653万       | 19653万       | +0万      | 230万           | 230万           | 471万       | 471万       | PASS  
+90歳    | 23233万       | 23233万       | +0万      | 230万           | 230万           | 520万       | 520万       | PASS  
+----------------------------------------------------------------------------------------------------
+合計（総資産一致基準）: 13 PASS / 0 FAIL
+  ※収入表示 = snap.income + snap.severanceNet（HTML CSV形式）
+
+====================================================================================================
+【繰上返済(単発)】simulate()のmortgageブロック回帰確認（本番calcMortgage系関数経由）
+====================================================================================================
+
+-- 後方互換（prepay系フィールド未指定） --
+  age30: 期待expense=158 実際expense=158 PASS
+  age36: 期待expense=158 実際expense=158 PASS
+  age37: 期待expense=158 実際expense=158 PASS
+  age45: 期待expense=158 実際expense=158 PASS
+  age59: 期待expense=158 実際expense=158 PASS
+  age60: 期待expense=0 実際expense=0 PASS
+  age61: 期待expense=0 実際expense=0 PASS
+
+-- 返済額軽減型（37歳・500万円繰上） --
+  age30: 期待expense=158 実際expense=158 PASS
+  age36: 期待expense=158 実際expense=158 PASS
+  age37: 期待expense=634 実際expense=634 PASS
+  age38: 期待expense=134 実際expense=134 PASS
+  age59: 期待expense=134 実際expense=134 PASS
+  age60: 期待expense=0 実際expense=0 PASS
+  age61: 期待expense=0 実際expense=0 PASS
+
+-- 期間短縮型（37歳・500万円繰上） --
+  age30: 期待expense=158 実際expense=158 PASS
+  age36: 期待expense=158 実際expense=158 PASS
+  age37: 期待expense=658 実際expense=658 PASS
+  age38: 期待expense=158 実際expense=158 PASS
+  age45: 期待expense=158 実際expense=158 PASS
+  age55: 期待expense=158 実際expense=158 PASS
+  age56: 期待expense=13 実際expense=13 PASS
+  age57: 期待expense=0 実際expense=0 PASS
+  age58: 期待expense=0 実際expense=0 PASS
+
+-- 期間短縮型・按分fraction=0.25（32歳・330万円繰上） --
+  age30: 期待expense=158 実際expense=158 PASS
+  age31: 期待expense=158 実際expense=158 PASS
+  age32: 期待expense=488 実際expense=488 PASS
+  age33: 期待expense=158 実際expense=158 PASS
+  age56: 期待expense=158 実際expense=158 PASS
+  age57: 期待expense=40 実際expense=40 PASS
+  age58: 期待expense=0 実際expense=0 PASS
+  age59: 期待expense=0 実際expense=0 PASS
+
+-- 期間短縮型・繰上返済年と完済境界年が同一（31歳・3952万円繰上） --
+  age30: 期待expense=158 実際expense=158 PASS
+  age31: 期待expense=3982 実際expense=3982 PASS
+  age32: 期待expense=0 実際expense=0 PASS
+  age33: 期待expense=0 実際expense=0 PASS
+
+  [バリデーション] calcMortgageTermFromPayment(principal=1000,rate=15%,monthlyPayment=10) = null (期待: null) PASS
+----------------------------------------------------------------------------------------------------
+合計: 36 PASS / 0 FAIL
+
+====================================================================================================
+【年金 繰上げ・繰下げ比較シミュレーター】pensionCore.ts検証（verify-pension-timing.js）
+====================================================================================================
+================================================================================
+【境界値ケース】
+================================================================================
+[PASS] 1. targetAge=60・新率 → rate=0.76 — rate=0.76
+[PASS] 2. targetAge=60・旧率 → rate=0.70 — rate=0.7
+[PASS] 3. targetAge=65 → rate=1・金額そのまま — rate=1 basic=80 employees=100
+[PASS] 4. targetAge=65 → calcBreakEvenAgeはnull/false — age=null found=false
+[PASS] 5. targetAge=75 → rate=1.84 — rate=1.8399999999999999
+[PASS] 6. 64→65の連続性（64歳の方が65歳より少ない） — rate64=0.952 rate65=1 期待値64=0.952
+[PASS] 7. 65→66の連続性（66歳の方が65歳より多い） — rate65=1 rate66=1.084 期待値66=1.084
+[PASS] 8. 74→75の連続性（75歳の方が74歳より多い） — rate74=1.756 rate75=1.8399999999999999 期待値74=1.756
+[PASS] 9. 生年月日境界(60歳): 新率>旧率の金額 — new=137 old=126
+[PASS] 10. 繰下げはisNewRateを無視(新旧で結果が同じ) — new=256 old=256
+[PASS] 11. compareEndAge(68) < targetAge(70) → null/false — age=null found=false
+[PASS] 12. targetAge=75・compareEndAge=80 → 逆転しない(false) — age=null found=false
+[PASS] 13. 同条件・compareEndAge=90 → 逆転する(true) — age=86 found=true
+[PASS] 14. compareEndAge=95でもtrue・交点年齢は90のケースと同じ — age90=86 age95=86
+[PASS] 15. 繰上げ(60歳)の損益分岐が65歳超で見つかる — age=80 found=true
+
+================================================================================
+【calcCumulativeAmount()】境界値+calcBreakEvenAgeとの整合性
+================================================================================
+[PASS] 16. upToAge(69) < targetAge(70) → 0 — 結果=0
+[PASS] 17. upToAge===targetAge → 年額1年分 — 結果=281 期待値=281
+[PASS] 18. spec7検算ケース: 80歳未逆転→81歳で逆転 — 80歳: target=3091 ref=3168 / 81歳: target=3372 ref=3366
+[PASS] 18b. calcBreakEvenAgeも同じ81歳を返す — age=81
+
+================================================================================
+【代表ケース】4フィクスチャ
+================================================================================
+[PASS] 山本恒一(年金100万円、基礎のみ想定) @60歳 — totalAmount=76万円 rate=0.760 breakEven=80
+[PASS] 山本恒一(年金100万円、基礎のみ想定) @65歳 — totalAmount=100万円 rate=1.000 breakEven=なし
+[PASS] 山本恒一(年金100万円、基礎のみ想定) @70歳 — totalAmount=142万円 rate=1.420 breakEven=81
+[PASS] 山本恒一(年金100万円、基礎のみ想定) @75歳 — totalAmount=184万円 rate=1.840 breakEven=86
+[PASS] 田中誠(年金150万円、基礎70+厚生80想定) @60歳 — totalAmount=114万円 rate=0.760 breakEven=80
+[PASS] 田中誠(年金150万円、基礎70+厚生80想定) @65歳 — totalAmount=150万円 rate=1.000 breakEven=なし
+[PASS] 田中誠(年金150万円、基礎70+厚生80想定) @70歳 — totalAmount=213万円 rate=1.420 breakEven=81
+[PASS] 田中誠(年金150万円、基礎70+厚生80想定) @75歳 — totalAmount=276万円 rate=1.840 breakEven=86
+[PASS] 佐々木誠一(年金150万円、基礎70+厚生80想定) @60歳 — totalAmount=105万円 rate=0.700 breakEven=76
+[PASS] 佐々木誠一(年金150万円、基礎70+厚生80想定) @65歳 — totalAmount=150万円 rate=1.000 breakEven=なし
+[PASS] 佐々木誠一(年金150万円、基礎70+厚生80想定) @70歳 — totalAmount=213万円 rate=1.420 breakEven=81
+[PASS] 佐々木誠一(年金150万円、基礎70+厚生80想定) @75歳 — totalAmount=276万円 rate=1.840 breakEven=86
+[PASS] 中村夫婦・翔太(年金170万円、基礎70+厚生100想定) @60歳 — totalAmount=129万円 rate=0.760 breakEven=80
+[PASS] 中村夫婦・翔太(年金170万円、基礎70+厚生100想定) @65歳 — totalAmount=170万円 rate=1.000 breakEven=なし
+[PASS] 中村夫婦・翔太(年金170万円、基礎70+厚生100想定) @70歳 — totalAmount=241万円 rate=1.420 breakEven=81
+[PASS] 中村夫婦・翔太(年金170万円、基礎70+厚生100想定) @75歳 — totalAmount=313万円 rate=1.840 breakEven=86
+
+================================================================================
+【ランダムケース】100件
+================================================================================
+[PASS] random#1 — basic=88.7 employees=162.3 targetAge=69 isNewRate=false compareEndAge=90 rate=1.3360(期待1.3360) total=336(=119+217)
+[PASS] random#2 — basic=91.7 employees=18.6 targetAge=67 isNewRate=false compareEndAge=90 rate=1.1680(期待1.1680) total=129(=107+22)
+[PASS] random#3 — basic=92.2 employees=148.4 targetAge=70 isNewRate=false compareEndAge=85 rate=1.4200(期待1.4200) total=342(=131+211)
+[PASS] random#4 — basic=74.1 employees=53.4 targetAge=71 isNewRate=false compareEndAge=85 rate=1.5040(期待1.5040) total=191(=111+80)
+[PASS] random#5 — basic=59.1 employees=144.2 targetAge=60 isNewRate=false compareEndAge=80 rate=0.7000(期待0.7000) total=142(=41+101)
+[PASS] random#6 — basic=76.9 employees=135.7 targetAge=66 isNewRate=false compareEndAge=90 rate=1.0840(期待1.0840) total=230(=83+147)
+[PASS] random#7 — basic=94.9 employees=78 targetAge=65 isNewRate=true compareEndAge=100 rate=1.0000(期待1.0000) total=173(=95+78)
+[PASS] random#8 — basic=97.3 employees=70.4 targetAge=60 isNewRate=false compareEndAge=95 rate=0.7000(期待0.7000) total=117(=68+49)
+[PASS] random#9 — basic=58 employees=187.6 targetAge=60 isNewRate=true compareEndAge=100 rate=0.7600(期待0.7600) total=187(=44+143)
+[PASS] random#10 — basic=97.1 employees=171.6 targetAge=67 isNewRate=true compareEndAge=100 rate=1.1680(期待1.1680) total=313(=113+200)
+[PASS] random#11 — basic=76 employees=112 targetAge=67 isNewRate=false compareEndAge=95 rate=1.1680(期待1.1680) total=220(=89+131)
+[PASS] random#12 — basic=73.5 employees=164.5 targetAge=65 isNewRate=false compareEndAge=100 rate=1.0000(期待1.0000) total=239(=74+165)
+[PASS] random#13 — basic=85.3 employees=100 targetAge=63 isNewRate=false compareEndAge=95 rate=0.8800(期待0.8800) total=163(=75+88)
+[PASS] random#14 — basic=78.3 employees=137.2 targetAge=61 isNewRate=true compareEndAge=95 rate=0.8080(期待0.8080) total=174(=63+111)
+[PASS] random#15 — basic=74.5 employees=110.3 targetAge=63 isNewRate=true compareEndAge=80 rate=0.9040(期待0.9040) total=167(=67+100)
+[PASS] random#16 — basic=82.3 employees=45.5 targetAge=75 isNewRate=false compareEndAge=90 rate=1.8400(期待1.8400) total=235(=151+84)
+[PASS] random#17 — basic=89.6 employees=93.3 targetAge=72 isNewRate=true compareEndAge=90 rate=1.5880(期待1.5880) total=290(=142+148)
+[PASS] random#18 — basic=64.2 employees=2.2 targetAge=73 isNewRate=true compareEndAge=90 rate=1.6720(期待1.6720) total=111(=107+4)
+[PASS] random#19 — basic=68.1 employees=25.7 targetAge=74 isNewRate=true compareEndAge=100 rate=1.7560(期待1.7560) total=165(=120+45)
+[PASS] random#20 — basic=76.8 employees=172.7 targetAge=72 isNewRate=true compareEndAge=95 rate=1.5880(期待1.5880) total=396(=122+274)
+[PASS] random#21 — basic=82.4 employees=40.9 targetAge=63 isNewRate=false compareEndAge=85 rate=0.8800(期待0.8800) total=109(=73+36)
+[PASS] random#22 — basic=57.8 employees=13.7 targetAge=64 isNewRate=false compareEndAge=100 rate=0.9400(期待0.9400) total=67(=54+13)
+[PASS] random#23 — basic=54.5 employees=92.5 targetAge=66 isNewRate=false compareEndAge=90 rate=1.0840(期待1.0840) total=159(=59+100)
+[PASS] random#24 — basic=57.4 employees=172.4 targetAge=68 isNewRate=false compareEndAge=95 rate=1.2520(期待1.2520) total=288(=72+216)
+[PASS] random#25 — basic=61.9 employees=94 targetAge=68 isNewRate=true compareEndAge=80 rate=1.2520(期待1.2520) total=195(=77+118)
+[PASS] random#26 — basic=78.5 employees=24 targetAge=61 isNewRate=true compareEndAge=80 rate=0.8080(期待0.8080) total=82(=63+19)
+[PASS] random#27 — basic=81.9 employees=167.7 targetAge=66 isNewRate=false compareEndAge=90 rate=1.0840(期待1.0840) total=271(=89+182)
+[PASS] random#28 — basic=89.7 employees=34.2 targetAge=72 isNewRate=false compareEndAge=80 rate=1.5880(期待1.5880) total=196(=142+54)
+[PASS] random#29 — basic=86.7 employees=7.1 targetAge=61 isNewRate=false compareEndAge=90 rate=0.7600(期待0.7600) total=71(=66+5)
+[PASS] random#30 — basic=83.7 employees=65.6 targetAge=64 isNewRate=true compareEndAge=80 rate=0.9520(期待0.9520) total=142(=80+62)
+[PASS] random#31 — basic=56.7 employees=65.9 targetAge=65 isNewRate=false compareEndAge=90 rate=1.0000(期待1.0000) total=123(=57+66)
+[PASS] random#32 — basic=94.3 employees=159.4 targetAge=75 isNewRate=false compareEndAge=85 rate=1.8400(期待1.8400) total=467(=174+293)
+[PASS] random#33 — basic=66.9 employees=50.8 targetAge=72 isNewRate=true compareEndAge=100 rate=1.5880(期待1.5880) total=187(=106+81)
+[PASS] random#34 — basic=53.2 employees=122.5 targetAge=73 isNewRate=true compareEndAge=100 rate=1.6720(期待1.6720) total=294(=89+205)
+[PASS] random#35 — basic=78.6 employees=74.4 targetAge=75 isNewRate=true compareEndAge=90 rate=1.8400(期待1.8400) total=282(=145+137)
+[PASS] random#36 — basic=79.6 employees=39.6 targetAge=75 isNewRate=true compareEndAge=95 rate=1.8400(期待1.8400) total=219(=146+73)
+[PASS] random#37 — basic=53.2 employees=62.5 targetAge=63 isNewRate=false compareEndAge=95 rate=0.8800(期待0.8800) total=102(=47+55)
+[PASS] random#38 — basic=98.5 employees=41 targetAge=63 isNewRate=false compareEndAge=85 rate=0.8800(期待0.8800) total=123(=87+36)
+[PASS] random#39 — basic=98.1 employees=176.8 targetAge=73 isNewRate=false compareEndAge=100 rate=1.6720(期待1.6720) total=460(=164+296)
+[PASS] random#40 — basic=55.3 employees=198 targetAge=69 isNewRate=false compareEndAge=95 rate=1.3360(期待1.3360) total=339(=74+265)
+[PASS] random#41 — basic=75.6 employees=148.1 targetAge=74 isNewRate=false compareEndAge=85 rate=1.7560(期待1.7560) total=393(=133+260)
+[PASS] random#42 — basic=51.8 employees=74.5 targetAge=69 isNewRate=true compareEndAge=90 rate=1.3360(期待1.3360) total=169(=69+100)
+[PASS] random#43 — basic=83.2 employees=192.7 targetAge=71 isNewRate=false compareEndAge=85 rate=1.5040(期待1.5040) total=415(=125+290)
+[PASS] random#44 — basic=97.5 employees=145.8 targetAge=70 isNewRate=true compareEndAge=85 rate=1.4200(期待1.4200) total=345(=138+207)
+[PASS] random#45 — basic=97.3 employees=152.9 targetAge=71 isNewRate=true compareEndAge=85 rate=1.5040(期待1.5040) total=376(=146+230)
+[PASS] random#46 — basic=85.7 employees=159.2 targetAge=71 isNewRate=true compareEndAge=85 rate=1.5040(期待1.5040) total=368(=129+239)
+[PASS] random#47 — basic=83 employees=144 targetAge=72 isNewRate=true compareEndAge=85 rate=1.5880(期待1.5880) total=361(=132+229)
+[PASS] random#48 — basic=53.6 employees=81 targetAge=63 isNewRate=true compareEndAge=95 rate=0.9040(期待0.9040) total=121(=48+73)
+[PASS] random#49 — basic=71.9 employees=177.7 targetAge=69 isNewRate=true compareEndAge=80 rate=1.3360(期待1.3360) total=333(=96+237)
+[PASS] random#50 — basic=79.8 employees=44.9 targetAge=61 isNewRate=false compareEndAge=85 rate=0.7600(期待0.7600) total=95(=61+34)
+[PASS] random#51 — basic=79 employees=19.2 targetAge=66 isNewRate=true compareEndAge=80 rate=1.0840(期待1.0840) total=107(=86+21)
+[PASS] random#52 — basic=98.7 employees=76.2 targetAge=62 isNewRate=false compareEndAge=100 rate=0.8200(期待0.8200) total=143(=81+62)
+[PASS] random#53 — basic=65.7 employees=67.5 targetAge=73 isNewRate=true compareEndAge=100 rate=1.6720(期待1.6720) total=223(=110+113)
+[PASS] random#54 — basic=92.7 employees=147.4 targetAge=70 isNewRate=true compareEndAge=90 rate=1.4200(期待1.4200) total=341(=132+209)
+[PASS] random#55 — basic=59 employees=18.7 targetAge=62 isNewRate=true compareEndAge=90 rate=0.8560(期待0.8560) total=67(=51+16)
+[PASS] random#56 — basic=99.9 employees=98.1 targetAge=60 isNewRate=false compareEndAge=95 rate=0.7000(期待0.7000) total=139(=70+69)
+[PASS] random#57 — basic=88.1 employees=52.9 targetAge=62 isNewRate=false compareEndAge=90 rate=0.8200(期待0.8200) total=115(=72+43)
+[PASS] random#58 — basic=90.7 employees=26 targetAge=68 isNewRate=false compareEndAge=80 rate=1.2520(期待1.2520) total=147(=114+33)
+[PASS] random#59 — basic=50.3 employees=194 targetAge=75 isNewRate=false compareEndAge=85 rate=1.8400(期待1.8400) total=450(=93+357)
+[PASS] random#60 — basic=95.6 employees=57.3 targetAge=69 isNewRate=false compareEndAge=95 rate=1.3360(期待1.3360) total=205(=128+77)
+[PASS] random#61 — basic=76.7 employees=89.6 targetAge=61 isNewRate=true compareEndAge=100 rate=0.8080(期待0.8080) total=134(=62+72)
+[PASS] random#62 — basic=98.9 employees=79.7 targetAge=61 isNewRate=false compareEndAge=95 rate=0.7600(期待0.7600) total=136(=75+61)
+[PASS] random#63 — basic=60.2 employees=15.6 targetAge=73 isNewRate=false compareEndAge=90 rate=1.6720(期待1.6720) total=127(=101+26)
+[PASS] random#64 — basic=69.3 employees=133.6 targetAge=64 isNewRate=true compareEndAge=85 rate=0.9520(期待0.9520) total=193(=66+127)
+[PASS] random#65 — basic=94.8 employees=192 targetAge=65 isNewRate=true compareEndAge=100 rate=1.0000(期待1.0000) total=287(=95+192)
+[PASS] random#66 — basic=74.2 employees=59.2 targetAge=61 isNewRate=false compareEndAge=95 rate=0.7600(期待0.7600) total=101(=56+45)
+[PASS] random#67 — basic=52.3 employees=141.6 targetAge=70 isNewRate=true compareEndAge=100 rate=1.4200(期待1.4200) total=275(=74+201)
+[PASS] random#68 — basic=84.2 employees=185.6 targetAge=68 isNewRate=false compareEndAge=80 rate=1.2520(期待1.2520) total=337(=105+232)
+[PASS] random#69 — basic=53.4 employees=78.9 targetAge=70 isNewRate=true compareEndAge=85 rate=1.4200(期待1.4200) total=188(=76+112)
+[PASS] random#70 — basic=80.5 employees=34.5 targetAge=60 isNewRate=true compareEndAge=85 rate=0.7600(期待0.7600) total=87(=61+26)
+[PASS] random#71 — basic=70 employees=63.5 targetAge=63 isNewRate=false compareEndAge=85 rate=0.8800(期待0.8800) total=118(=62+56)
+[PASS] random#72 — basic=51 employees=1.2 targetAge=75 isNewRate=true compareEndAge=85 rate=1.8400(期待1.8400) total=96(=94+2)
+[PASS] random#73 — basic=95.9 employees=64.1 targetAge=68 isNewRate=true compareEndAge=80 rate=1.2520(期待1.2520) total=200(=120+80)
+[PASS] random#74 — basic=97.4 employees=169 targetAge=66 isNewRate=false compareEndAge=80 rate=1.0840(期待1.0840) total=289(=106+183)
+[PASS] random#75 — basic=73.3 employees=157.3 targetAge=64 isNewRate=false compareEndAge=100 rate=0.9400(期待0.9400) total=217(=69+148)
+[PASS] random#76 — basic=84.2 employees=127.8 targetAge=73 isNewRate=true compareEndAge=85 rate=1.6720(期待1.6720) total=355(=141+214)
+[PASS] random#77 — basic=75.3 employees=24.9 targetAge=73 isNewRate=false compareEndAge=95 rate=1.6720(期待1.6720) total=168(=126+42)
+[PASS] random#78 — basic=73.7 employees=182.4 targetAge=60 isNewRate=true compareEndAge=95 rate=0.7600(期待0.7600) total=195(=56+139)
+[PASS] random#79 — basic=71.7 employees=186.4 targetAge=64 isNewRate=true compareEndAge=80 rate=0.9520(期待0.9520) total=245(=68+177)
+[PASS] random#80 — basic=95.5 employees=185 targetAge=62 isNewRate=false compareEndAge=85 rate=0.8200(期待0.8200) total=230(=78+152)
+[PASS] random#81 — basic=95.7 employees=68.5 targetAge=72 isNewRate=false compareEndAge=95 rate=1.5880(期待1.5880) total=261(=152+109)
+[PASS] random#82 — basic=71.8 employees=83.7 targetAge=61 isNewRate=true compareEndAge=85 rate=0.8080(期待0.8080) total=126(=58+68)
+[PASS] random#83 — basic=60.3 employees=56.3 targetAge=68 isNewRate=true compareEndAge=100 rate=1.2520(期待1.2520) total=145(=75+70)
+[PASS] random#84 — basic=58.6 employees=142 targetAge=62 isNewRate=true compareEndAge=80 rate=0.8560(期待0.8560) total=172(=50+122)
+[PASS] random#85 — basic=80.1 employees=169.8 targetAge=72 isNewRate=false compareEndAge=85 rate=1.5880(期待1.5880) total=397(=127+270)
+[PASS] random#86 — basic=97.5 employees=94.1 targetAge=73 isNewRate=true compareEndAge=100 rate=1.6720(期待1.6720) total=320(=163+157)
+[PASS] random#87 — basic=78.5 employees=100.5 targetAge=67 isNewRate=false compareEndAge=90 rate=1.1680(期待1.1680) total=209(=92+117)
+[PASS] random#88 — basic=60 employees=30.1 targetAge=67 isNewRate=true compareEndAge=80 rate=1.1680(期待1.1680) total=105(=70+35)
+[PASS] random#89 — basic=68.9 employees=66.3 targetAge=63 isNewRate=false compareEndAge=80 rate=0.8800(期待0.8800) total=119(=61+58)
+[PASS] random#90 — basic=98.4 employees=136 targetAge=60 isNewRate=true compareEndAge=85 rate=0.7600(期待0.7600) total=178(=75+103)
+[PASS] random#91 — basic=88.6 employees=144.4 targetAge=66 isNewRate=false compareEndAge=100 rate=1.0840(期待1.0840) total=253(=96+157)
+[PASS] random#92 — basic=98.3 employees=99.3 targetAge=73 isNewRate=true compareEndAge=85 rate=1.6720(期待1.6720) total=330(=164+166)
+[PASS] random#93 — basic=61.9 employees=134.1 targetAge=67 isNewRate=false compareEndAge=80 rate=1.1680(期待1.1680) total=229(=72+157)
+[PASS] random#94 — basic=74.7 employees=116.9 targetAge=66 isNewRate=false compareEndAge=95 rate=1.0840(期待1.0840) total=208(=81+127)
+[PASS] random#95 — basic=76.6 employees=159.1 targetAge=75 isNewRate=true compareEndAge=85 rate=1.8400(期待1.8400) total=434(=141+293)
+[PASS] random#96 — basic=92.8 employees=99.9 targetAge=66 isNewRate=true compareEndAge=90 rate=1.0840(期待1.0840) total=209(=101+108)
+[PASS] random#97 — basic=99.6 employees=85.7 targetAge=72 isNewRate=false compareEndAge=80 rate=1.5880(期待1.5880) total=294(=158+136)
+[PASS] random#98 — basic=60.9 employees=137.5 targetAge=68 isNewRate=false compareEndAge=100 rate=1.2520(期待1.2520) total=248(=76+172)
+[PASS] random#99 — basic=81.5 employees=38.9 targetAge=65 isNewRate=false compareEndAge=95 rate=1.0000(期待1.0000) total=121(=82+39)
+[PASS] random#100 — basic=95.2 employees=186.2 targetAge=62 isNewRate=false compareEndAge=85 rate=0.8200(期待0.8200) total=231(=78+153)
+
+ランダムケース結果: 100 PASS / 0 FAIL
+
+================================================================================
+総合結果: 135 PASS / 0 FAIL
+検証成功: calcPensionAmountAtAge()とcalcBreakEvenAge()の境界値・代表ケース・ランダムケースを確認しました。
+================================================================================
+
+====================================================================================================
+【退職後 余剰キャッシュフロー再投資機能】verify-retirement-surplus-reinvestment.js
+====================================================================================================
+================================================================================
+【境界値ケース】
+================================================================================
+[PASS] 1a. 黒字ちょうど0円 → 按分処理が走らない（cash/tax/spTaxとも不変） — tax=0 spTax=0 cash=0
+[PASS] 1b. 本人収入のみ → 按分100:0 — tax=100 spTax=0（期待 tax=100 spTax=0）
+[PASS] 1c. 配偶者収入のみ → 按分0:100 — tax=0 spTax=100（期待 tax=0 spTax=100）
+[PASS] 1d. 両者収入0 → 50:50フォールバックのガード節確認（simulate()内では到達し得ない旨は完了報告に記載） — ownRatio=0.5
+[PASS] 1e. 配偶者なし → 全額本人へ — tax=100 spTax=0（期待 tax=100）
+
+================================================================================
+【代表ケース】
+================================================================================
+[PASS] 2. 本人300万・配偶者100万・支出300万 → 黒字100万が75:25 — tax=75 spTax=25
+
+================================================================================
+【iDeCo年金受取ケース】
+================================================================================
+[PASS] 3. 本人iDeCo年金・配偶者通常年金 → iDeCo年金税引後額が按分比率に合流（50:50） — idecoAnnualGross=100 tax=50 spTax=50
+
+================================================================================
+【costBasisラウンドトリップ検証】
+================================================================================
+[PASS] 4. costBasis正しく追跡 → 過大課税されない（バグ想定ケースより総資産が多い） — 正しい実装: totalAssets=916 / costBasis加算漏れ想定: totalAssets=896
+
+================================================================================
+【按分比率の年次再計算テスト】
+================================================================================
+[PASS] 5a. 1年目(65歳): 75:25 → tax=225 spTax=75 — tax=225 spTax=75
+[PASS] 5b. 2年目(66歳): 収入比率が25:75に反転 → tax=300 spTax=300（前年比率のキャッシュなし） — tax=300 spTax=300
+[PASS] 5c. 3年目(67歳): 50:50に戻る → tax=350 spTax=350 — tax=350 spTax=350
+
+================================================================================
+【回帰テスト（トグルOFF/未設定）】
+================================================================================
+[PASS] 6a. retirementSurplusReinvest未設定 → 従来通りcashにのみ加算 — cash=300 tax=0 spTax=0
+[PASS] 6b. retirementSurplusReinvest=false → 従来通りcashにのみ加算 — cash=300 tax=0 spTax=0
+
+（3キャラクター[田中/山本/中村]の既存確定値との一致は full-verify.js 本体の全セクションで
+ 別途確認済み。本スクリプトはfull-verify.jsに組み込まれ、同一実行の一部として毎回検証される）
+
+================================================================================
+【ランダムケース】100件
+================================================================================
+[PASS] random#1 — ownPen=342.4 spousePen=431.9 baseExp=289.1 surplus=485.20 ON: tax=214.56(期待214.56) spTax=270.64(期待270.64) OFF: cash=485.20(期待485.20)
+[PASS] random#2 — ownPen=187 spousePen=320.5 baseExp=189.3 surplus=318.20 ON: tax=117.25(期待117.25) spTax=200.95(期待200.95) OFF: cash=318.20(期待318.20)
+[PASS] random#3 — ownPen=338.2 spousePen=204.5 baseExp=129.4 surplus=413.30 ON: tax=257.56(期待257.56) spTax=155.74(期待155.74) OFF: cash=413.30(期待413.30)
+[PASS] random#4 — ownPen=196.1 spousePen=193.3 baseExp=140 surplus=249.40 ON: tax=125.60(期待125.60) spTax=123.80(期待123.80) OFF: cash=249.40(期待249.40)
+[PASS] random#5 — ownPen=157.5 spousePen=347.2 baseExp=499.4 surplus=5.30 ON: tax=1.65(期待1.65) spTax=3.65(期待3.65) OFF: cash=5.30(期待5.30)
+[PASS] random#6 — ownPen=167.8 spousePen=91.4 baseExp=20.5 surplus=238.70 ON: tax=154.53(期待154.53) spTax=84.17(期待84.17) OFF: cash=238.70(期待238.70)
+[PASS] random#7 — ownPen=390.8 spousePen=83.6 baseExp=65.5 surplus=408.90 ON: tax=336.84(期待336.84) spTax=72.06(期待72.06) OFF: cash=408.90(期待408.90)
+[PASS] random#8 — ownPen=52.4 spousePen=76 baseExp=124.9 surplus=3.50 ON: tax=1.43(期待1.43) spTax=2.07(期待2.07) OFF: cash=3.50(期待3.50)
+[PASS] random#9 — ownPen=319 spousePen=96 baseExp=142.9 surplus=272.10 ON: tax=209.16(期待209.16) spTax=62.94(期待62.94) OFF: cash=272.10(期待272.10)
+[PASS] random#10 — ownPen=122.3 spousePen=4.6 baseExp=10.9 surplus=116.00 ON: tax=111.80(期待111.80) spTax=4.20(期待4.20) OFF: cash=116.00(期待116.00)
+[PASS] random#11 — ownPen=417.5 spousePen=79.1 baseExp=120.2 surplus=376.40 ON: tax=316.45(期待316.45) spTax=59.95(期待59.95) OFF: cash=376.40(期待376.40)
+[PASS] random#12 — ownPen=364.4 spousePen=406.1 baseExp=547.9 surplus=222.60 ON: tax=105.28(期待105.28) spTax=117.32(期待117.32) OFF: cash=222.60(期待222.60)
+[PASS] random#13 — ownPen=398.2 spousePen=307.2 baseExp=416.5 surplus=288.90 ON: tax=163.08(期待163.08) spTax=125.82(期待125.82) OFF: cash=288.90(期待288.90)
+[PASS] random#14 — ownPen=73.4 spousePen=86.9 baseExp=7 surplus=153.30 ON: tax=70.19(期待70.19) spTax=83.11(期待83.11) OFF: cash=153.30(期待153.30)
+[PASS] random#15 — ownPen=409.2 spousePen=436.2 baseExp=823.1 surplus=22.30 ON: tax=10.79(期待10.79) spTax=11.51(期待11.51) OFF: cash=22.30(期待22.30)
+[PASS] random#16 — ownPen=314.1 spousePen=428.2 baseExp=477.3 surplus=265.00 ON: tax=112.13(期待112.13) spTax=152.87(期待152.87) OFF: cash=265.00(期待265.00)
+[PASS] random#17 — ownPen=150.3 spousePen=85.6 baseExp=25 surplus=210.90 ON: tax=134.37(期待134.37) spTax=76.53(期待76.53) OFF: cash=210.90(期待210.90)
+[PASS] random#18 — ownPen=101.7 spousePen=2.8 baseExp=32.8 surplus=71.70 ON: tax=69.78(期待69.78) spTax=1.92(期待1.92) OFF: cash=71.70(期待71.70)
+[PASS] random#19 — ownPen=191.1 spousePen=152 baseExp=270 surplus=73.10 ON: tax=40.72(期待40.72) spTax=32.38(期待32.38) OFF: cash=73.10(期待73.10)
+[PASS] random#20 — ownPen=68.3 spousePen=395.3 baseExp=448.5 surplus=15.10 ON: tax=2.22(期待2.22) spTax=12.88(期待12.88) OFF: cash=15.10(期待15.10)
+[PASS] random#21 — ownPen=60.3 spousePen=428.1 baseExp=312 surplus=176.40 ON: tax=21.78(期待21.78) spTax=154.62(期待154.62) OFF: cash=176.40(期待176.40)
+[PASS] random#22 — ownPen=320.5 spousePen=268 baseExp=300.5 surplus=288.00 ON: tax=156.85(期待156.85) spTax=131.15(期待131.15) OFF: cash=288.00(期待288.00)
+[PASS] random#23 — ownPen=325.4 spousePen=51.3 baseExp=227.4 surplus=149.30 ON: tax=128.97(期待128.97) spTax=20.33(期待20.33) OFF: cash=149.30(期待149.30)
+[PASS] random#24 — ownPen=231.5 spousePen=481.1 baseExp=430.5 surplus=282.10 ON: tax=91.64(期待91.64) spTax=190.46(期待190.46) OFF: cash=282.10(期待282.10)
+[PASS] random#25 — ownPen=258.6 spousePen=378.6 baseExp=294.5 surplus=342.70 ON: tax=139.08(期待139.08) spTax=203.62(期待203.62) OFF: cash=342.70(期待342.70)
+[PASS] random#26 — ownPen=242.4 spousePen=21.7 baseExp=82.2 surplus=181.90 ON: tax=166.95(期待166.95) spTax=14.95(期待14.95) OFF: cash=181.90(期待181.90)
+[PASS] random#27 — ownPen=135.8 spousePen=85.6 baseExp=149.3 surplus=72.10 ON: tax=44.22(期待44.22) spTax=27.88(期待27.88) OFF: cash=72.10(期待72.10)
+[PASS] random#28 — ownPen=318.7 spousePen=427.3 baseExp=617.2 surplus=128.80 ON: tax=55.02(期待55.02) spTax=73.78(期待73.78) OFF: cash=128.80(期待128.80)
+[PASS] random#29 — ownPen=289.1 spousePen=210.9 baseExp=324.7 surplus=175.30 ON: tax=101.36(期待101.36) spTax=73.94(期待73.94) OFF: cash=175.30(期待175.30)
+[PASS] random#30 — ownPen=380.5 spousePen=434 baseExp=244.1 surplus=570.40 ON: tax=266.47(期待266.47) spTax=303.93(期待303.93) OFF: cash=570.40(期待570.40)
+[PASS] random#31 — ownPen=276.7 spousePen=408.1 baseExp=461.6 surplus=223.20 ON: tax=90.19(期待90.19) spTax=133.01(期待133.01) OFF: cash=223.20(期待223.20)
+[PASS] random#32 — ownPen=467.2 spousePen=348.9 baseExp=329.1 surplus=487.00 ON: tax=278.80(期待278.80) spTax=208.20(期待208.20) OFF: cash=487.00(期待487.00)
+[PASS] random#33 — ownPen=133.7 spousePen=162.8 baseExp=18.8 surplus=277.70 ON: tax=125.22(期待125.22) spTax=152.48(期待152.48) OFF: cash=277.70(期待277.70)
+[PASS] random#34 — ownPen=358.9 spousePen=443.5 baseExp=156.6 surplus=645.80 ON: tax=288.86(期待288.86) spTax=356.94(期待356.94) OFF: cash=645.80(期待645.80)
+[PASS] random#35 — ownPen=458.2 spousePen=234.6 baseExp=178.5 surplus=514.30 ON: tax=340.14(期待340.14) spTax=174.16(期待174.16) OFF: cash=514.30(期待514.30)
+[PASS] random#36 — ownPen=94.5 spousePen=489 baseExp=414.1 surplus=169.40 ON: tax=27.43(期待27.43) spTax=141.97(期待141.97) OFF: cash=169.40(期待169.40)
+[PASS] random#37 — ownPen=185.1 spousePen=172.3 baseExp=287.8 surplus=69.60 ON: tax=36.05(期待36.05) spTax=33.55(期待33.55) OFF: cash=69.60(期待69.60)
+[PASS] random#38 — ownPen=321.8 spousePen=498.1 baseExp=450.6 surplus=369.30 ON: tax=144.95(期待144.95) spTax=224.35(期待224.35) OFF: cash=369.30(期待369.30)
+[PASS] random#39 — ownPen=80.1 spousePen=493.3 baseExp=167.4 surplus=406.00 ON: tax=56.72(期待56.72) spTax=349.28(期待349.28) OFF: cash=406.00(期待406.00)
+[PASS] random#40 — ownPen=131.3 spousePen=495.9 baseExp=384.4 surplus=242.80 ON: tax=50.83(期待50.83) spTax=191.97(期待191.97) OFF: cash=242.80(期待242.80)
+[PASS] random#41 — ownPen=180.8 spousePen=148.4 baseExp=206.4 surplus=122.80 ON: tax=67.44(期待67.44) spTax=55.36(期待55.36) OFF: cash=122.80(期待122.80)
+[PASS] random#42 — ownPen=23.3 spousePen=445.9 baseExp=248.3 surplus=220.90 ON: tax=10.97(期待10.97) spTax=209.93(期待209.93) OFF: cash=220.90(期待220.90)
+[PASS] random#43 — ownPen=99.9 spousePen=426.7 baseExp=347.9 surplus=178.70 ON: tax=33.90(期待33.90) spTax=144.80(期待144.80) OFF: cash=178.70(期待178.70)
+[PASS] random#44 — ownPen=434 spousePen=402.6 baseExp=109.2 surplus=727.40 ON: tax=377.35(期待377.35) spTax=350.05(期待350.05) OFF: cash=727.40(期待727.40)
+[PASS] random#45 — ownPen=175.4 spousePen=279.9 baseExp=303.4 surplus=151.90 ON: tax=58.52(期待58.52) spTax=93.38(期待93.38) OFF: cash=151.90(期待151.90)
+[PASS] random#46 — ownPen=127.8 spousePen=268 baseExp=4.5 surplus=391.30 ON: tax=126.35(期待126.35) spTax=264.95(期待264.95) OFF: cash=391.30(期待391.30)
+[PASS] random#47 — ownPen=118.1 spousePen=439.1 baseExp=441.4 surplus=115.80 ON: tax=24.54(期待24.54) spTax=91.26(期待91.26) OFF: cash=115.80(期待115.80)
+[PASS] random#48 — ownPen=46.7 spousePen=120.2 baseExp=16.8 surplus=150.10 ON: tax=42.00(期待42.00) spTax=108.10(期待108.10) OFF: cash=150.10(期待150.10)
+[PASS] random#49 — ownPen=320.8 spousePen=138.1 baseExp=135.4 surplus=323.50 ON: tax=226.15(期待226.15) spTax=97.35(期待97.35) OFF: cash=323.50(期待323.50)
+[PASS] random#50 — ownPen=455.6 spousePen=1.9 baseExp=112.7 surplus=344.80 ON: tax=343.37(期待343.37) spTax=1.43(期待1.43) OFF: cash=344.80(期待344.80)
+[PASS] random#51 — ownPen=333.4 spousePen=275.5 baseExp=10 surplus=598.90 ON: tax=327.92(期待327.92) spTax=270.98(期待270.98) OFF: cash=598.90(期待598.90)
+[PASS] random#52 — ownPen=64.3 spousePen=191.7 baseExp=20.8 surplus=235.20 ON: tax=59.08(期待59.08) spTax=176.12(期待176.12) OFF: cash=235.20(期待235.20)
+[PASS] random#53 — ownPen=161 spousePen=120.6 baseExp=155.3 surplus=126.30 ON: tax=72.21(期待72.21) spTax=54.09(期待54.09) OFF: cash=126.30(期待126.30)
+[PASS] random#54 — ownPen=85 spousePen=395.4 baseExp=156.8 surplus=323.60 ON: tax=57.26(期待57.26) spTax=266.34(期待266.34) OFF: cash=323.60(期待323.60)
+[PASS] random#55 — ownPen=384.8 spousePen=376.1 baseExp=651.6 surplus=109.30 ON: tax=55.27(期待55.27) spTax=54.03(期待54.03) OFF: cash=109.30(期待109.30)
+[PASS] random#56 — ownPen=163.9 spousePen=390.5 baseExp=31.2 surplus=523.20 ON: tax=154.68(期待154.68) spTax=368.52(期待368.52) OFF: cash=523.20(期待523.20)
+[PASS] random#57 — ownPen=316.5 spousePen=60.1 baseExp=69.9 surplus=306.70 ON: tax=257.76(期待257.76) spTax=48.94(期待48.94) OFF: cash=306.70(期待306.70)
+[PASS] random#58 — ownPen=379.7 spousePen=181.7 baseExp=93.7 surplus=467.70 ON: tax=316.33(期待316.33) spTax=151.37(期待151.37) OFF: cash=467.70(期待467.70)
+[PASS] random#59 — ownPen=295.2 spousePen=476 baseExp=620.7 surplus=150.50 ON: tax=57.61(期待57.61) spTax=92.89(期待92.89) OFF: cash=150.50(期待150.50)
+[PASS] random#60 — ownPen=226 spousePen=366.7 baseExp=534.9 surplus=57.80 ON: tax=22.04(期待22.04) spTax=35.76(期待35.76) OFF: cash=57.80(期待57.80)
+[PASS] random#61 — ownPen=461.1 spousePen=292.7 baseExp=115.2 surplus=638.60 ON: tax=390.63(期待390.63) spTax=247.97(期待247.97) OFF: cash=638.60(期待638.60)
+[PASS] random#62 — ownPen=253.8 spousePen=218.2 baseExp=179.2 surplus=292.80 ON: tax=157.44(期待157.44) spTax=135.36(期待135.36) OFF: cash=292.80(期待292.80)
+[PASS] random#63 — ownPen=258.3 spousePen=488.8 baseExp=37.5 surplus=709.60 ON: tax=245.33(期待245.33) spTax=464.27(期待464.27) OFF: cash=709.60(期待709.60)
+[PASS] random#64 — ownPen=109.5 spousePen=472.2 baseExp=365.3 surplus=216.40 ON: tax=40.74(期待40.74) spTax=175.66(期待175.66) OFF: cash=216.40(期待216.40)
+[PASS] random#65 — ownPen=167.1 spousePen=426.6 baseExp=112.5 surplus=481.20 ON: tax=135.44(期待135.44) spTax=345.76(期待345.76) OFF: cash=481.20(期待481.20)
+[PASS] random#66 — ownPen=473.7 spousePen=358 baseExp=12.8 surplus=818.90 ON: tax=466.41(期待466.41) spTax=352.49(期待352.49) OFF: cash=818.90(期待818.90)
+[PASS] random#67 — ownPen=467.2 spousePen=137.8 baseExp=493.7 surplus=111.30 ON: tax=85.95(期待85.95) spTax=25.35(期待25.35) OFF: cash=111.30(期待111.30)
+[PASS] random#68 — ownPen=143.2 spousePen=302.1 baseExp=369.2 surplus=76.10 ON: tax=24.47(期待24.47) spTax=51.63(期待51.63) OFF: cash=76.10(期待76.10)
+[PASS] random#69 — ownPen=258.9 spousePen=458.3 baseExp=374.8 surplus=342.40 ON: tax=123.60(期待123.60) spTax=218.80(期待218.80) OFF: cash=342.40(期待342.40)
+[PASS] random#70 — ownPen=198.3 spousePen=259.3 baseExp=183.1 surplus=274.50 ON: tax=118.95(期待118.95) spTax=155.55(期待155.55) OFF: cash=274.50(期待274.50)
+[PASS] random#71 — ownPen=276 spousePen=316 baseExp=330.1 surplus=261.90 ON: tax=122.10(期待122.10) spTax=139.80(期待139.80) OFF: cash=261.90(期待261.90)
+[PASS] random#72 — ownPen=206 spousePen=277.4 baseExp=301.4 surplus=182.00 ON: tax=77.56(期待77.56) spTax=104.44(期待104.44) OFF: cash=182.00(期待182.00)
+[PASS] random#73 — ownPen=146.4 spousePen=359.6 baseExp=3.7 surplus=502.30 ON: tax=145.33(期待145.33) spTax=356.97(期待356.97) OFF: cash=502.30(期待502.30)
+[PASS] random#74 — ownPen=439.5 spousePen=456.8 baseExp=146.5 surplus=749.80 ON: tax=367.66(期待367.66) spTax=382.14(期待382.14) OFF: cash=749.80(期待749.80)
+[PASS] random#75 — ownPen=89.3 spousePen=135.1 baseExp=191.4 surplus=33.00 ON: tax=13.13(期待13.13) spTax=19.87(期待19.87) OFF: cash=33.00(期待33.00)
+[PASS] random#76 — ownPen=186.1 spousePen=374.3 baseExp=343.9 surplus=216.50 ON: tax=71.90(期待71.90) spTax=144.60(期待144.60) OFF: cash=216.50(期待216.50)
+[PASS] random#77 — ownPen=405.2 spousePen=158.6 baseExp=162.5 surplus=401.30 ON: tax=288.41(期待288.41) spTax=112.89(期待112.89) OFF: cash=401.30(期待401.30)
+[PASS] random#78 — ownPen=276.3 spousePen=180.3 baseExp=200.9 surplus=255.70 ON: tax=154.73(期待154.73) spTax=100.97(期待100.97) OFF: cash=255.70(期待255.70)
+[PASS] random#79 — ownPen=46.7 spousePen=182.1 baseExp=6 surplus=222.80 ON: tax=45.48(期待45.48) spTax=177.32(期待177.32) OFF: cash=222.80(期待222.80)
+[PASS] random#80 — ownPen=174.9 spousePen=132.3 baseExp=237.3 surplus=69.90 ON: tax=39.80(期待39.80) spTax=30.10(期待30.10) OFF: cash=69.90(期待69.90)
+[PASS] random#81 — ownPen=225.7 spousePen=431.6 baseExp=203.1 surplus=454.20 ON: tax=155.96(期待155.96) spTax=298.24(期待298.24) OFF: cash=454.20(期待454.20)
+[PASS] random#82 — ownPen=462.5 spousePen=378.2 baseExp=752.3 surplus=88.40 ON: tax=48.63(期待48.63) spTax=39.77(期待39.77) OFF: cash=88.40(期待88.40)
+[PASS] random#83 — ownPen=88.8 spousePen=181.7 baseExp=105.2 surplus=165.30 ON: tax=54.26(期待54.26) spTax=111.04(期待111.04) OFF: cash=165.30(期待165.30)
+[PASS] random#84 — ownPen=334.3 spousePen=11.7 baseExp=43.3 surplus=302.70 ON: tax=292.46(期待292.46) spTax=10.24(期待10.24) OFF: cash=302.70(期待302.70)
+[PASS] random#85 — ownPen=48.4 spousePen=8.1 baseExp=14 surplus=42.50 ON: tax=36.41(期待36.41) spTax=6.09(期待6.09) OFF: cash=42.50(期待42.50)
+[PASS] random#86 — ownPen=441 spousePen=366.3 baseExp=220.4 surplus=586.90 ON: tax=320.60(期待320.60) spTax=266.30(期待266.30) OFF: cash=586.90(期待586.90)
+[PASS] random#87 — ownPen=173.6 spousePen=393.3 baseExp=47.1 surplus=519.80 ON: tax=159.18(期待159.18) spTax=360.62(期待360.62) OFF: cash=519.80(期待519.80)
+[PASS] random#88 — ownPen=119.1 spousePen=103.7 baseExp=151.3 surplus=71.50 ON: tax=38.22(期待38.22) spTax=33.28(期待33.28) OFF: cash=71.50(期待71.50)
+[PASS] random#89 — ownPen=216.9 spousePen=492 baseExp=540.2 surplus=168.70 ON: tax=51.62(期待51.62) spTax=117.08(期待117.08) OFF: cash=168.70(期待168.70)
+[PASS] random#90 — ownPen=414.1 spousePen=113 baseExp=175 surplus=352.10 ON: tax=276.62(期待276.62) spTax=75.48(期待75.48) OFF: cash=352.10(期待352.10)
+[PASS] random#91 — ownPen=30.8 spousePen=155 baseExp=74.2 surplus=111.60 ON: tax=18.50(期待18.50) spTax=93.10(期待93.10) OFF: cash=111.60(期待111.60)
+[PASS] random#92 — ownPen=242.2 spousePen=340.8 baseExp=540.5 surplus=42.50 ON: tax=17.66(期待17.66) spTax=24.84(期待24.84) OFF: cash=42.50(期待42.50)
+[PASS] random#93 — ownPen=196.6 spousePen=84.8 baseExp=25.2 surplus=256.20 ON: tax=178.99(期待178.99) spTax=77.21(期待77.21) OFF: cash=256.20(期待256.20)
+[PASS] random#94 — ownPen=287.6 spousePen=258.9 baseExp=94.5 surplus=452.00 ON: tax=237.87(期待237.87) spTax=214.13(期待214.13) OFF: cash=452.00(期待452.00)
+[PASS] random#95 — ownPen=51.6 spousePen=379.4 baseExp=177.5 surplus=253.50 ON: tax=30.35(期待30.35) spTax=223.15(期待223.15) OFF: cash=253.50(期待253.50)
+[PASS] random#96 — ownPen=95.7 spousePen=478.1 baseExp=487.4 surplus=86.40 ON: tax=14.41(期待14.41) spTax=71.99(期待71.99) OFF: cash=86.40(期待86.40)
+[PASS] random#97 — ownPen=248.6 spousePen=200.7 baseExp=424.9 surplus=24.40 ON: tax=13.50(期待13.50) spTax=10.90(期待10.90) OFF: cash=24.40(期待24.40)
+[PASS] random#98 — ownPen=489.4 spousePen=155.2 baseExp=487.5 surplus=157.10 ON: tax=119.28(期待119.28) spTax=37.82(期待37.82) OFF: cash=157.10(期待157.10)
+[PASS] random#99 — ownPen=139.6 spousePen=163.3 baseExp=255.4 surplus=47.50 ON: tax=21.89(期待21.89) spTax=25.61(期待25.61) OFF: cash=47.50(期待47.50)
+[PASS] random#100 — ownPen=424.1 spousePen=172.4 baseExp=475.1 surplus=121.40 ON: tax=86.31(期待86.31) spTax=35.09(期待35.09) OFF: cash=121.40(期待121.40)
+
+ランダムケース結果: 100 PASS / 0 FAIL
+
+================================================================================
+総合結果: 113 PASS / 0 FAIL
+検証成功: 退職後余剰キャッシュフロー再投資機能の境界値・代表・iDeCo・costBasis・年次再計算・回帰・ランダムケースを確認しました。
+================================================================================
+
+====================================================================================================
+【retirementTaxCalc 80万円下限】verify-retirement-tax-80man-floor.js
+====================================================================================================
+==========================================================================================
+境界値: 80万円下限が効くケース(勤続1〜2年)
+==========================================================================================
+[PASS] 勤続1年・退職金200万円 totalTax — actual=12.1890 expected=12.1890
+[PASS] 勤続1年・退職金200万円 severanceNet — actual=187.8110 expected=187.8110
+[PASS] 勤続1年 修正前(下限なし)より税額が減少: 修正前16.2520 → 修正後12.1890
+[PASS] 勤続2年・退職金200万円 totalTax — actual=12.1890 expected=12.1890
+[PASS] 勤続2年・退職金200万円 severanceNet — actual=187.8110 expected=187.8110
+[PASS] 勤続2年 40*yrsが元々80万円以上のため修正前後で変化なし — actual=12.1890 expected=12.1890
+
+==========================================================================================
+回帰確認: 80万円下限にかからないケース(勤続3年以上)
+==========================================================================================
+[PASS] 勤続3年・退職金500万円 totalTax(回帰なし) — actual=46.7245 expected=46.7245
+[PASS] 勤続5年・退職金500万円 totalTax(回帰なし) — actual=30.4725 expected=30.4725
+[PASS] 勤続10年・退職金500万円 totalTax(回帰なし) — actual=10.1575 expected=10.1575
+[PASS] 勤続15年・退職金500万円 totalTax(回帰なし) — actual=0.0000 expected=0.0000
+[PASS] 勤続19年・退職金500万円 totalTax(回帰なし) — actual=0.0000 expected=0.0000
+
+==========================================================================================
+境界値: 20年ちょうど・21年(20年超側の分岐に影響がないこと)
+==========================================================================================
+[PASS] 勤続20年・退職金1000万円 totalTax — actual=20.3150 expected=20.3150
+[PASS] 勤続21年・退職金1000万円 totalTax — actual=13.2048 expected=13.2048
+
+==========================================================================================
+iDeCo+退職金 同一年受取(max(dcYears,sevYears))・下限が効くケース
+==========================================================================================
+[PASS] iDeCo100万+退職金50万・dcYears=1/sevYears=2(max=2) totalTax — actual=7.1102 expected=7.1102
+[PASS] iDeCo100万+退職金50万・dcYears=1/sevYears=2(max=2) idecoNet — actual=95.2598 expected=95.2598
+
+==========================================================================================
+田中誠シリーズ回帰確認(sevYrs=13、既存フィクスチャ: 退職金800万→net≈772万)
+==========================================================================================
+[PASS] 田中誠 sevYrs=13・退職金800万円 severanceNet — actual=771.5590 expected=771.5590
+  参考: severanceNet(四捨五入)=772万円（フィクスチャ記載値772万円と比較。sevYrs=13は80万円下限の対象外のため影響なし）
+
+==========================================================================================
+ランダムケース(100件、勤続1〜45年・退職金0〜3000万円)
+==========================================================================================
+ランダムケース結果: 100 PASS / 0 FAIL
+
+==========================================================================================
+総合結果: 116 PASS / 0 FAIL
+==========================================================================================
+
+====================================================================================================
+【第5弾ツール:退職金手取り計算】verify-retirement-tax-tool.js
+====================================================================================================
+==========================================================================================
+【calcRetirementDeduction】
+==========================================================================================
+[PASS] 勤続20年以下:40万円×勤続年数 — actual=4000000 expected=4000000
+[PASS] 勤続20年以下:80万円下限が効くケース — actual=800000 expected=800000
+[PASS] 勤続20年超:800万円+70万円×超過年数 — actual=11500000 expected=11500000
+[PASS] 障害者特例:+100万円 — actual=5000000 expected=5000000
+
+==========================================================================================
+【calcRetirementTaxableIncome】
+==========================================================================================
+[PASS] 一般退職手当等:(収入-控除)×1/2 — actual=11000000 expected=11000000
+[PASS] 控除額>退職金の境界ケース:0円下限 — actual=0 expected=0
+[PASS] 短期退職手当等:300万円超部分は1/2適用なし — actual=2500000 expected=2500000
+[PASS] 特定役員退職手当等:1/2適用なし — actual=4000000 expected=4000000
+[PASS] 1,000円未満切り捨て — actual=6000 expected=6000
+
+==========================================================================================
+【calcRetirementIncomeTax】
+==========================================================================================
+[PASS] 境界ケース:課税退職所得 — actual=0 expected=0
+[PASS] 境界ケース:所得税 — actual=0 expected=0
+[PASS] 境界ケース:住民税合計 — actual=0 expected=0
+[PASS] 境界ケース:手取り額(=収入そのまま) — actual=500000 expected=500000
+[PASS] 標準ケース:payType — actual=general expected=general
+[PASS] 標準ケース:控除額 — actual=8000000 expected=8000000
+[PASS] 標準ケース:課税退職所得 — actual=11000000 expected=11000000
+[PASS] 標準ケース:所得税(速算表33%区分) — actual=2137974 expected=2137974
+[PASS] 標準ケース:市民税(100円未満切り捨て) — actual=660000 expected=660000
+[PASS] 標準ケース:県民税(100円未満切り捨て) — actual=440000 expected=440000
+[PASS] 標準ケース:手取り額 — actual=26762026 expected=26762026
+[PASS] 障害者特例:控除額のみ+100万円加算 — actual=9000000 expected=9000000
+[PASS] 障害者特例:課税退職所得が減少 — with=10500000 without=11000000
+
+==========================================================================================
+【一次情報(国税庁速算表)との突合】勤続20年・退職金1,000万円
+==========================================================================================
+[PASS] 控除額(800万円) — actual=8000000 expected=8000000
+[PASS] 課税退職所得(100万円) — actual=1000000 expected=1000000
+[PASS] 所得税(速算表5%区分、51,050円) — actual=51050 expected=51050
+[PASS] 市民税(6万円) — actual=60000 expected=60000
+[PASS] 県民税(4万円) — actual=40000 expected=40000
+[PASS] 手取り額(984万8,950円) — actual=9848950 expected=9848950
+
+==========================================================================================
+【一致検証】calcRetirementDeduction() vs 本体retirementTaxCalc()(80万円下限修正済み)
+==========================================================================================
+本体helpers.tsのretirementTaxCalc()は控除額を直接返さないため、
+勤続5年超(remaining/2の単純な式になる範囲)で、本体の実出力totalTaxから
+逆算した控除額と、新ツールのcalcRetirementDeduction()の出力を突き合わせる。
+(本体・新ツールとも実際の本番関数を呼び出しており、逆算に使うのは
+「taxable=remaining/2, totalTax=taxable*0.20315」という既知の公開式のみ)
+[PASS] 勤続6年 本体逆算控除額 vs 新ツール控除額(万円) — actual=240 expected=240
+[PASS] 勤続7年 本体逆算控除額 vs 新ツール控除額(万円) — actual=280 expected=280
+[PASS] 勤続10年 本体逆算控除額 vs 新ツール控除額(万円) — actual=400 expected=400
+[PASS] 勤続13年 本体逆算控除額 vs 新ツール控除額(万円) — actual=520 expected=520
+[PASS] 勤続15年 本体逆算控除額 vs 新ツール控除額(万円) — actual=600 expected=600
+[PASS] 勤続19年 本体逆算控除額 vs 新ツール控除額(万円) — actual=760 expected=760
+[PASS] 勤続20年 本体逆算控除額 vs 新ツール控除額(万円) — actual=800 expected=800
+[PASS] 勤続21年 本体逆算控除額 vs 新ツール控除額(万円) — actual=870 expected=870
+[PASS] 勤続25年 本体逆算控除額 vs 新ツール控除額(万円) — actual=1150.0000000000005 expected=1150
+[PASS] 勤続30年 本体逆算控除額 vs 新ツール控除額(万円) — actual=1500 expected=1500
+[PASS] 勤続42年 本体逆算控除額 vs 新ツール控除額(万円) — actual=2340 expected=2340
+
+==========================================================================================
+【整合性チェック】田中誠シリーズ(sevYrs=13・退職金800万円)— 一致は期待しない
+==========================================================================================
+  本体(簡易20.315%)手取り: 771.559万円（既存フィクスチャ: 約772万円）
+  新ツール(正確な累進課税)手取り: 778.853万円
+  差額: 7.294万円
+  → 課税退職所得100〜140万円台は速算表の最低税率(5%)区分に収まるため、
+    本体の一律20.315%より新ツールの実効税率の方が低くなり、新ツールの
+    手取りが本体より高く出る。これは意図的な設計差であり、一致は想定していない。
+[PASS] 本体と新ツールの手取り額が(想定通り)一致しない
+
+==========================================================================================
+総合結果: 40 PASS / 0 FAIL
+==========================================================================================
+
+====================================================================================================
+【第6弾ツール:iDeCo/DC出口戦略シミュレーター】verify-ideco-withdrawal-tool.js
+====================================================================================================
+==========================================================================================
+【calcPublicPensionDeduction】速算表境界値(65歳以上/未満)
+==========================================================================================
+[PASS] 65歳以上・330万円未満(300万円)→定額110万円 — actual=1100000 expected=1100000
+[PASS] 65歳以上・境界330万円ちょうど→25%+27.5万円区分 — actual=1100000 expected=1100000
+[PASS] 65歳以上・境界410万円ちょうど→15%+68.5万円区分 — actual=1300000 expected=1300000
+[PASS] 65歳以上・境界770万円ちょうど→5%+145.5万円区分 — actual=1840000 expected=1840000
+[PASS] 65歳以上・境界1,000万円ちょうど→定額195.5万円 — actual=1955000 expected=1955000
+[PASS] 65歳以上・1,000万円超(1,200万円)→定額195.5万円 — actual=1955000 expected=1955000
+[PASS] 65歳未満・130万円未満(100万円)→定額60万円 — actual=600000 expected=600000
+[PASS] 65歳未満・境界130万円ちょうど→25%+27.5万円区分 — actual=600000 expected=600000
+[PASS] 65歳未満・境界410万円ちょうど(65歳以上と共通式) — actual=1300000 expected=1300000
+[PASS] 65歳未満・境界770万円ちょうど(65歳以上と共通式) — actual=1840000 expected=1840000
+[PASS] 65歳未満・境界1,000万円ちょうど(65歳以上と共通式) — actual=1955000 expected=1955000
+
+==========================================================================================
+【calcIdecoLumpSumTax】DC一時金単体との一致・max()条件分岐
+==========================================================================================
+[PASS] severance=0のとき、直接calcRetirementIncomeTax()と一致(netAmount) — actual=7848950 expected=7848950
+[PASS] severance=0のとき、勤続年数はidecoYrsのみ使用(sevYrs=25は混入しない) — actual=7848950 expected=7848950
+[PASS] idecoLump=0のとき、勤続年数はsevYrsのみ使用(idecoYrs=30は混入しない) — actual=4924475 expected=4924475
+[PASS] idecoYrs混入時の誤った結果(5000000)とは異なる
+[PASS] idecoLump=0・severance=0のとき netAmount=0 — actual=0 expected=0
+[PASS] idecoLump=0・severance=0のとき incomeTax=0 — actual=0 expected=0
+[PASS] 両方>0のときはmax(idecoYrs,sevYrs)を適用 — actual=14735663 expected=14735663
+
+==========================================================================================
+【3パターン比較】代表ケース(iDeCo残高2,000万円・加入20年・65歳受取・公的年金150万円・受給期間10年)
+==========================================================================================
+[PASS] 一時金パターン grossIncome — actual=35000000 expected=35000000
+[PASS] 一時金パターン totalTax — actual=1388722 expected=1388722
+[PASS] 一時金パターン netAmount — actual=33611278 expected=33611278
+[PASS] 年金パターン grossIncome — actual=35000000 expected=35000000
+[PASS] 年金パターン totalTax — actual=2670430 expected=2670430
+[PASS] 年金パターン netAmount — actual=32329570 expected=32329570
+[PASS] 併用50%パターン grossIncome — actual=35000000 expected=35000000
+[PASS] 併用50%パターン totalTax — actual=1386510 expected=1386510
+[PASS] 併用50%パターン netAmount — actual=33613490 expected=33613490
+[PASS] 3パターンのgrossIncomeが一致(不変条件) — actual=1 expected=1
+
+==========================================================================================
+【境界一致性】併用パターンの一時金割合0%/100%が単体パターンと一致すること
+==========================================================================================
+[PASS] 併用100% netAmount = 一時金パターン netAmount — actual=33611278 expected=33611278
+[PASS] 併用100% totalTax = 一時金パターン totalTax — actual=1388722 expected=1388722
+[PASS] 併用0% netAmount = 年金パターン netAmount — actual=32329570 expected=32329570
+[PASS] 併用0% totalTax = 年金パターン totalTax — actual=2670430 expected=2670430
+
+==========================================================================================
+【annuityYears共通期間での合計手取り】一時金パターンへの公的年金積み上げ確認
+==========================================================================================
+[PASS] 一時金パターンnetAmount = 一時金の手取り + annuityYears年分の公的年金手取り — actual=33611278 expected=33611278
+[PASS] annuityYearsを10→20年に変更すると差分が公的年金10年分の手取りと一致 — actual=15000000 expected=15000000
+
+==========================================================================================
+【idecoOnly*(iDeCo単体・比例配分方式)】主比較カード再設計(案A・2026-08-03)の回帰確認
+==========================================================================================
+[PASS] 一時金パターン idecoOnlyNetAmount = lumpSum.netAmount(公的年金の寄与ゼロ) — actual=18611278 expected=18611278
+[PASS] 一時金パターン idecoOnlyTax = lumpSum.incomeTax + lumpSum.residentTax.total — actual=1388722 expected=1388722
+[PASS] 一時金パターン idecoOnlyNetAmount はannuityYears 10→20で不変(修正の核心) — actual=18611278 expected=18611278
+[PASS] 公的年金0円のとき、年金パターンのidecoOnlyNetAmount = netAmount — actual=19530000 expected=19530000
+[PASS] 公的年金0円のとき、年金パターンのidecoOnlyTax = totalTax — actual=470000 expected=470000
+[PASS] iDeCo・公的年金ともに0円のとき idecoOnlyNetAmount = 0 — actual=0 expected=0
+[PASS] iDeCo・公的年金ともに0円のとき idecoOnlyEffectiveTaxRate = null(0除算回避) — actual=null expected=null
+[PASS] 併用100% idecoOnlyNetAmount = 一時金パターン idecoOnlyNetAmount — actual=18611278 expected=18611278
+[PASS] 併用0% idecoOnlyNetAmount = 年金パターン idecoOnlyNetAmount — actual=18474040 expected=18474040
+
+==========================================================================================
+【calcComprehensiveIncomeTax】基礎控除の段階・住民税基礎控除の別枠確認
+==========================================================================================
+[PASS] 総所得132万円以下→所得税基礎控除95万円 — actual=950000 expected=950000
+[PASS] 総所得132万円超336万円以下→所得税基礎控除88万円 — actual=880000 expected=880000
+[PASS] 住民税は所得税と別の基礎控除43万円を使う(所得税基礎控除88万円をそのまま流用しない) — actual=192000 expected=192000
+
+==========================================================================================
+【リファクタリング後の第5弾ツール回帰確認】verify-retirement-tax-tool.js
+==========================================================================================
+
+==========================================================================================
+総合結果: 46 PASS / 0 FAIL
+==========================================================================================
+
+====================================================================================================
+【第9弾ツール:退職金×iDeCo受給タイミング比較】verify-retirement-ideco-timing-tool.js
+====================================================================================================
+==========================================================================================
+【determineRuleApplicability】適用ルール判定の境界値(変更なし)
+==========================================================================================
+[PASS] iDeCo先・9年:order — actual=ideco_first expected=ideco_first
+[PASS] iDeCo先・9年:appliedRule — actual=ten_year_rule expected=ten_year_rule
+[PASS] iDeCo先・9年:対象 — actual=true expected=true
+[PASS] iDeCo先・10年:対象外 — actual=false expected=false
+[PASS] 退職金先・19年:order — actual=retirement_first expected=retirement_first
+[PASS] 退職金先・19年:appliedRule — actual=nineteen_year_rule expected=nineteen_year_rule
+[PASS] 退職金先・19年:対象 — actual=true expected=true
+[PASS] 退職金先・20年:対象外 — actual=false expected=false
+[PASS] 同一年齢:order — actual=same_year expected=same_year
+[PASS] 同一年齢:appliedRule — actual=nineteen_year_rule expected=nineteen_year_rule
+[PASS] 同一年齢:対象 — actual=true expected=true
+
+==========================================================================================
+【calcRetirementDeduction再確認】既存ロジックの再確認(新規実装ではない)
+==========================================================================================
+[PASS] 勤続20年以下:40万円×勤続年数(20年→800万円) — actual=8000000 expected=8000000
+[PASS] 勤続20年超:800万円+70万円×超過年数(25年→1,150万円) — actual=11500000 expected=11500000
+[PASS] 80万円下限(1年→80万円) — actual=800000 expected=800000
+
+==========================================================================================
+【指示書テストケース①】B-2相当:みなし勤続期間の特例が適用されるケース
+==========================================================================================
+甲(先)=退職金:収入1,500万円・勤続35年・受給60歳 / 乙(後)=iDeCo:収入1,000万円・加入20年・受給70歳
+[PASS] order — actual=retirement_first expected=retirement_first
+[PASS] 調整対象 — actual=true expected=true
+[PASS] 甲の満額控除(1,850万円) — actual=1850 expected=1850
+[PASS] みなし勤続期間の特例が適用される — actual=true expected=true
+[PASS] みなし勤続年数(30年) — actual=30 expected=30
+[PASS] 甲の実開始年齢(25歳) — actual=25 expected=25
+[PASS] 甲の実効期間の終了年齢(55歳) — actual=55 expected=55
+[PASS] 乙の実開始年齢(50歳) — actual=50 expected=50
+[PASS] 重複期間(5年、みなし調整後) — actual=5 expected=5
+[PASS] (イ)乙の満額控除(800万円) — actual=800 expected=800
+[PASS] (ロ)重複期間5年分の控除額(200万円) — actual=200 expected=200
+[PASS] 乙の控除額(600万円) — actual=600 expected=600
+[PASS] 乙の課税退職所得(200万円) — actual=200 expected=200
+[PASS] mode — actual=duplicate_adjustment expected=duplicate_adjustment
+[PASS] 甲の手取り(1,500万円、変更なし) — actual=1500 expected=1500
+[PASS] 乙の税額(所得税+復興税+住民税、約30.5万円) — actual=30.4652 expected=30.5
+[PASS] 乙の手取り(約969.5万円) — actual=969.5348 expected=969.5
+[PASS] 合計手取り(約2,469〜2,470万円) — actual=2469.5348 expected=2469.5
+[PASS] 誤った旧ロジックの値(2,500万円)とは一致しない(修正確認)
+
+==========================================================================================
+【指示書テストケース②】C-1相当:みなし勤続期間の特例が適用されないケース
+==========================================================================================
+甲(先)=iDeCo:収入1,000万円・加入20年・受給60歳 / 乙(後)=退職金:収入1,500万円・勤続35年・受給61歳
+[PASS] order — actual=ideco_first expected=ideco_first
+[PASS] appliedRule — actual=ten_year_rule expected=ten_year_rule
+[PASS] 調整対象 — actual=true expected=true
+[PASS] 甲の満額控除(800万円) — actual=800 expected=800
+[PASS] みなし勤続期間の特例は適用されない — actual=false expected=false
+[PASS] 甲の実開始年齢(40歳) — actual=40 expected=40
+[PASS] 甲の実効期間の終了年齢(60歳、実際の期間そのまま) — actual=60 expected=60
+[PASS] 乙の実開始年齢(26歳) — actual=26 expected=26
+[PASS] 重複期間(20年) — actual=20 expected=20
+[PASS] (イ)乙の満額控除(1,850万円) — actual=1850 expected=1850
+[PASS] (ロ)重複期間20年分の控除額(800万円、40万円×20) — actual=800 expected=800
+[PASS] 乙の控除額(1,050万円) — actual=1050 expected=1050
+[PASS] 乙の課税退職所得(225万円) — actual=225 expected=225
+[PASS] mode — actual=duplicate_adjustment expected=duplicate_adjustment
+[PASS] 甲の手取り(約985万円、変更なし) — actual=984.895 expected=985
+[PASS] 乙の税額(所得税等+住民税、約35.5万円) — actual=35.5177 expected=35.5
+[PASS] 乙の手取り(約1,464.5万円) — actual=1464.4823 expected=1464.5
+[PASS] 合計手取り(約2,449〜2,450万円) — actual=2449.3773 expected=2449.5
+[PASS] 旧ロジックの値(2,444万円)とは一致しない(近いが別値であることの確認)
+
+==========================================================================================
+【タスクF/G】重複期間の境界値テーブル(0年・1年・2年・10年)
+==========================================================================================
+hasOverlap(「重複している場合」に該当するかの判定)と、重複期間の実長さの計算は
+別ステップに分離している。期間が接するだけ(0年)の場合はhasOverlap=falseとなり、
+減額規定(施行令70条1項2号)自体を適用しない(乙は満額控除のまま)。実際に重複が
+存在する(1年以上)場合は、calcRetirementDeduction(80万円下限込み)をそのまま使う
+(施行令70条2項「同項の規定を適用して」の解釈。40万円×年数の単純計算ではない)。
+[PASS] 甲の実効期間終了(55歳、みなし調整後) — actual=55 expected=55
+[PASS] 乙の実期間開始(55歳) — actual=55 expected=55
+[PASS] hasOverlap=false(期間が接するだけ) — actual=false expected=false
+[PASS] 重複期間(0年) — actual=0 expected=0
+[PASS] (ロ)=0円(減額規定を適用しない) — actual=0 expected=0
+[PASS] 乙の控除額=満額のまま(800万円) — actual=800 expected=800
+[PASS] 乙の課税退職所得(100万円) — actual=100 expected=100
+[PASS] 合計手取り(約2,484.89万円) — actual=2484.895 expected=2484.89
+[PASS] 修正前の誤った値(2,478.85万円)とは一致しない(修正確認)
+[PASS] B-4(対象外)とほぼ一致する(検算) — actual=2484.895 expected=2484.895
+[PASS] みなし特例は非適用(収入が満額控除以上) — actual=false expected=false
+[PASS] hasOverlap=true — actual=true expected=true
+[PASS] 重複期間(1年) — actual=1 expected=1
+[PASS] (ロ)重複期間1年分の控除額(80万円下限が適用される。naive計算の40万円ではない) — actual=80 expected=80
+[PASS] (イ)乙の満額控除(240万円、6年×40万円) — actual=240 expected=240
+[PASS] 乙の控除額(160万円 = 240万円-80万円) — actual=160 expected=160
+[PASS] hasOverlap=true — actual=true expected=true
+[PASS] 重複期間(2年) — actual=2 expected=2
+[PASS] (ロ)重複期間2年分の控除額(80万円、40万円×2年と下限が一致する境界ケース) — actual=80 expected=80
+[PASS] hasOverlap=true — actual=true expected=true
+[PASS] 重複期間(10年) — actual=10 expected=10
+[PASS] (ロ)重複期間10年分の控除額(400万円、下限に触れない通常計算) — actual=400 expected=400
+[PASS] order — actual=retirement_first expected=retirement_first
+[PASS] 調整対象(受給間隔15年<=19年) — actual=true expected=true
+[PASS] みなし特例は非適用 — actual=false expected=false
+[PASS] hasOverlap=false(完全に離れている) — actual=false expected=false
+[PASS] 重複期間(0年) — actual=0 expected=0
+[PASS] 乙自身の満額控除(200万円、5年×40万円) — actual=200 expected=200
+[PASS] 乙の控除額=満額のまま(200万円、減額なし) — actual=200 expected=200
+
+==========================================================================================
+【指示書テストケース③】B-4相当:調整対象外(変更なしの確認)
+==========================================================================================
+[PASS] 対象外 — actual=false expected=false
+[PASS] mode — actual=independent expected=independent
+[PASS] adjustmentがnull — actual=null expected=null
+[PASS] 退職金手取り(独立計算と一致) — actual=15000000 expected=15000000
+[PASS] iDeCo手取り(独立計算と一致) — actual=9848950 expected=9848950
+[PASS] 合計手取り(1,500万円+985万円=2,485万円) — actual=2484.895 expected=2485
+
+==========================================================================================
+【パターンA】同一年受給(受給間隔0)は合算方式のまま(法30条5項、本修正の対象外)
+==========================================================================================
+※同一年受給は施行令70条(甲固定・乙減額)ではなく、既存のcalcIdecoLumpSumTax()
+  (ideco.ts、第6弾ツールで既に確立済み)による合算方式を使う。収入合算・
+  勤続年数は長い方(max)を採用して1本で計算する。
+[PASS] order — actual=same_year expected=same_year
+[PASS] mode — actual=combined expected=combined
+[PASS] adjustmentはnull(施行令70条は不使用) — actual=null expected=null
+[PASS] firstResult/secondResultはnull(甲乙の区別なし) — actual=null expected=null
+[PASS] 合算方式の手取りがcalcIdecoLumpSumTax相当の独立計算と一致 — actual=24442723 expected=24442723
+[PASS] 合計手取り = combinedResult.netAmount — actual=24442723 expected=24442723
+  参考:合計手取り=2444.27万円(合算勤続年数=max(35,20)=35年)
+
+==========================================================================================
+総合結果: 93 PASS / 0 FAIL
+==========================================================================================
+
+====================================================================================================
+【第10弾ツール:退職後の住民税キャッシュフロー試算】verify-resident-tax-timing-tool.js
+====================================================================================================
+==========================================================================================
+【均等割定数】
+==========================================================================================
+[PASS] PER_CAPITA_TAX(均等割標準額) — actual=5000 expected=5000
+
+==========================================================================================
+【calcSalaryIncomeDeduction】令和7年分(incomeYear=2025)の速算表・境界値
+==========================================================================================
+[PASS] 190万円以下:一律65万円 — actual=650000 expected=650000
+[PASS] 190万円超360万円以下の下限:×30%+8万円 — actual=650000 expected=650000
+[PASS] 360万円ちょうど:×30%+8万円区分に含む — actual=1160000 expected=1160000
+[PASS] 360万円超660万円以下の下限:×20%+44万円 — actual=1160000 expected=1160000
+[PASS] 660万円ちょうど:×20%+44万円区分に含む — actual=1760000 expected=1760000
+[PASS] 660万円超850万円以下の下限:×10%+110万円 — actual=1760000 expected=1760000
+[PASS] 850万円ちょうど:×10%+110万円区分に含む — actual=1950000 expected=1950000
+[PASS] 850万円超:195万円上限 — actual=1950000 expected=1950000
+[PASS] 1,000万円:195万円上限 — actual=1950000 expected=1950000
+[PASS] 2024年分(令和6年分)も同じ令和7年度版テーブルを使う(2025年以前は一律) — actual=1240000 expected=1240000
+
+==========================================================================================
+【calcSalaryIncomeDeduction】令和8年分・令和9年分(incomeYear=2026/2027)の特例テーブル
+出典: 国税庁「令和8年度税制改正(所得税の基礎控除の引上げ等関係)Q&A」Q3-1①の表
+https://www.nta.go.jp/users/gensen/2026kiso/pdf/0026005-024.pdf
+==========================================================================================
+[PASS] [2026年]69万1,000円未満(69万円ちょうど):所得は0に floor される — actual=0 expected=0
+[PASS] [2026年]69万1,000円:所得0円 — actual=0 expected=0
+[PASS] [2026年]74万999円(74万1,000円未満の上限):所得0円 — actual=0 expected=0
+[PASS] [2026年]74万1,000円:所得=1,000円 — actual=1000 expected=1000
+[PASS] [2026年]219万999円(219万1,000円未満の上限):所得=150万999円 — actual=1450999 expected=1450999
+[PASS] [2026年]219万1,000円:所得=145万1,000円 — actual=1451000 expected=1451000
+[PASS] [2026年]219万2,999円:所得=145万1,000円(区分内で固定) — actual=1451000 expected=1451000
+[PASS] [2026年]219万3,000円:所得=145万3,000円 — actual=1453000 expected=1453000
+[PASS] [2026年]219万5,999円:所得=145万3,000円(区分内で固定) — actual=1453000 expected=1453000
+[PASS] [2026年]219万6,000円:所得=145万6,000円 — actual=1456000 expected=1456000
+[PASS] [2026年]219万9,999円:所得=145万6,000円(区分内で固定) — actual=1456000 expected=1456000
+[PASS] [2026年]220万円:従来の速算表(×30%+8万円)に切り替わる — actual=740000 expected=740000
+[PASS] [2026年]220万円:所得146万円(新旧両方式で一致) — actual=1460000 expected=1460000
+[PASS] [2026年]360万円ちょうど:令和7年度版と同一 — actual=1160000 expected=1160000
+[PASS] [2026年]850万円超:195万円上限(令和7年度版と同一) — actual=1950000 expected=1950000
+[PASS] [2027年]69万1,000円未満(69万円ちょうど):所得は0に floor される — actual=0 expected=0
+[PASS] [2027年]69万1,000円:所得0円 — actual=0 expected=0
+[PASS] [2027年]74万999円(74万1,000円未満の上限):所得0円 — actual=0 expected=0
+[PASS] [2027年]74万1,000円:所得=1,000円 — actual=1000 expected=1000
+[PASS] [2027年]219万999円(219万1,000円未満の上限):所得=150万999円 — actual=1450999 expected=1450999
+[PASS] [2027年]219万1,000円:所得=145万1,000円 — actual=1451000 expected=1451000
+[PASS] [2027年]219万2,999円:所得=145万1,000円(区分内で固定) — actual=1451000 expected=1451000
+[PASS] [2027年]219万3,000円:所得=145万3,000円 — actual=1453000 expected=1453000
+[PASS] [2027年]219万5,999円:所得=145万3,000円(区分内で固定) — actual=1453000 expected=1453000
+[PASS] [2027年]219万6,000円:所得=145万6,000円 — actual=1456000 expected=1456000
+[PASS] [2027年]219万9,999円:所得=145万6,000円(区分内で固定) — actual=1456000 expected=1456000
+[PASS] [2027年]220万円:従来の速算表(×30%+8万円)に切り替わる — actual=740000 expected=740000
+[PASS] [2027年]220万円:所得146万円(新旧両方式で一致) — actual=1460000 expected=1460000
+[PASS] [2027年]360万円ちょうど:令和7年度版と同一 — actual=1160000 expected=1160000
+[PASS] [2027年]850万円超:195万円上限(令和7年度版と同一) — actual=1950000 expected=1950000
+
+==========================================================================================
+【calcSalaryIncomeDeduction】令和10年分以降(incomeYear>=2028)の暫定近似(未確定)
+一次情報未確認のため、190万円までの区分を69万円に据え置く保守的な近似。
+==========================================================================================
+[PASS] [2028年]190万円以下:一律69万円(暫定近似) — actual=690000 expected=690000
+[PASS] [2028年]220万円以上は上位区分と同一(令和7年度版と同じ速算表) — actual=740000 expected=740000
+[PASS] [2030年]同じ暫定近似がそれ以降の年にも適用される — actual=690000 expected=690000
+
+==========================================================================================
+【calcTaxableSalaryIncome】給与所得控除+住民税基礎控除43万円(ideco.ts定数を再利用)
+==========================================================================================
+[PASS] 年収400万円(2025年分・社会保険料率0%):課税所得233万円 — actual=2330000 expected=2330000
+[PASS] 低所得(2025年分・社会保険料率0%):課税所得0円(マイナスにならない) — actual=0 expected=0
+
+==========================================================================================
+【calcResidentTaxTiming】代表12パターン(退職前年年収400/600/800万円 × 退職月1/5/9/12月)
+前々年の年収は未入力(=isIncomeBasisEstimated: trueで代用)、postRetirementIncome=0、
+retirementYearIncomeOverride未指定、lumpSumPreference未指定(デフォルトinstallment)。
+==========================================================================================
+[PASS] 年収400万円・1月退職:所得基準ラベル — actual=前々年 expected=前々年
+[PASS] 年収400万円・1月退職:isIncomeBasisEstimated — actual=true expected=true
+[PASS] 年収400万円・1月退職:徴収区分 — actual=強制一括徴収 expected=強制一括徴収
+[PASS] 年収400万円・1月退職:波1残額 — actual=73750 expected=73750
+[PASS] 年収400万円・1月退職:波2合計 — actual=177000 expected=177000
+[PASS] 年収400万円・1月退職:合計必要額 — actual=250750 expected=250750
+[PASS] 年収400万円・1月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収400万円・1月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収400万円・1月退職:isWithheldAtSource — actual=true expected=true
+[PASS] 年収400万円・1月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=250750 expected=250750
+[PASS] 年収400万円・5月退職:所得基準ラベル — actual=前々年 expected=前々年
+[PASS] 年収400万円・5月退職:isIncomeBasisEstimated — actual=true expected=true
+[PASS] 年収400万円・5月退職:徴収区分 — actual=通常徴収で完了 expected=通常徴収で完了
+[PASS] 年収400万円・5月退職:波1残額 — actual=0 expected=0
+[PASS] 年収400万円・5月退職:波2合計 — actual=177000 expected=177000
+[PASS] 年収400万円・5月退職:合計必要額 — actual=177000 expected=177000
+[PASS] 年収400万円・5月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収400万円・5月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収400万円・5月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収400万円・5月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=177000 expected=177000
+[PASS] 年収400万円・9月退職:所得基準ラベル — actual=退職前年 expected=退職前年
+[PASS] 年収400万円・9月退職:isIncomeBasisEstimated — actual=false expected=false
+[PASS] 年収400万円・9月退職:徴収区分 — actual=普通徴収 expected=普通徴収
+[PASS] 年収400万円・9月退職:波1残額 — actual=118000 expected=118000
+[PASS] 年収400万円・9月退職:波2合計 — actual=117600 expected=117600
+[PASS] 年収400万円・9月退職:合計必要額 — actual=235600 expected=235600
+[PASS] 年収400万円・9月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収400万円・9月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収400万円・9月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収400万円・9月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=235600 expected=235600
+[PASS] 年収400万円・12月退職:所得基準ラベル — actual=退職前年 expected=退職前年
+[PASS] 年収400万円・12月退職:isIncomeBasisEstimated — actual=false expected=false
+[PASS] 年収400万円・12月退職:徴収区分 — actual=普通徴収 expected=普通徴収
+[PASS] 年収400万円・12月退職:波1残額 — actual=73750 expected=73750
+[PASS] 年収400万円・12月退職:波2合計 — actual=177000 expected=177000
+[PASS] 年収400万円・12月退職:合計必要額 — actual=250750 expected=250750
+[PASS] 年収400万円・12月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収400万円・12月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収400万円・12月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収400万円・12月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=250750 expected=250750
+[PASS] 年収600万円・1月退職:所得基準ラベル — actual=前々年 expected=前々年
+[PASS] 年収600万円・1月退職:isIncomeBasisEstimated — actual=true expected=true
+[PASS] 年収600万円・1月退職:徴収区分 — actual=強制一括徴収 expected=強制一括徴収
+[PASS] 年収600万円・1月退職:波1残額 — actual=128250 expected=128250
+[PASS] 年収600万円・1月退職:波2合計 — actual=307800 expected=307800
+[PASS] 年収600万円・1月退職:合計必要額 — actual=436050 expected=436050
+[PASS] 年収600万円・1月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収600万円・1月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収600万円・1月退職:isWithheldAtSource — actual=true expected=true
+[PASS] 年収600万円・1月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=436050 expected=436050
+[PASS] 年収600万円・5月退職:所得基準ラベル — actual=前々年 expected=前々年
+[PASS] 年収600万円・5月退職:isIncomeBasisEstimated — actual=true expected=true
+[PASS] 年収600万円・5月退職:徴収区分 — actual=通常徴収で完了 expected=通常徴収で完了
+[PASS] 年収600万円・5月退職:波1残額 — actual=0 expected=0
+[PASS] 年収600万円・5月退職:波2合計 — actual=307800 expected=307800
+[PASS] 年収600万円・5月退職:合計必要額 — actual=307800 expected=307800
+[PASS] 年収600万円・5月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収600万円・5月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収600万円・5月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収600万円・5月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=307800 expected=307800
+[PASS] 年収600万円・9月退職:所得基準ラベル — actual=退職前年 expected=退職前年
+[PASS] 年収600万円・9月退職:isIncomeBasisEstimated — actual=false expected=false
+[PASS] 年収600万円・9月退職:徴収区分 — actual=普通徴収 expected=普通徴収
+[PASS] 年収600万円・9月退職:波1残額 — actual=205200 expected=205200
+[PASS] 年収600万円・9月退職:波2合計 — actual=209700 expected=209700
+[PASS] 年収600万円・9月退職:合計必要額 — actual=414900 expected=414900
+[PASS] 年収600万円・9月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収600万円・9月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収600万円・9月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収600万円・9月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=414900 expected=414900
+[PASS] 年収600万円・12月退職:所得基準ラベル — actual=退職前年 expected=退職前年
+[PASS] 年収600万円・12月退職:isIncomeBasisEstimated — actual=false expected=false
+[PASS] 年収600万円・12月退職:徴収区分 — actual=普通徴収 expected=普通徴収
+[PASS] 年収600万円・12月退職:波1残額 — actual=128250 expected=128250
+[PASS] 年収600万円・12月退職:波2合計 — actual=307800 expected=307800
+[PASS] 年収600万円・12月退職:合計必要額 — actual=436050 expected=436050
+[PASS] 年収600万円・12月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収600万円・12月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収600万円・12月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収600万円・12月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=436050 expected=436050
+[PASS] 年収800万円・1月退職:所得基準ラベル — actual=前々年 expected=前々年
+[PASS] 年収800万円・1月退職:isIncomeBasisEstimated — actual=true expected=true
+[PASS] 年収800万円・1月退職:徴収区分 — actual=強制一括徴収 expected=強制一括徴収
+[PASS] 年収800万円・1月退職:波1残額 — actual=188583 expected=188583
+[PASS] 年収800万円・1月退職:波2合計 — actual=452600 expected=452600
+[PASS] 年収800万円・1月退職:合計必要額 — actual=641183 expected=641183
+[PASS] 年収800万円・1月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収800万円・1月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収800万円・1月退職:isWithheldAtSource — actual=true expected=true
+[PASS] 年収800万円・1月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=641183 expected=641183
+[PASS] 年収800万円・5月退職:所得基準ラベル — actual=前々年 expected=前々年
+[PASS] 年収800万円・5月退職:isIncomeBasisEstimated — actual=true expected=true
+[PASS] 年収800万円・5月退職:徴収区分 — actual=通常徴収で完了 expected=通常徴収で完了
+[PASS] 年収800万円・5月退職:波1残額 — actual=0 expected=0
+[PASS] 年収800万円・5月退職:波2合計 — actual=452600 expected=452600
+[PASS] 年収800万円・5月退職:合計必要額 — actual=452600 expected=452600
+[PASS] 年収800万円・5月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収800万円・5月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収800万円・5月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収800万円・5月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=452600 expected=452600
+[PASS] 年収800万円・9月退職:所得基準ラベル — actual=退職前年 expected=退職前年
+[PASS] 年収800万円・9月退職:isIncomeBasisEstimated — actual=false expected=false
+[PASS] 年収800万円・9月退職:徴収区分 — actual=普通徴収 expected=普通徴収
+[PASS] 年収800万円・9月退職:波1残額 — actual=301733 expected=301733
+[PASS] 年収800万円・9月退職:波2合計 — actual=307800 expected=307800
+[PASS] 年収800万円・9月退職:合計必要額 — actual=609533 expected=609533
+[PASS] 年収800万円・9月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収800万円・9月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収800万円・9月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収800万円・9月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=609533 expected=609533
+[PASS] 年収800万円・12月退職:所得基準ラベル — actual=退職前年 expected=退職前年
+[PASS] 年収800万円・12月退職:isIncomeBasisEstimated — actual=false expected=false
+[PASS] 年収800万円・12月退職:徴収区分 — actual=普通徴収 expected=普通徴収
+[PASS] 年収800万円・12月退職:波1残額 — actual=188583 expected=188583
+[PASS] 年収800万円・12月退職:波2合計 — actual=452600 expected=452600
+[PASS] 年収800万円・12月退職:合計必要額 — actual=641183 expected=641183
+[PASS] 年収800万円・12月退職:波1非課税警告(常にfalse。年収そのものが基準のため) — actual=false expected=false
+[PASS] 年収800万円・12月退職:波2非課税警告 — actual=false expected=false
+[PASS] 年収800万円・12月退職:isWithheldAtSource — actual=false expected=false
+[PASS] 年収800万円・12月退職:内訳合計(天引き+自己納付)がtotalCashNeededと一致 — actual=641183 expected=641183
+
+==========================================================================================
+【1月退職:前々年の年収 入力あり/なしの両方を検証】
+==========================================================================================
+[PASS] 前々年未入力:isIncomeBasisEstimated — actual=true expected=true
+[PASS] 前々年未入力:代用元は退職前年の年収 — actual=6000000 expected=6000000
+[PASS] 前々年未入力:assumptionNotesに代用の注記あり — actual=true expected=true
+[PASS] 前々年入力あり:isIncomeBasisEstimated — actual=false expected=false
+[PASS] 前々年入力あり:incomeBasisAmount — actual=3500000 expected=3500000
+[PASS] 前々年入力あり:波1残額(社会保険料控除・調整控除込み、145,300円×5/12) — actual=60541 expected=60541
+[PASS] 前々年入力あり:assumptionNotesに代用の注記なし — actual=false expected=false
+
+==========================================================================================
+【6〜12月退職:lumpSumPreference分岐(残額は同じ、collectionTypeのみ異なる)】
+==========================================================================================
+[PASS] installment(デフォルト):区分 — actual=普通徴収 expected=普通徴収
+[PASS] installment(デフォルト):残額 — actual=205200 expected=205200
+[PASS] installment(デフォルト):isWithheldAtSource — actual=false expected=false
+[PASS] lump選択時:区分 — actual=任意一括徴収 expected=任意一括徴収
+[PASS] lump選択時:残額(installmentと同額) — actual=205200 expected=205200
+[PASS] lump選択時:isWithheldAtSource — actual=true expected=true
+[PASS] lump選択時:noteに残税額不足時の普通徴収切替の言及あり — actual=true expected=true
+
+==========================================================================================
+【波2:postRetirementIncomeの加算・retirementYearIncomeOverride】
+==========================================================================================
+[PASS] postRetirementIncome加算:課税所得 — actual=2400000 expected=2400000
+[PASS] postRetirementIncome加算:波2合計 — actual=242500 expected=242500
+[PASS] postRetirementIncome加算:isOverridden — actual=false expected=false
+[PASS] postRetirementIncome>0:assumptionNotesに自己納付前提の注記あり — actual=true expected=true
+[PASS] postRetirementIncome=0:assumptionNotesに自己納付前提の注記なし — actual=false expected=false
+[PASS] override指定:isOverridden — actual=true expected=true
+[PASS] override指定:給与所得控除(195万円上限) — actual=1950000 expected=1950000
+[PASS] override指定:課税所得(社会保険料控除14.6%込み) — actual=6160000 expected=6160000
+[PASS] override指定:波2合計 — actual=618500 expected=618500
+[PASS] override指定:assumptionNotesに月割り注記なし — actual=false expected=false
+[PASS] 未override:assumptionNotesに月割り注記あり — actual=true expected=true
+
+==========================================================================================
+【波2:1〜5月退職の所得基準修正】impl_resident_tax_timing_wave2_fix.md
+報告書の試算例(退職前年年収600万円・5月退職)で、②が307,800円になることを確認する。
+==========================================================================================
+[PASS] 600万円・5月退職:波2の課税所得(前年まるまる1年分基準) — actual=3054000 expected=3054000
+[PASS] 600万円・5月退職:波2の所得割(調整控除差引後) — actual=302800 expected=302800
+[PASS] 600万円・5月退職:波2の均等割 — actual=5000 expected=5000
+[PASS] 600万円・5月退職:波2合計(修正前は90,000円だった) — actual=307800 expected=307800
+[PASS] 600万円・5月退職:波1残額(月に依らず0円、無変更) — actual=0 expected=0
+[PASS] 600万円・5月退職:totalCashNeeded(修正前は90,000円、約3.4倍に増額) — actual=307800 expected=307800
+[PASS] 1月退職と5月退職で波2合計が同額(前年まるまる1年分が基準のため月に依らない) — actual=307800 expected=307800
+[PASS] 3月退職と5月退職でも波2合計が同額 — actual=307800 expected=307800
+[PASS] 1〜5月退職:postRetirementIncomeを追加しても波2合計が変わらない(意図的に無視される) — actual=307800 expected=307800
+[PASS] 1〜5月退職:postRetirementIncomeを追加しても波2の課税所得が変わらない — actual=3054000 expected=3054000
+[PASS] 1〜5月退職:「前年の年収をそのまま使用」の注記あり — actual=true expected=true
+[PASS] 1〜5月退職:旧文言「月割りした仮定値」の注記は出ない — actual=false expected=false
+[PASS] 1〜5月退職:postRetirementIncome>0でも「自己納付(普通徴収)を前提」の注記は出ない(波2に無関係なため) — actual=false expected=false
+[PASS] 6〜12月退職(9月)は無変更:波2合計 — actual=209700 expected=209700
+[PASS] 6〜12月退職(12月)は無変更:波2合計 — actual=307800 expected=307800
+[PASS] 6〜12月退職:「前年の年収をそのまま使用」の注記は出ない(月割り注記のまま) — actual=false expected=false
+
+==========================================================================================
+【波2:retirementYearIncomeOverrideの1〜5月退職での無視】impl_resident_tax_timing_override_hide.md
+1〜5月退職では波2の所得基準が「退職前年」に変わり、retirementYearIncomeOverride
+(「退職年の実際の給与収入」)は意味を持たなくなるため、渡されても明示的に無視する。
+==========================================================================================
+[PASS] 1〜5月退職:retirementYearIncomeOverrideを渡しても波2合計が変わらない(意図的に無視される) — actual=307800 expected=307800
+[PASS] 1〜5月退職:retirementYearIncomeOverrideを渡しても波2の課税所得が変わらない — actual=3054000 expected=3054000
+[PASS] 1〜5月退職:retirementYearIncomeOverrideを渡してもisOverriddenはfalseのまま — actual=false expected=false
+[PASS] 1〜5月退職:retirementYearIncomeOverrideを渡しても「前年の年収をそのまま使用」の注記が出る — actual=true expected=true
+[PASS] 6〜12月退職:retirementYearIncomeOverrideは引き続き反映される(isOverridden) — actual=true expected=true
+[PASS] 6〜12月退職:retirementYearIncomeOverrideは引き続き反映される(波2合計、無変更) — actual=618500 expected=618500
+
+==========================================================================================
+【isEarlyYearRetirement共通ヘルパー・40歳到達タイミングの簡略化注記】
+impl_resident_tax_timing_intro_and_age_note.md
+==========================================================================================
+[PASS] isEarlyYearRetirement(5月) — actual=true expected=true
+[PASS] isEarlyYearRetirement(6月) — actual=false expected=false
+[PASS] isEarlyYearRetirement(1月) — actual=true expected=true
+[PASS] isEarlyYearRetirement(12月) — actual=false expected=false
+[PASS] 40歳以上・料率上書きなし:一律適用の注記あり — actual=true expected=true
+[PASS] 40歳未満(デフォルト):一律適用の注記は出ない — actual=false expected=false
+[PASS] 40歳以上・料率上書きあり:一律適用の注記は出ない(年齢由来の料率選択が行われていないため) — actual=false expected=false
+[PASS] 40歳以上・1〜5月退職:一律適用の注記あり — actual=true expected=true
+
+==========================================================================================
+【非課税基準(単身・扶養なし・1級地、給与所得45万円)】
+出典: 総務省「個人住民税について」(令和7年5月15日 税制調査会説明資料、2ページ)
+==========================================================================================
+[PASS] 非課税基準の定数値 — actual=450000 expected=450000
+[PASS] 低年収(100万円)パターン:波1非課税警告 — actual=true expected=true
+[PASS] 低年収(100万円)パターン:波1残額 — actual=2083 expected=2083
+[PASS] 低年収(100万円)パターン:波2非課税警告 — actual=true expected=true
+[PASS] 低年収(100万円)パターン:波2合計(所得割0円+均等割5,000円) — actual=5000 expected=5000
+[PASS] 低年収(100万円)パターン:警告文に前提条件の明記あり — actual=true expected=true
+[PASS] 高年収(600万円)パターン:波1非課税警告 — actual=false expected=false
+[PASS] 高年収(600万円)パターン:波2非課税警告 — actual=false expected=false
+[PASS] 高年収(600万円)パターン:警告文は空文字 — actual= expected=
+
+==========================================================================================
+【給与所得控除の速算表近似:別表第五との誤差上限(区分ごとに一意、令和7年分のみ検証済み)】
+出典: docs/fixes/done/betsuhyo5-extraction/investigation_report.md
+==========================================================================================
+[PASS] [2025年]190万円以下:差なし — actual=0 expected=0
+[PASS] [2025年]190万円超〜360万円以下:最大1,200円 — actual=1200 expected=1200
+[PASS] [2025年]360万円超〜660万円以下:最大800円 — actual=800 expected=800
+[PASS] [2025年]660万円超〜850万円以下:最大400円 — actual=400 expected=400
+[PASS] [2025年]850万円超:差なし — actual=0 expected=0
+[PASS] [2026年]190万円以下でもnull(未検証。令和7年度版と異なりテーブル自体が別物のため) — actual=null expected=null
+[PASS] [2026年]190万円超〜360万円以下相当でもnull(未検証) — actual=null expected=null
+[PASS] [2028年]令和10年分以降もnull(未検証) — actual=null expected=null
+[PASS] 30%区分(令和7年分・波1)に該当:assumptionNotesに最大1,200円の注記あり — actual=true expected=true
+[PASS] 波1(差なし区分)には具体的な差額の注記が付かない — actual=false expected=false
+[PASS] 波2(今年=2026年、特例テーブル対象)には別表第五との誤差が未検証である旨の注記が付く — actual=true expected=true
+
+==========================================================================================
+【表示上の丸め誤差の修正:①(万円)+②(万円)=ヘッドライン(万円) の検証】
+UIは「円単位のtotalCashNeededを直接丸める」のではなく「①・②を個別に万円へ丸めてから
+合計する」方式に統一した(residentTaxTiming.ts側の円単位の計算結果は無変更)。
+==========================================================================================
+[PASS] 不具合再現ケース:①(残額) — actual=21 expected=21
+[PASS] 不具合再現ケース:②(小計) — actual=21 expected=21
+[PASS] 不具合再現ケース:①+②=42万円(修正後の正しい表示) — actual=42 expected=42
+[PASS] 不具合再現ケース:円単位の合計値(205,200円+209,700円=414,900円) — actual=414900 expected=414900
+[PASS] 不具合再現ケース:旧方式(totalCashNeededを直接丸め)は41万円のままズレることの確認 — actual=41 expected=41
+[PASS] 年収400万円・1月・installment:①+②=ヘッドライン — actual=25 expected=25
+[PASS] 年収400万円・1月・installment:天引き想定+自己納付想定=ヘッドライン — actual=25 expected=25
+[PASS] 年収400万円・1月・lump:①+②=ヘッドライン — actual=25 expected=25
+[PASS] 年収400万円・1月・lump:天引き想定+自己納付想定=ヘッドライン — actual=25 expected=25
+[PASS] 年収400万円・5月・installment:①+②=ヘッドライン — actual=18 expected=18
+[PASS] 年収400万円・5月・installment:天引き想定+自己納付想定=ヘッドライン — actual=18 expected=18
+[PASS] 年収400万円・5月・lump:①+②=ヘッドライン — actual=18 expected=18
+[PASS] 年収400万円・5月・lump:天引き想定+自己納付想定=ヘッドライン — actual=18 expected=18
+[PASS] 年収400万円・9月・installment:①+②=ヘッドライン — actual=24 expected=24
+[PASS] 年収400万円・9月・installment:天引き想定+自己納付想定=ヘッドライン — actual=24 expected=24
+[PASS] 年収400万円・9月・lump:①+②=ヘッドライン — actual=24 expected=24
+[PASS] 年収400万円・9月・lump:天引き想定+自己納付想定=ヘッドライン — actual=24 expected=24
+[PASS] 年収400万円・12月・installment:①+②=ヘッドライン — actual=25 expected=25
+[PASS] 年収400万円・12月・installment:天引き想定+自己納付想定=ヘッドライン — actual=25 expected=25
+[PASS] 年収400万円・12月・lump:①+②=ヘッドライン — actual=25 expected=25
+[PASS] 年収400万円・12月・lump:天引き想定+自己納付想定=ヘッドライン — actual=25 expected=25
+[PASS] 年収600万円・1月・installment:①+②=ヘッドライン — actual=44 expected=44
+[PASS] 年収600万円・1月・installment:天引き想定+自己納付想定=ヘッドライン — actual=44 expected=44
+[PASS] 年収600万円・1月・lump:①+②=ヘッドライン — actual=44 expected=44
+[PASS] 年収600万円・1月・lump:天引き想定+自己納付想定=ヘッドライン — actual=44 expected=44
+[PASS] 年収600万円・5月・installment:①+②=ヘッドライン — actual=31 expected=31
+[PASS] 年収600万円・5月・installment:天引き想定+自己納付想定=ヘッドライン — actual=31 expected=31
+[PASS] 年収600万円・5月・lump:①+②=ヘッドライン — actual=31 expected=31
+[PASS] 年収600万円・5月・lump:天引き想定+自己納付想定=ヘッドライン — actual=31 expected=31
+[PASS] 年収600万円・9月・installment:①+②=ヘッドライン — actual=42 expected=42
+[PASS] 年収600万円・9月・installment:天引き想定+自己納付想定=ヘッドライン — actual=42 expected=42
+[PASS] 年収600万円・9月・lump:①+②=ヘッドライン — actual=42 expected=42
+[PASS] 年収600万円・9月・lump:天引き想定+自己納付想定=ヘッドライン — actual=42 expected=42
+[PASS] 年収600万円・12月・installment:①+②=ヘッドライン — actual=44 expected=44
+[PASS] 年収600万円・12月・installment:天引き想定+自己納付想定=ヘッドライン — actual=44 expected=44
+[PASS] 年収600万円・12月・lump:①+②=ヘッドライン — actual=44 expected=44
+[PASS] 年収600万円・12月・lump:天引き想定+自己納付想定=ヘッドライン — actual=44 expected=44
+[PASS] 年収800万円・1月・installment:①+②=ヘッドライン — actual=64 expected=64
+[PASS] 年収800万円・1月・installment:天引き想定+自己納付想定=ヘッドライン — actual=64 expected=64
+[PASS] 年収800万円・1月・lump:①+②=ヘッドライン — actual=64 expected=64
+[PASS] 年収800万円・1月・lump:天引き想定+自己納付想定=ヘッドライン — actual=64 expected=64
+[PASS] 年収800万円・5月・installment:①+②=ヘッドライン — actual=45 expected=45
+[PASS] 年収800万円・5月・installment:天引き想定+自己納付想定=ヘッドライン — actual=45 expected=45
+[PASS] 年収800万円・5月・lump:①+②=ヘッドライン — actual=45 expected=45
+[PASS] 年収800万円・5月・lump:天引き想定+自己納付想定=ヘッドライン — actual=45 expected=45
+[PASS] 年収800万円・9月・installment:①+②=ヘッドライン — actual=61 expected=61
+[PASS] 年収800万円・9月・installment:天引き想定+自己納付想定=ヘッドライン — actual=61 expected=61
+[PASS] 年収800万円・9月・lump:①+②=ヘッドライン — actual=61 expected=61
+[PASS] 年収800万円・9月・lump:天引き想定+自己納付想定=ヘッドライン — actual=61 expected=61
+[PASS] 年収800万円・12月・installment:①+②=ヘッドライン — actual=64 expected=64
+[PASS] 年収800万円・12月・installment:天引き想定+自己納付想定=ヘッドライン — actual=64 expected=64
+[PASS] 年収800万円・12月・lump:①+②=ヘッドライン — actual=64 expected=64
+[PASS] 年収800万円・12月・lump:天引き想定+自己納付想定=ヘッドライン — actual=64 expected=64
+
+==========================================================================================
+【比較表(ComparisonTable)の「合計」列:個別列の丸め後合計とtotalCashNeeded直接丸めのズレ確認】
+ComparisonTable.tsxは「今の住民税の残り」列・「翌年6月〜」列を個別に丸め、
+「合計」列はその2つを足すだけ(totalCashNeededを直接丸めない)よう実装した。
+この検証では、本番calcResidentTaxTiming()の出力を使って、両方式が一致しないケースが
+実際に存在すること(=修正が必要だった根拠)と、比較表4パターン(3/6/9/12月)全てで
+個別列の丸め後合計が一意に決まることを確認する。
+==========================================================================================
+[PASS] 比較表:年収400万円・3月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=22 expected=22
+[PASS] 比較表:年収400万円・6月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=22 expected=22
+[PASS] 比較表:年収400万円・9月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=24 expected=24
+[PASS] 比較表:年収400万円・12月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=25 expected=25
+[PASS] 比較表:年収600万円・3月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=39 expected=39
+[PASS] 比較表:年収600万円・6月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=40 expected=40
+[PASS] 比較表:年収600万円・9月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=42 expected=42
+[PASS] 比較表:年収600万円・12月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=44 expected=44
+[PASS] 比較表:年収800万円・3月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=56 expected=56
+[PASS] 比較表:年収800万円・6月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=59 expected=59
+[PASS] 比較表:年収800万円・9月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=61 expected=61
+[PASS] 比較表:年収800万円・12月:合計列はrc+rnを使う(個別列の丸め後合計) — actual=64 expected=64
+[PASS] 12パターン中、個別合計とtotalCashNeeded直接丸めが一致しないケースが実在する — actual=true expected=true
+
+==========================================================================================
+【社会保険料控除】impl_resident_tax_timing_phase2.mdパート1
+出典: 日本年金機構(厚生年金9.15%)・全国健康保険協会(健康保険4.95%・介護保険0.81%)・
+厚生労働省(雇用保険0.5%、令和8年度・一般の事業・労働者負担 https://www.mhlw.go.jp/content/001692566.pdf)
+==========================================================================================
+[PASS] 料率定数:40歳未満14.6% — actual=14.6 expected=14.6
+[PASS] 料率定数:40歳以上65歳未満15.4% — actual=15.4 expected=15.4
+[PASS] calcSocialInsuranceDeduction:年収600万円×14.6% — actual=876000 expected=876000
+[PASS] calcSocialInsuranceDeduction:年収600万円×15.4% — actual=924000 expected=924000
+[PASS] calcSocialInsuranceDeduction:年収0円 — actual=0 expected=0
+[PASS] 40歳未満(デフォルト):波2の社会保険料控除額 — actual=657000 expected=657000
+[PASS] 40歳未満(デフォルト):波2合計 — actual=209700 expected=209700
+[PASS] 40歳未満(デフォルト):波1残額 — actual=205200 expected=205200
+[PASS] 40歳以上65歳未満:波2の社会保険料控除額(介護保険料込みで増加) — actual=693000 expected=693000
+[PASS] 40歳以上65歳未満:波2合計(控除増により40歳未満より税額が下がる) — actual=206100 expected=206100
+[PASS] 40歳以上65歳未満:波1残額 — actual=202000 expected=202000
+[PASS] 40歳以上65歳未満の方が40歳未満より波2合計が小さい(控除が大きいため) — actual=true expected=true
+[PASS] socialInsuranceRateOverride指定時はisAge40OrOverより優先される:社会保険料控除額 — actual=450000 expected=450000
+[PASS] socialInsuranceRateOverride指定時:波2合計 — actual=230500 expected=230500
+
+==========================================================================================
+【調整控除】impl_resident_tax_timing_phase2.mdパート2
+出典: 諏訪市「人的控除の差と調整控除の計算方法」https://www.city.suwa.lg.jp/soshiki/4/4918.html
+京都市「調整控除」https://www.city.kyoto.lg.jp/gyozai/page/0000028147.html
+==========================================================================================
+[PASS] 課税所得0円:調整控除0円 — actual=0 expected=0
+[PASS] 課税所得3万円(5万円未満):3万円×5%=1,500円(2,500円固定ではなく比例) — actual=1500 expected=1500
+[PASS] 課税所得5万円ちょうど:5万円×5%=2,500円 — actual=2500 expected=2500
+[PASS] 課税所得200万円ちょうど(境界、以下側):min(5万,200万)×5%=2,500円 — actual=2500 expected=2500
+[PASS] 課税所得200万1円(境界、超側):raw=49,999×5%≈2,499円だが2,500円未満のため2,500円 — actual=2500 expected=2500
+[PASS] 課税所得205万円:raw=0円だが2,500円未満のため2,500円 — actual=2500 expected=2500
+[PASS] 課税所得300万円(205万円を大きく超過):0円にならず2,500円が適用され続ける — actual=2500 expected=2500
+[PASS] 課税所得1,000万円(さらに大きく超過):それでも2,500円 — actual=2500 expected=2500
+
+==========================================================================================
+総合結果: 329 PASS / 0 FAIL
+==========================================================================================
+
+====================================================================================================
+【CompanyState:法人資産を含めたFIRE試算】verify-companystate.js
+====================================================================================================
+====================================================================================================
+portfolioMath.ts — calcMu/calcPortfolioMetrics（単一ポートフォリオ、LTCMA相関行列込み、変更なし）
+====================================================================================================
+[PASS] 全世界株100% mu — actual=6.83 expected=6.83
+[PASS] 全世界株100% sigma — actual=18.89 expected=18.89
+[PASS] 全世界株60%+日本債券40% mu — actual=4.954 expected=4.954
+[PASS] 全世界株60%+日本債券40% sigma — actual=11.499337406998716 expected=11.4993
+
+====================================================================================================
+portfolioMath.ts — getEffectivePhaseMetrics（μ・σ手入力トグルは独立フラグ、2026-08-21最終チェックリスト3番）
+====================================================================================================
+[PASS] 未設定: 自動算出値を使う(mu) — actual=6.83 expected=6.83
+[PASS] 未設定: 自動算出値を使う(sigma) — actual=18.89 expected=18.89
+[PASS] useManualMu/Sigma=true: 手入力値を使う(mu) — actual=3.3 expected=3.3
+[PASS] useManualMu/Sigma=true: 手入力値を使う(sigma) — actual=12.5 expected=12.5
+[PASS] 値未設定: 0にフォールバック(mu) — actual=0 expected=0
+[PASS] 値未設定: 0にフォールバック(sigma) — actual=0 expected=0
+[PASS] μのみ手入力・σは自動のまま(mu) — actual=3.3 expected=3.3
+[PASS] μのみ手入力・σは自動のまま(sigma) — actual=18.89 expected=18.89
+
+====================================================================================================
+portfolioMath.ts — getEffectiveRetirementMu/Sigma（rateSameAsWorking/sigmaSameAsWorkingは独立トグル）
+====================================================================================================
+[PASS] rateSameAsWorking=false: 取崩期自身の手入力μ(2.5%)を使う — actual=2.5 expected=2.5
+[PASS] sigmaSameAsWorking=true: 積立期の実効σ(18.89%)をそのまま使う — actual=18.89 expected=18.89
+[PASS] rateSameAsWorking=true: 取崩期自身の手入力値(99%)は無視し積立期の値を使う — actual=7 expected=7
+
+====================================================================================================
+corporateGrowth.ts — simulateCorporateAssets（投資分/現金分の分離・retirementAge・不足時補填）
+====================================================================================================
+[PASS] age40 investedBalance — actual=1068 expected=1068
+[PASS] age40 cashBalance — actual=600 expected=600
+[PASS] age41 investedBalance — actual=1091 expected=1091
+[PASS] age41 cashBalance — actual=650 expected=650
+[PASS] age42 investedBalance — actual=1115 expected=1115
+[PASS] age42 cashBalance — actual=750 expected=750
+[PASS] age42 total = invested+cash — actual=1865 expected=1865
+[PASS] 現金不足時 investedBalance(補填後) — actual=60 expected=60
+[PASS] 現金不足時 cashBalance(下限0円) — actual=0 expected=0
+[PASS] 残高不足の取崩: 1年目に実際に取り崩されるのは残高上限の50円まで(要求額200円ではない) — actual=50 expected=50
+[PASS] 残高不足の取崩: 1年目のinvestedBalanceは0円が下限 — actual=0 expected=0
+[PASS] 残高不足の取崩: 1年目のcashBalanceは0円が下限 — actual=0 expected=0
+[PASS] 残高不足の取崩: 2年目は残高が既に0円のため実際の取崩額も0円 — actual=0 expected=0
+[PASS] 残高不足の取崩: 3年目も同様に0円 — actual=0 expected=0
+[PASS] 残高不足の取崩: 全年でinvestedBalance/cashBalance/totalが負にならない
+[PASS] 途中枯渇: 1年目(残高150→100)は要求額どおり50円取り崩せる — actual=50 expected=50
+[PASS] 途中枯渇: 2年目(残高100→50)も要求額どおり50円 — actual=50 expected=50
+[PASS] 途中枯渇: 3年目(残高50→0)も要求額どおり50円(ちょうど使い切る) — actual=50 expected=50
+[PASS] 途中枯渇: 4年目は残高が既に0円のため実際の取崩額は0円(要求額50円は無視される) — actual=0 expected=0
+[PASS] working.useManualMu=true: rowsのmu(6.83%)ではなくmanualMu(10%)が使われる — actual=1100 expected=1100
+[PASS] rateSameAsWorking=true: 積立期の手入力値(8%)がそのままコピーされる — actual=1080 expected=1080
+[PASS] rateSameAsWorking=false: 取崩期自身の手入力μ(2%)が使われる(σは同期でも計算結果には影響しない) — actual=1020 expected=1020
+
+====================================================================================================
+buildCombinedSimulationInput.ts — 取崩→個人化変換（税引き後other_incイベント生成）
+====================================================================================================
+[PASS] buildCorporateGeneratedEvents: 単一withdrawal→単一other_inc
+[PASS] buildCombinedSimulationInput: 個人側イベント+法人生成イベントの結合
+[PASS] buildCorporateGeneratedEventsFromSnaps: 枯渇後(withdrawal=0)の年はイベントに含まれない
+
+====================================================================================================
+mc.ts — runCombinedSimulation（固定計算モード）: simulate()/analyze()への実際の接続確認
+====================================================================================================
+[PASS] 固定計算: age50 income diff = 法人取崩200万×(1-25%)=150万 — actual=150 expected=150
+[PASS] 固定計算: 取崩期間外(age49)は差分なし — actual=0 expected=0
+[PASS] 固定計算: corporateSnapsがcurAge〜lifeExの全年齢ぶん返る
+[PASS] 枯渇後の収入停止(1年目): 法人残高100円が全額取り崩され個人収入+100円 — actual=100 expected=100
+[PASS] 枯渇後の収入停止(2年目): 法人残高は既に0円のため個人収入への注入は0円(要求額200円は無視) — actual=0 expected=0
+[PASS] 枯渇後の収入停止(3年目): 同様に0円のまま — actual=0 expected=0
+
+====================================================================================================
+mc.ts — runCombinedSimulation（MCモード）: zMatrix長の妥当性・NaN汚染がないことの確認
+====================================================================================================
+[PASS] MC: personalOnly.proportional.percentiles.p50の長さが対象年数と一致
+[PASS] MC: combined.proportional.percentiles.p50の長さが対象年数と一致
+[PASS] MC: personalOnly.proportional.bankruptcyRateが有限数
+[PASS] MC: combined.proportional.bankruptcyRateが有限数
+[PASS] MC: personalOnly.cash_first.percentiles.p50の長さが対象年数と一致
+[PASS] MC: combined.cash_first.percentiles.p50の長さが対象年数と一致
+[PASS] MC: personalOnly.cash_first.bankruptcyRateが有限数
+[PASS] MC: combined.cash_first.bankruptcyRateが有限数
+[PASS] MC: personalOnly.taxable_first.percentiles.p50の長さが対象年数と一致
+[PASS] MC: combined.taxable_first.percentiles.p50の長さが対象年数と一致
+[PASS] MC: personalOnly.taxable_first.bankruptcyRateが有限数
+[PASS] MC: combined.taxable_first.bankruptcyRateが有限数
+[PASS] MC: 全戦略・全パーセンタイル値が有限数（NaN汚染なし＝zMatrix長が正しい証跡）
+[PASS] MC: trials=50が反映される
+
+====================================================================================================
+mc.ts — MCモードは3戦略それぞれ独立に計算する（複製による誤表示の回帰確認）
+====================================================================================================
+[PASS] 3戦略の値が単純複製ではない(age60時点p50または破綻率のいずれかで戦略間差がある)
+  参考値(age60 p50): proportional=4339 / cash_first=4343 / taxable_first=4292
+  参考値(破綻率%): proportional=83.7 / cash_first=78.7 / taxable_first=82.3
+
+====================================================================================================
+mc.ts — runCombinedMcForStrategy（ImpactTable.tsx向け軽量・単一戦略版）
+====================================================================================================
+[PASS] 単一戦略版: trials=100が反映される
+[PASS] 単一戦略版: personalOnly.percentiles.p50の長さが対象年数と一致
+[PASS] 単一戦略版: combined.percentiles.p50の長さが対象年数と一致
+[PASS] 単一戦略版: 全パーセンタイル値が有限数（NaN汚染なし）
+[PASS] 単一戦略版: personalOnly.bankruptcyRateが有限数
+[PASS] 単一戦略版: combined.bankruptcyRateが有限数
+[PASS] 単一戦略版: personalOnlyが戦略名キーを持たない単一オブジェクト形式
+
+====================================================================================================
+mc.ts — 法人に取崩イベントがない場合、合算破綻率は厳密に0%になる（丸めではない）
+====================================================================================================
+[PASS] 法人取崩イベント0件・法人資産十分な場合、個人が枯渇してもcombined破綻率は厳密に0
+
+====================================================================================================
+ImpactTable.tsx向け — personalOnly側は法人取崩イベント0件でも施策間で有意に異なる
+====================================================================================================
+[PASS] personalOnly側: 支出10%削減で破綻率変化が有意に非ゼロ(combined側は0%のままでも)
+[PASS] combined側: 法人取崩イベント0件のためこちらは0%のまま(参考、非回帰)
+  参考値: personalOnly Δ=-10.0% / combined Δ=0.0%
+
+====================================================================================================
+companyStateStore.ts — copyCurrentToWorking/setRateSameAsWorking/setSigmaSameAsWorking（2026-08-21最終チェックリスト2・3番）
+====================================================================================================
+[PASS] copyCurrentToWorking: ①のrowsがコピーされる
+[PASS] copyCurrentToWorking: working既存のuseManualMuが保持される(書き換わらない)
+[PASS] copyCurrentToWorking: working既存のmanualMuが保持される(書き換わらない) — actual=12.3 expected=12.3
+[PASS] setRateSameAsWorking(false): rateSameAsWorkingがfalseになる
+[PASS] setRateSameAsWorking(false): 取崩期がuseManualMu=trueにシードされる
+[PASS] setRateSameAsWorking(false): 取崩期のmanualMuに積立期の実効値(6.83)がシードされる — actual=6.83 expected=6.83
+[PASS] setRateSameAsWorking(true): rateSameAsWorkingがtrueに戻る
+[PASS] setSigmaSameAsWorking(false): sigmaSameAsWorkingがfalseになる
+[PASS] setSigmaSameAsWorking(false): 取崩期がuseManualSigma=trueにシードされる
+[PASS] setSigmaSameAsWorking(false): 取崩期のmanualSigmaに積立期の実効値(18.89)がシードされる — actual=18.89 expected=18.89
+
+====================================================================================================
+総合結果: 81 PASS / 0 FAIL
+====================================================================================================
+
+====================================================================================================
+【資産管理ツール:CSV重複排除・区分フィルタ】verify-asset-management-csv.js
+====================================================================================================
+================================================================================
+【mergeById：ID一致判定の共通ロジック】
+================================================================================
+[PASS] 1. id一致→上書き（位置は保持、amountは新しい値） — [{"id":"a","amount":999},{"id":"b","amount":200}]
+[PASS] 2. id不一致→末尾に新規追加 — [{"id":"a","amount":100},{"id":"c","amount":300}]
+[PASS] 3. incoming内に同一idが複数あっても最後の値1件に収束する — [{"id":"x","amount":2}]
+
+================================================================================
+【groupRowsByYearMonth：同一ID・同一年月の重複排除（バグA回帰テスト）】
+================================================================================
+[PASS] 4. 同一ID・同一年月の行が3回登場するCSVでも、グループ内は1件に収束する — groups.size=1, group('2026-08').length=1
+[PASS] 5. 異なるID・異なる年月は正しくそれぞれ独立して保持される（過剰統合しない） — [["2026-08",[{"id":"a","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":""},{"id":"b","owner":"personal","accountCategory":"NISA","assetClass":"全世界株","amount":200,"updatedAt":""}]],["2026-07",[{"id":"c","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":300,"updatedAt":""}]]]
+
+================================================================================
+【splitGroupsByOwners：区分による分類（バグB回帰テスト）】
+================================================================================
+[PASS] 6. 個人owner指定：本人/配偶者行がownGroupsに、法人行がotherGroupsに分類される — {"own":[{"id":"pers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":""},{"id":"sp1","owner":"personal_spouse","accountCategory":"現金","assetClass":"現金","amount":300,"updatedAt":""}],"other":[{"id":"corp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":100,"updatedAt":""}]}
+[PASS] 7. 法人owner指定：法人行がownGroupsに、本人/配偶者行がotherGroupsに分類される（6と対称） — {"hojinOwn":[{"id":"corp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":100,"updatedAt":""}],"hojinOther":[{"id":"pers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":""},{"id":"sp1","owner":"personal_spouse","accountCategory":"現金","assetClass":"現金","amount":300,"updatedAt":""}]}
+
+================================================================================
+【parseAssetCsv：CSV文字列からのエンドツーエンド検証】
+================================================================================
+[PASS] 8. 同一ID行が3回登場するCSVを1回パースしても、結果は1件に収束する — [{"id":"row1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:24.893Z","profileId":"default"}]
+[PASS] 9. 同一CSVを3回連続でパースしても、グループの行数は常に2件のまま変化しない — results=[2,2,2]
+[PASS] 10. 本人行・法人行混在CSV：personalGroups・hojinGroups双方に正しく分類される（バグB回帰＋スコープ廃止） — {"personal":[{"id":"pers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:24.894Z","profileId":"default"}],"hojin":[{"id":"corp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":999,"updatedAt":"2026-09-25T19:26:24.894Z","profileId":"default"}]}
+[PASS] 11. 法人行のみのCSV：personalGroupsは空、hojinGroupsのみ2件埋まる — {"personalSize":0,"hojin":[{"id":"corp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":300,"updatedAt":"2026-09-25T19:26:24.894Z","profileId":"default"},{"id":"corp2","owner":"corporate","accountCategory":"法人証券口座","assetClass":"全世界株","amount":500,"updatedAt":"2026-09-25T19:26:24.894Z","profileId":"default"}]}
+[PASS] 12. 法人側：同一ID行が2回登場するCSVを3回連続パースしても、常に1件に収束する（バグA回帰） — results=[1,1,1]
+
+================================================================================
+【normalizeYearMonth：年月正規化】
+================================================================================
+[PASS] 13. normalizeYearMonth("202608") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("202613") → null — actual=null
+[PASS] 13. normalizeYearMonth("2026-08") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("2026/08") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("Aug-26") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("Aug-2026") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("aug-26") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("2026/8/1") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("8/1/2026") → "2026-08" — actual="2026-08"
+[PASS] 13. normalizeYearMonth("不明な月") → null — actual=null
+[PASS] 13. normalizeYearMonth("2026-13") → null — actual=null
+[PASS] 13. normalizeYearMonth("") → null — actual=null
+
+================================================================================
+【toCompactYearMonth：Export時の年月表記変換】
+================================================================================
+[PASS] 14. toCompactYearMonth("2026-08") → "202608" — actual=202608
+[PASS] 14. toCompactYearMonth("2026-12") → "202612" — actual=202612
+
+================================================================================
+【summarizeYearMonths：年月一覧の要約表示】
+================================================================================
+[PASS] 15. 合計5件以下：具体的な年月をすべて列挙する（現状通り） — 2026-06、2026-07、2026-08
+[PASS] 16. 合計6件以上：範囲と件数の要約になる（指示書3章の例と同じ形式） — 2020-01〜2029-12（120件）
+[PASS] 17. 法人側が3件のみでも、合計件数（personal+hojin）が6件以上なら要約される — 2026-06〜2026-08（3件）
+[PASS] 18. 空配列 → 空文字列 — ""
+
+================================================================================
+総合結果: 30 PASS / 0 FAIL
+検証成功: CSV記録履歴インポートの重複排除・区分分類・年月正規化・要約表示を確認しました。
+================================================================================
+
+====================================================================================================
+【資産管理ツール:loadHoldings重複排除の自己修復】verify-asset-management-loadholdings-dedup.js
+====================================================================================================
+================================================================================
+【loadHoldings（個人）：壊れた重複データの自己修復】
+================================================================================
+[PASS] 1. 壊れた重複データ（idが3回登場）を1回loadHoldings()するだけで1件に収束する — [{"id":"a","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"b","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 2. 追加のsaveHoldings()呼び出しなしに、localStorage自体も重複排除された状態で保存し直されている — [{"id":"a","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"b","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 3. 続けてもう一度loadHoldings()しても件数が変化しない（安定） — [{"id":"a","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"b","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 4. 元々重複の無いクリーンなデータはそのまま変化しない — [{"id":"x","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"y","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 5. データが存在しない場合は空配列を返す（例外を投げない）
+
+================================================================================
+【loadHojinHoldings（法人）：壊れた重複データの自己修復】
+================================================================================
+[PASS] 6. 壊れた重複データ（idが2回登場）を1回loadHojinHoldings()するだけで1件に収束する — [{"id":"p","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":300,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"q","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":0,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 7. localStorage自体も重複排除された状態で保存し直されている — [{"id":"p","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":300,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"q","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":0,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 8. 元々重複の無いクリーンなデータはそのまま変化しない — [{"id":"m","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":10,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+
+================================================================================
+【profileId欠損データの後方互換補完】
+================================================================================
+[PASS] 9. profileId欠損データをloadHoldings()するだけで、全件profileId='default'が補完される — [{"id":"n1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"n2","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 10. 追加のsaveHoldings()呼び出しなしに、localStorage自体もprofileId補完済みの状態で保存し直されている — [{"id":"n1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"},{"id":"n2","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 11. 法人側（loadHojinHoldings）も同様にprofileId='default'が補完される — [{"id":"c1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":500,"updatedAt":"","profileId":"default"}]
+[PASS] 12. 元からprofileIdを持つクリーンなデータは変化しない — [{"id":"t1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-08-01T00:00:00.000Z","profileId":"default"}]
+
+================================================================================
+総合結果: 12 PASS / 0 FAIL
+検証成功: loadHoldings/loadHojinHoldingsの重複排除・自己修復を確認しました。
+================================================================================
+
+====================================================================================================
+【資産管理ツール:CSVの中身だけでストアへの書き込みが決まる】verify-asset-management-csv-cross-store.js
+====================================================================================================
+================================================================================
+【両方混在CSV：本人/配偶者行・法人行それぞれが正しいストアへ書き込まれる】
+================================================================================
+[PASS] 1. applyAssetCsvの戻り値に個人・法人両方の更新結果が含まれる — {"holdings":[{"id":"pers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:25.244Z","profileId":"default"}],"hojinHoldings":[{"id":"corp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":300,"updatedAt":"2026-09-25T19:26:25.244Z","profileId":"default"}]}
+[PASS] 2. loadHoldings()で個人ストア（lifeCompassAssetHoldings）に実際に反映されている — [{"id":"pers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:25.244Z","profileId":"default"}]
+[PASS] 3. loadHojinHoldings()で法人ストア（hojinAssetHoldings）に実際に反映されている — [{"id":"corp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":300,"updatedAt":"2026-09-25T19:26:25.244Z","profileId":"default"}]
+
+================================================================================
+【法人行のみのCSV：個人ストアには一切書き込まれない】
+================================================================================
+[PASS] 4. personalGroupsが空のCSVでも、applyAssetCsvは個人ストアの現在状態（空）をそのまま返す（例外を投げない） — []
+[PASS] 5. 個人セクションでCSVをインポートしていなくても、法人行だけを含むCSVで法人ストアが更新される — [{"id":"corp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":500,"updatedAt":"2026-09-25T19:26:25.245Z","profileId":"default"}]
+[PASS] 6. 個人ストアには一切書き込まれない（法人行しか無いCSVのため） — []
+
+================================================================================
+【本人/配偶者行のみのCSV：法人ストアには一切書き込まれない（対称性）】
+================================================================================
+[PASS] 7. 本人/配偶者行のみのCSVでは法人ストアに一切書き込まれない — []
+[PASS] 8. 個人ストアには両方の行が反映されている — [{"id":"pers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:25.245Z","profileId":"default"},{"id":"sp1","owner":"personal_spouse","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"2026-09-25T19:26:25.245Z","profileId":"default"}]
+
+================================================================================
+総合結果: 8 PASS / 0 FAIL
+検証成功: CSVの中身（区分列）だけで個人・法人ストアへの書き込みが決まることを確認しました。
+================================================================================
+
+====================================================================================================
+【資産管理ツール:JSON Exportの完全性】verify-asset-management-json-completeness.js
+====================================================================================================
+================================================================================
+【1章：withCorrectedHojinSnapshots（JSON Exportの過去月断面バグ修正）】
+================================================================================
+[PASS] 1. 個人ストア自身の真の記録履歴と一致する年月は、personalHoldings/totalPersonalAmountが補正される — {"date":"2026-07","hojinHoldings":[],"personalHoldings":[{"id":"p1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":250,"updatedAt":""}],"totalHojinAmount":900,"totalPersonalAmount":250,"profileId":"default"}
+[PASS] 2. 一致する個人記録が無い年月は、元の値のままフォールバックする（データを失わない） — {"date":"2026-06","hojinHoldings":[],"personalHoldings":[],"totalHojinAmount":500,"totalPersonalAmount":0,"profileId":"default"}
+
+================================================================================
+【parseJsonPayload（hasContent：確認ダイアログを出すかどうかの判定）】
+================================================================================
+[PASS] 3. holdingsを含む新形式：hasContent=true — {"raw":{"version":1,"holdings":[{"id":"a","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":1,"updatedAt":""}],"snapshots":[],"hojinHoldings":[],"hojinSnapshots":[]},"isOldHojinFormat":false,"hasContent":true}
+[PASS] 4. 設定値のみでもhasContent=true（設定値も置き換え対象のため） — {"raw":{"version":1,"targetAmount":5000},"isOldHojinFormat":false,"hasContent":true}
+[PASS] 5. 認識可能なキーを1つも含まない場合はhasContent=false — {"raw":{"version":1},"isOldHojinFormat":false,"hasContent":false}
+[PASS] 6. 旧法人形式（scopeキーあり）：isOldHojinFormat=true・hojinHoldingsがあればhasContent=true — {"raw":{"version":1,"scope":"combined","hojinHoldings":[{"id":"c1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":1,"updatedAt":""}],"snapshots":[]},"isOldHojinFormat":true,"hasContent":true}
+
+================================================================================
+【json_import_replace_not_merge.md 1章：applyJsonPayloadはマージではなく置き換え】
+================================================================================
+[PASS] 7. holdings：バックアップ後に増えたpersNewが消え、バックアップ時点のpersOldだけになる（マージではなく置き換え） — [{"id":"persOld","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"","profileId":"default"}]
+[PASS] 8. loadHoldings()でも実際にlocalStorageから消えている — [{"id":"persOld","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"","profileId":"default"}]
+[PASS] 9. snapshots：ペイロードに存在しない2026-08の記録が削除され、2026-07だけが残る — [{"date":"2026-07","holdings":[],"totalAmount":250,"profileId":"default"}]
+[PASS] 10. loadSnapshots()でも実際にlocalStorageから消えている — [{"date":"2026-07","holdings":[],"totalAmount":250,"profileId":"default"}]
+[PASS] 11. hojinHoldings：バックアップ後に増えたcorpNewが消え、corpOldだけになる — [{"id":"corpOld","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":500,"updatedAt":"","profileId":"default"}]
+[PASS] 12. loadHojinHoldings()でも実際にlocalStorageから消えている — [{"id":"corpOld","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":500,"updatedAt":"","profileId":"default"}]
+[PASS] 13. 前提：logOldが一旦保存されている — [{"id":"logOld","executedAt":"2026-01-01T00:00:00.000Z","mode":"withdrawal","amount":100,"appliedRate":70,"hojinDelta":-100,"personalDelta":70}]
+[PASS] 14. 移転履歴ログ：logOldが消え、logBackupだけの状態に置き換わる（id一致マージではない） — [{"id":"logBackup","executedAt":"2026-02-01T00:00:00.000Z","mode":"salary","amount":200,"appliedRate":null,"hojinDelta":-200,"personalDelta":200}]
+[PASS] 15. 設定値（目標資産額）は引き続き上書きされる（変更不要の確認） — actual=9999
+[PASS] 16. 旧法人形式のImportでは個人のtargetAmountに一切触れない — actual=1234
+[PASS] 17. hojinHoldingsキーを含まないJSONをImportしても、法人データには一切触れない — [{"id":"corpKeep","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":999,"updatedAt":"","profileId":"default"}]
+
+================================================================================
+【保存上限（MAX_SNAPSHOTS）：ペイロード自体がMAX_SNAPSHOTSを超える場合のtrimmed/removed】
+================================================================================
+[PASS] 18. ペイロード自体がMAX_SNAPSHOTS超過時、戻り値のsnapshotsが実際の保存件数（trimmed後）と一致する — result.snapshots.length=300, loadSnapshots().length=300
+[PASS] 19. 超過分がresult.removedとして呼び出し側へ通知される — removed.length=4
+
+================================================================================
+【instruction_assetholding_profileid.md：旧形式（profileId欠損）JSON Import直後の後方互換補完】
+================================================================================
+[PASS] 20. 戻り値のholdingsに、Import直後の時点でprofileId='default'が補完されている（リロード不要） — [{"id":"oldPers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":555,"updatedAt":"2026-01-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 21. localStorage（lifeCompassAssetHoldings）自体もImport直後の時点でprofileId補完済みで保存されている — [{"id":"oldPers1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":555,"updatedAt":"2026-01-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 22. 戻り値のhojinHoldingsにも、Import直後の時点でprofileId='default'が補完されている — [{"id":"oldCorp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":777,"updatedAt":"2026-01-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 23. localStorage（hojinAssetHoldings）自体もImport直後の時点でprofileId補完済みで保存されている — [{"id":"oldCorp1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":777,"updatedAt":"2026-01-01T00:00:00.000Z","profileId":"default"}]
+[PASS] 24. 旧法人形式：hojinHoldingsにもImport直後の時点でprofileId='default'が補完されている — [{"id":"oldCorp2","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":300,"updatedAt":"","profileId":"default"}]
+[PASS] 25. 旧法人形式：personalHoldings経由のholdingsにもImport直後の時点でprofileId='default'が補完されている — [{"id":"oldPers2","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":400,"updatedAt":"","profileId":"default"}]
+
+================================================================================
+総合結果: 25 PASS / 0 FAIL
+検証成功: JSON Exportの完全性・過去月断面バグ修正・Importの置き換え方式を確認しました。
+================================================================================
+
+====================================================================================================
+【資産管理ツール:プロファイル基盤】verify-asset-manager-profile-migration.js
+====================================================================================================
+================================================================================
+【ensureAssetManagerMigrated：冪等性・自己修復（3節）】
+================================================================================
+[PASS] 1. 空の状態から実行：デフォルトプロファイル(id='default')が作成される — [{"id":"default","name":"デフォルト","birthDate":null,"linkedSimulatorProfileId":null}]
+[PASS] 2. currentProfileIdがdefaultに設定される
+[PASS] 3. 2回連続実行しても結果が変わらない（冪等） — {"profiles":[{"id":"default","name":"デフォルト","birthDate":null,"linkedSimulatorProfileId":null}],"currentProfileId":"default","version":1}
+[PASS] 4. 部分完了状態（プロファイルのみ存在）から再実行：プロファイルが重複作成されない — [{"id":"default","name":"デフォルト","birthDate":null,"linkedSimulatorProfileId":null}]
+[PASS] 5. currentProfileIdが正しく補完される
+[PASS] 6. migrationVersionが正しく更新される
+
+================================================================================
+【dedupeSnapshotsByDate・addSnapshot：(date, profileId)複合キー化】
+================================================================================
+[PASS] 7. 2つのプロファイルが同月に記録しても、両方のスナップショットが残る（date一致だけで上書きされない） — [{"date":"2026-09","holdings":[{"id":"a","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"","profileId":"profileA"}],"totalAmount":100,"profileId":"profileA"},{"date":"2026-09","holdings":[{"id":"b","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"","profileId":"profileB"}],"totalAmount":200,"profileId":"profileB"}]
+[PASS] 8. loadSnapshots()を再度呼んでも両プロファイルの記録が消えない（自己修復ロジックの複合キー化） — [{"date":"2026-09","holdings":[{"id":"a","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"","profileId":"profileA"}],"totalAmount":100,"profileId":"profileA"},{"date":"2026-09","holdings":[{"id":"b","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"","profileId":"profileB"}],"totalAmount":200,"profileId":"profileB"}]
+[PASS] 9. 同一プロファイルが同月に2回記録した場合は従来通り1件に上書きされる — [{"date":"2026-09","holdings":[{"id":"a2","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":150,"updatedAt":"","profileId":"profileA"}],"totalAmount":150,"profileId":"profileA"}]
+
+================================================================================
+【profileStore：作成・切替・削除カスケード】
+================================================================================
+[PASS] 10. 初期状態：デフォルトプロファイル1件のみ存在する — [{"id":"default","name":"デフォルト","birthDate":null,"linkedSimulatorProfileId":null}]
+[PASS] 11. createProfileでUUID形式のidが発行される（'default'ではない） — A=4a4d4caf-4886-44fd-9e49-0f28aa846987, B=0e9ed5d1-459e-4319-a8f0-4794a07ef575
+[PASS] 12. プロファイル数が3件になる（デフォルト＋A＋B）
+[PASS] 13. switchProfileでcurrentProfileIdが切り替わる
+[PASS] 14. deleteProfile：プロファイルが一覧から消える
+[PASS] 15. deleteProfile：カスケード削除で該当プロファイルの保有資産も消える
+[PASS] 16. deleteProfile：選択中プロファイルが削除された場合、残存プロファイルの先頭に切り替わる — currentProfileId=default, remaining[0]=default
+[PASS] 17. 残り1件の状態を作る — [{"id":"0e9ed5d1-459e-4319-a8f0-4794a07ef575","name":"プロファイルB","birthDate":null,"linkedSimulatorProfileId":123}]
+[PASS] 18. 残り1件からの削除はno-op（0件にはならない）
+
+================================================================================
+【summarizeProfileHoldings：上書き確認ダイアログ用の件数・合計金額集計】
+================================================================================
+[PASS] 19. 個人2件＋法人1件＝合計3件、金額合計100+250+500=850 — {"count":3,"totalAmount":850}
+[PASS] 20. 個人1件のみ（法人保有なし）＝合計1件、金額999 — {"count":1,"totalAmount":999}
+[PASS] 21. 該当プロファイルの保有資産が無い場合は0件・0円 — {"count":0,"totalAmount":0}
+
+================================================================================
+総合結果: 21 PASS / 0 FAIL
+検証成功: プロファイル基盤・移行処理を確認しました。
+================================================================================
+
+====================================================================================================
+【CompanyStateの再設計】verify-companystate-rearchitecture.js
+====================================================================================================
+================================================================================
+【companyStateByProfile：シミュレータープロファイル単位のキー管理】
+================================================================================
+[PASS] 1. loadProfile後：companyStateStoreのcurrentProfileIdがプロファイルAのidになる
+[PASS] 2. 未保存のプロファイルはEMPTY_COMPANY_STATE相当（実効税率25）で初期化される
+[PASS] 3. saveProfile後：companyStateByProfileにプロファイルAの値(30)が永続化される
+[PASS] 4. 別プロファイルBへ切替：companyStateStoreもEMPTY（Aの30が漏れない）
+[PASS] 5. saveProfile後：Bの値(50)が永続化される
+[PASS] 6. Aへ戻ると、保存済みのA用の実効税率(30)がそのまま保持されている（Bの50に上書きされていない）
+[PASS] 7. Bの保存済み実効税率(50)も保持されている
+
+================================================================================
+【saveProfile：新規保存でメモリ上の下書きが新IDにそのままコピーされる】
+================================================================================
+[PASS] 8. 別名保存前：companyStateStoreはメモリ上で99に編集されている（まだ未保存）
+[PASS] 9. 別名保存後：新ID(1003)に、その時点でメモリ上にあった値(99)がそのままコピーされる — stored=99
+[PASS] 10. 別名保存後：元のプロファイルB(1002)の保存済み値(50)は変化していない
+[PASS] 11. 別名保存後：simulatorStoreのcurrentProfileIdも新ID(1003)に切り替わっている
+[PASS] 12. 別名保存後：simulatorStoreのprofileオブジェクト自体も新ID(1003)・新name(プロファイルC)に更新されている — {"id":1003,"name":"プロファイルC"}
+
+================================================================================
+【updatePortfolioPhase：①現在PFのamount合計からinvestedBalanceを自動算出】
+================================================================================
+[PASS] 13. ①現在PFの行を更新：investedBalanceが行のamount合計(150)に自動算出される — investedBalance=150
+[PASS] 14. ②積立期の行を更新してもinvestedBalanceは変化しない（①現在PFのみ対象）
+
+================================================================================
+【importFromAssetManagement：明示的なprofileId引数（暗黙のcurrentProfileId参照なし）】
+================================================================================
+[PASS] 15. importFromAssetManagement('profX')：investedBalance=300（profXの法人証券口座のみ） — {"rows":[{"assetClass":"全世界株","pct":100,"amount":300}],"investedBalance":300,"cashBalance":100}
+[PASS] 16. cashBalance=100（profXの法人預金のみ）
+[PASS] 17. rowsにamountフィールドが含まれる（④節：金額表示UI用） — [{"assetClass":"全世界株","pct":100,"amount":300}]
+[PASS] 18. importFromAssetManagement('profY')：日本株999が反映される（profXの値と混ざらない）
+
+================================================================================
+【importFromAssetManagementPersonal：owner×accountCategoryのマッピング】
+================================================================================
+[PASS] 19. 現金（本人）→bCash=100
+[PASS] 20. 現金（配偶者）→spCashBal=50
+[PASS] 21. NISA（本人）→nisa=[{全世界株,200}]
+[PASS] 22. NISA（配偶者）→spNisa=[{先進国株,80}]
+[PASS] 23. iDeCo（本人）→ideco=[{日本株,120}]
+[PASS] 24. iDeCo（配偶者）→spIdeco=[{日本株,60}]
+[PASS] 25. 特定口座（本人）＋その他（本人）→taxに合算（ゴールド40＋不動産500） — [{"assetClass":"ゴールド","pct":0,"amount":40},{"assetClass":"不動産","pct":0,"amount":500}]
+[PASS] 26. 特定口座（配偶者）＋その他（配偶者）→spTaxに合算（ゴールド20＋暗号資産30） — [{"assetClass":"ゴールド","pct":0,"amount":20},{"assetClass":"暗号資産","pct":0,"amount":30}]
+[PASS] 27. 別プロファイル(otherProf)の保有資産は混ざらない（bCashは100のまま、99999を含まない）
+
+================================================================================
+【ASSET_CLASSES/ASSET_CORR：不動産・暗号資産の追加値】
+================================================================================
+[PASS] 28. profile.ts ASSET_CLASSES：不動産のmu=4.5/sigma=16.2/group=reit_jp — {"key":"不動産","mu":4.5,"sigma":16.2,"group":"reit_jp"}
+[PASS] 29. profile.ts ASSET_CLASSES：暗号資産のmu=0/sigma=0/group=crypto（ダミー値） — {"key":"暗号資産","mu":0,"sigma":0,"group":"crypto"}
+[PASS] 30. profile.ts ASSET_CORR：crypto行が追加されている（stock相関0.3）
+[PASS] 31. profile.ts ASSET_CORR：既存グループ側にもcrypto列が対称に追加されている（stock→crypto=0.3）
+[PASS] 32. assetManagement/categories.ts：不動産のmu/sigma/groupがprofile.tsと同値に補完されている — {"key":"不動産","mu":4.5,"sigma":16.2,"group":"reit_jp"}
+[PASS] 33. assetManagement/categories.ts：暗号資産はgroup=cryptoのみ補完（mu/sigmaは未設定のまま） — {"key":"暗号資産","group":"crypto"}
+
+================================================================================
+【getCryptoManualWarnings（個人側）／getCorporateCryptoWarnings（法人側）】
+================================================================================
+[PASS] 34. 個人側：NISA（積立期）に暗号資産を含み自動モードのまま→警告が出る — ["暗号資産は既定の期待リターンを設定していません。NISA（積立期）を手動入力に切り替えて、ご自身の想定利回りを入力してください。"]
+[PASS] 35. 個人側：同じ口座を手動入力に切り替えると警告が消える — []
+[PASS] 36. 法人側：②積立期に暗号資産を含み自動モードのまま→警告が出る — ["暗号資産は既定の期待リターンを設定していません。②積立期のPFを手動入力に切り替えて、ご自身の想定利回り・標準偏差を入力してください。"]
+[PASS] 37. 法人側：手動入力（μ・σとも）に切り替えると警告が消える — []
+
+================================================================================
+総合結果: 37 PASS / 0 FAIL
+検証成功: CompanyStateの再設計（シミュレータープロファイル単位への移行）を確認しました。
+================================================================================
+
+====================================================================================================
+【予実比較機能V1】verify-plan-snapshot.js
+====================================================================================================
+================================================================================
+【generatePlan：固定モード】
+================================================================================
+[PASS] 1. curve.length がsimulate()結果と一致
+[PASS] 2. curveの各点（age・totalAssets）がsimulate()直接呼び出しと完全一致
+[PASS] 3. strategyがprofile.ui.activeStrategies[0]と一致
+[PASS] 4. idがcrypto.randomUUID形式（36文字・ハイフン4箇所）
+[PASS] 5. fixed.byAccountは常にnull
+[PASS] 6. name未指定時はデフォルト名（"計画 "で始まる）
+[PASS] 7. name指定時はtrim済みの値を使う
+================================================================================
+【generatePlan：MCモード】
+================================================================================
+[PASS] 1. mcが生成される
+[PASS] 2. percentiles.lengthが年数と一致
+[PASS] 3. 各年でp10<=p50<=p90
+[PASS] 4. mc.byAccountは常にnull
+[PASS] 5. 最初の点のageがcurAgeと一致
+================================================================================
+【generateMcPercentiles と montecarlo.ts runMC() の数値的同等性】
+================================================================================
+[PASS] 1. [proportional] percentiles.lengthが一致
+[PASS] 2. [proportional] p10が全年でrunMC()と完全一致
+[PASS] 3. [proportional] p50が全年でrunMC()と完全一致
+[PASS] 4. [proportional] p90が全年でrunMC()と完全一致
+[PASS] 1. [cash_first] percentiles.lengthが一致
+[PASS] 2. [cash_first] p10が全年でrunMC()と完全一致
+[PASS] 3. [cash_first] p50が全年でrunMC()と完全一致
+[PASS] 4. [cash_first] p90が全年でrunMC()と完全一致
+[PASS] 1. [taxable_first] percentiles.lengthが一致
+[PASS] 2. [taxable_first] p10が全年でrunMC()と完全一致
+[PASS] 3. [taxable_first] p50が全年でrunMC()と完全一致
+[PASS] 4. [taxable_first] p90が全年でrunMC()と完全一致
+[PASS] 5. 破綻シナリオでもp10/p50/p90が全年でrunMC()と完全一致
+================================================================================
+【generatePlan：profile.eventsのみに依存・法人非依存】
+================================================================================
+[PASS] 1. profile.eventsを変えるとcurveが変わる（=profile.eventsに依存している）
+[PASS] 2. import文にhojinCompanyStateが一切現れない
+[PASS] 3. import文にuseSimulatorStoreが一切現れない
+[PASS] 4. import文にmontecarlo（大小問わず）が一切現れない
+================================================================================
+【normalizeSimulatorProfile / generatePlan：欠損フィールドを持つプロファイルの回帰確認】
+================================================================================
+[PASS] 1. params.pfManualFlagsが欠けたプロファイルでもgeneratePlan()が例外を投げない
+[PASS] 2. 欠損プロファイルでも意図した年齢(curAge=40)から計画が生成される
+[PASS] 3. normalizeSimulatorProfileがSAMPLE_PROFILE.params.pfManualFlagsで欠損を補完する
+[PASS] 4. normalizeSimulatorProfileは元のparams値（curAge=40）を上書きしない（補完のみで既存値を優先）
+================================================================================
+【storage：listPlans/savePlan/getLatestPlan/renamePlan/deletePlan】
+================================================================================
+[PASS] 1. listPlansはprofileIdで絞り込む
+[PASS] 2. getLatestPlanはcreatedAt最新を返す
+[PASS] 3. renamePlanは対象idのみ改名する
+[PASS] 4. deletePlanは対象idのみ削除する
+[PASS] 5. MAX_PLANS超過時は対象profileId内の最古から削除される
+[PASS] 6. 他profileIdの計画は上限判定・削除の影響を受けない
+================================================================================
+【alignment：ageToYearMonth】
+================================================================================
+[PASS] 1. age===savedAtAgeでsavedAtYearMonthそのまま
+[PASS] 2. 年をまたぐ加算（+2年）
+[PASS] 3. 過去方向（-3年）
+[PASS] 4. 月は常にsavedAtYearMonthの月のまま
+================================================================================
+結果: PASS=43 FAIL=0
+
+====================================================================================================
+【プロファイル連携UI】verify-profile-link-ui.js
+====================================================================================================
+================================================================================
+【linkSimulatorProfile / unlinkSimulatorProfile】
+================================================================================
+[PASS] 1. createProfile直後はlinkedSimulatorProfileIdがnull
+[PASS] 2. linkSimulatorProfile後、storeのlinkedSimulatorProfileIdが更新される
+[PASS] 3. linkSimulatorProfileの結果がlocalStorageにも永続化される
+[PASS] 4. unlinkSimulatorProfile後、linkedSimulatorProfileIdがnullに戻る（既存ボタンの回帰確認）
+[PASS] 5. 正常な連携（リンク切れではない）状態からもunlinkSimulatorProfileで解除できる
+[PASS] 6. 同一シミュレータープロファイルへ複数の資産管理ツールプロファイルがリンク可能（重複チェックなし、仕様通り）
+[PASS] 7. あるプロファイルのlinkSimulatorProfileが他プロファイルに影響しない
+================================================================================
+結果: PASS=7 FAIL=0
+
+====================================================================================================
+【CSVインポート:プロファイルスコープ修正】verify-csv-profile-scope-fix.js
+====================================================================================================
+================================================================================
+【個人側】プロファイルAでCSVインポート→プロファイルBの保有資産・記録が無変化
+================================================================================
+[PASS] 1. Bの保有資産(profileB)がそのまま残る — [{"id":"bh1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":777,"updatedAt":"","profileId":"profileB"},{"id":"ah1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:32.218Z","profileId":"profileA"}]
+[PASS] 2. Bのスナップショット(profileB)がそのまま残る — [{"date":"2026-05","holdings":[{"id":"bs1","owner":"personal","accountCategory":"NISA","assetClass":"全世界株","amount":555,"updatedAt":"","profileId":"profileB"}],"totalAmount":555,"profileId":"profileB"},{"date":"2026-09","holdings":[{"id":"ah1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:32.218Z","profileId":"profileA"}],"totalAmount":100,"profileId":"profileA"}]
+[PASS] 3. Aの保有資産がprofileId=profileAで正しく反映される（defaultではない） — [{"id":"bh1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":777,"updatedAt":"","profileId":"profileB"},{"id":"ah1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:32.218Z","profileId":"profileA"}]
+[PASS] 4. 保有資産の総件数はA1件+B1件=2件のまま（Bが消えていない） — [{"id":"bh1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":777,"updatedAt":"","profileId":"profileB"},{"id":"ah1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:32.218Z","profileId":"profileA"}]
+[PASS] 5. nowYM以外の月（2026-05）はCSVに含まれていなくても一切変化しない — [{"date":"2026-05","holdings":[{"id":"bs1","owner":"personal","accountCategory":"NISA","assetClass":"全世界株","amount":555,"updatedAt":"","profileId":"profileB"}],"totalAmount":555,"profileId":"profileB"},{"date":"2026-09","holdings":[{"id":"ah1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":100,"updatedAt":"2026-09-25T19:26:32.218Z","profileId":"profileA"}],"totalAmount":100,"profileId":"profileA"}]
+
+================================================================================
+【個人側】同一年月(2026-04)でも他プロファイルのスナップショットは独立して保持される
+================================================================================
+[PASS] 6. 同一年月(2026-04)でもprofileBのスナップショットは変化しない — [{"date":"2026-04","holdings":[{"id":"b1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":400,"updatedAt":"","profileId":"profileB"}],"totalAmount":400,"profileId":"profileB"},{"date":"2026-04","holdings":[{"id":"a1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":900,"updatedAt":"2026-09-25T19:26:32.220Z","profileId":"profileA"}],"totalAmount":900,"profileId":"profileA"}]
+[PASS] 7. profileAの2026-04スナップショットが新規に(profileB側とは別に)追加される — [{"date":"2026-04","holdings":[{"id":"b1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":400,"updatedAt":"","profileId":"profileB"}],"totalAmount":400,"profileId":"profileB"},{"date":"2026-04","holdings":[{"id":"a1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":900,"updatedAt":"2026-09-25T19:26:32.220Z","profileId":"profileA"}],"totalAmount":900,"profileId":"profileA"}]
+[PASS] 8. 2026-04のスナップショットは2件（profileA・profileBそれぞれ独立）になる — [{"date":"2026-04","holdings":[{"id":"b1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":400,"updatedAt":"","profileId":"profileB"}],"totalAmount":400,"profileId":"profileB"},{"date":"2026-04","holdings":[{"id":"a1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":900,"updatedAt":"2026-09-25T19:26:32.220Z","profileId":"profileA"}],"totalAmount":900,"profileId":"profileA"}]
+
+================================================================================
+【個人側】同一プロファイル内でも、CSVに含まれない年月のデータは消えない
+================================================================================
+[PASS] 9. CSVに含まれない2026-03のスナップショット（同一プロファイル）はそのまま残る — [{"date":"2026-03","holdings":[{"id":"old1","owner":"personal","accountCategory":"現金","assetClass":"現金","amount":200,"updatedAt":"","profileId":"profileA"}],"totalAmount":200,"profileId":"profileA"},{"date":"2026-09","holdings":[{"id":"new1","owner":"personal","accountCategory":"NISA","assetClass":"全世界株","amount":300,"updatedAt":"2026-09-25T19:26:32.220Z","profileId":"profileA"}],"totalAmount":300,"profileId":"profileA"}]
+
+================================================================================
+【法人側】プロファイルAでCSVインポート→プロファイルBの法人保有資産・記録が無変化
+================================================================================
+[PASS] 10. 法人側：Bの保有資産(profileB)がそのまま残る — [{"id":"bhj1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":888,"updatedAt":"","profileId":"profileB"},{"id":"ahj1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":111,"updatedAt":"2026-09-25T19:26:32.221Z","profileId":"profileA"}]
+[PASS] 11. 法人側：Bのスナップショット(profileB)がそのまま残る — [{"date":"2026-05","hojinHoldings":[{"id":"bhjs1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":666,"updatedAt":"","profileId":"profileB"}],"personalHoldings":[],"totalHojinAmount":666,"totalPersonalAmount":0,"profileId":"profileB"},{"date":"2026-09","hojinHoldings":[{"id":"ahj1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":111,"updatedAt":"2026-09-25T19:26:32.221Z","profileId":"profileA"}],"personalHoldings":[],"totalHojinAmount":111,"totalPersonalAmount":0,"profileId":"profileA"}]
+[PASS] 12. 法人側：Aの保有資産がprofileId=profileAで正しく反映される — [{"id":"bhj1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":888,"updatedAt":"","profileId":"profileB"},{"id":"ahj1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":111,"updatedAt":"2026-09-25T19:26:32.221Z","profileId":"profileA"}]
+[PASS] 13. 法人側：保有資産の総件数はA1件+B1件=2件のまま — [{"id":"bhj1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":888,"updatedAt":"","profileId":"profileB"},{"id":"ahj1","owner":"corporate","accountCategory":"法人預金","assetClass":"現金","amount":111,"updatedAt":"2026-09-25T19:26:32.221Z","profileId":"profileA"}]
+
+================================================================================
+総合結果: 13 PASS / 0 FAIL
+検証成功: CSVインポートが現在アクティブなプロファイルの範囲だけに閉じて動作することを確認しました。
+================================================================================
+
+====================================================================================================
+【プロファイルJSON:CompanyState統合】verify-profile-json-companystate.js
+====================================================================================================
+================================================================================
+【exportProfileToJson】
+================================================================================
+[PASS] 1. 法人設定が存在する場合：companyStateフィールドが含まれる — {
+  "id": 3001,
+  "name": "エクスポートA",
+  "savedAt": "",
+  "version": 3,
+  "params"
+[PASS] 2. companyState.settings.effectiveTaxRate=40が正しく含まれる
+[PASS] 3. companyState.settings.investedBalance=111／cashBalance=222
+[PASS] 4. profile本体のフィールド（id/name）もそのまま含まれる
+[PASS] 5. 法人設定が空（EMPTY_COMPANY_STATE相当）の場合：companyStateフィールドを含まない — {
+  "id": 3002,
+  "name": "エクスポートB（法人設定なし）",
+  "savedAt": "",
+  "version": 3,
+  
+
+================================================================================
+【importProfileFromJson：新形式の往復確認】
+================================================================================
+[PASS] 6. インポート結果のprofileにcompanyStateフィールドが含まれない（loadProfile()にそのまま渡せる形）
+[PASS] 7. インポート結果のid/nameが新しい値になっている
+[PASS] 8. 新ID(4002)のcompanyStateByProfileに、Aの法人設定がそのまま複製されている — {"effectiveTaxRate":33,"investedBalance":500,"cashBalance":600,"retirementAge":65,"includeInPersonalSimulator":false}
+[PASS] 9. 元のプロファイルA(4001)の法人設定は変化していない
+
+================================================================================
+【importProfileFromJson：旧形式JSON（companyStateフィールドなし）の非破壊性】
+================================================================================
+[PASS] 10. 旧形式JSONのインポートはエラーにならない（importProfileFromJsonが例外を投げない）
+[PASS] 11. 旧形式JSONインポート後も、取り込み先(5001)の既存法人設定が一切変更されていない — {"effectiveTaxRate":77,"investedBalance":999,"cashBalance":0,"retirementAge":65,"includeInPersonalSimulator":false}
+
+================================================================================
+【importProfileFromJson：companyState: null の明示的リセット】
+================================================================================
+[PASS] 12. companyState:null をインポートすると、既存の法人設定がEMPTY_COMPANY_STATEにリセットされる — {"effectiveTaxRate":25,"investedBalance":0,"cashBalance":0,"retirementAge":65,"includeInPersonalSimulator":false}
+
+================================================================================
+総合結果: 12 PASS / 0 FAIL
+検証成功: プロファイルJSONエクスポート/インポートへのCompanyState統合を確認しました。
+================================================================================
+
+====================================================================================================
+【個人化想定比率（旧デフォルト値・表示追加）】verify-personalization-ratio.js
+====================================================================================================
+================================================================================
+【loadPersonalizationRatio：デフォルト値70→25】
+================================================================================
+[PASS] 1. 未保存の状態（localStorageに値なし）→デフォルト値25 — ratio=25
+[PASS] 2. 保存済みの値がある場合はその値をそのまま返す（デフォルト値に上書きされない） — ratio=40
+
+================================================================================
+【calcPersonalizedAmount / calcCombinedTotal：「個人＋法人（個人化後）」合計行】
+================================================================================
+[PASS] 3. 法人保有資産1000万円・適用税率25%（新デフォルト）→個人化想定額250万円 — result=250
+[PASS] 4. 個人資産585万円＋法人保有資産1000万円×25%（250万円）→個人＋法人（個人化後）835万円 — result=835
+[PASS] 5. 適用税率0%→個人＋法人（個人化後）は個人資産のみ(585万円) — result=585
+[PASS] 6. 適用税率100%→個人＋法人（個人化後）は個人資産＋法人保有資産全額(1585万円) — result=1585
+[PASS] 7. 比率を20%→60%に変更すると、個人＋法人（個人化後）の合計も連動して変わる（160万円増） — before=660, after=980
+
+================================================================================
+総合結果: 7 PASS / 0 FAIL
+検証成功: 個人化想定比率のデフォルト値変更・合計行の計算を確認しました。
+================================================================================
+
+====================================================================================================
+【資産構成内訳バー】verify-asset-composition-bar.js
+====================================================================================================
+================================================================================
+【calcCompositionPercentages：個人資産＋法人保有資産の合計を100%とした内訳】
+================================================================================
+[PASS] 1. 個人585万円・法人300万円→常に合計885万円が100%になる（personalPct+hojinPct=100） — personalPct=66.10169491525424, hojinPct=33.89830508474576
+[PASS] 2. personalPct=585/885*100≈66.1% — personalPct=66.10169491525424
+[PASS] 3. 両方0円でもゼロ除算エラーにならず、hojinPct=100（境界値） — personalPct=0, hojinPct=100
+[PASS] 4. 法人資産0円→personalPct=100%・hojinPct=0%（バーは常に満幅のまま個人資産のみ表示） — personalPct=100, hojinPct=0
+[PASS] 5. 個人資産0円→personalPct=0%・hojinPct=100% — personalPct=0, hojinPct=100
+
+================================================================================
+総合結果: 5 PASS / 0 FAIL
+検証成功: 内訳バーが目標資産額から独立した計算方式になっていることを確認しました。
+================================================================================
+
+====================================================================================================
+【和文の文節区切り】verify-phrase-break.js
+====================================================================================================
+--- 1. npm版（budoux@0.9.2）との一致（用語リストで結合される箇所を除く） ---
+[PASS] 一人法人って、そもそも何？
+[PASS] 一人法人の基本と、FIRE計画における位置づけ
+[PASS] 税金・社会保険はどう変わる？
+[PASS] 法人化で変わる税金・社会保険の構造
+[PASS] 実際、維持コストはいくら？
+[PASS] 一人法人の維持コストを実感ベースで整理
+[PASS] 完全リタイアしなくても、FIREって目指せる？
+[PASS] 完全リタイアと会社員の間にある選択肢
+[PASS] 役員報酬は、いくらにすればいい？
+[PASS] 役員報酬を考える3つの視点
+[PASS] 法人に残す？個人に移す？
+[PASS] 法人と個人、お金の置き場所を考える
+[PASS] 会社員から一人法人へ。何が変わった？
+[PASS] 働き方が変わって見えてきたお金の論点
+[PASS] 一人法人は、いつ作ればいい？
+[PASS] 一人法人を作るタイミングの考え方
+[PASS] 一人法人を考える前に、まずは自分の必要資産額を確認してみてください。
+[PASS] 一人法人はFIREを実現するための選択肢の一つです。
+  用語リストで結合された箇所:
+    npm版「一人／法／人って、／そもそも／何？」→ 今回「一人法人って、／そもそも／何？」
+    npm版「一人／法人の／基本と、／FIRE計画に／おける／位置づけ」→ 今回「一人法人の／基本と、／FIRE計画に／おける／位置づけ」
+    npm版「一人／法人の／維持コストを／実感ベースで／整理」→ 今回「一人法人の／維持コストを／実感ベースで／整理」
+    npm版「一人／法人は、／いつ／作ればいい？」→ 今回「一人法人は、／いつ／作ればいい？」
+    npm版「一人／法人を／作る／タイミングの／考え方」→ 今回「一人法人を／作る／タイミングの／考え方」
+    npm版「一人／法人を／考える／前に、／まずは／自分の／必要資産額を／確認してみてください。」→ 今回「一人法人を／考える／前に、／まずは／自分の／必要資産額を／確認してみてください。」
+    npm版「一人／法人は／FIREを／実現する／ための／選択肢の／一つです。」→ 今回「一人法人は／FIREを／実現する／ための／選択肢の／一つです。」
+
+--- 2. 用語リスト ---
+[PASS] 「一人法人って、そもそも何？」→ 一人法人って、／そもそも／何？
+[PASS] 「一人法人の基本と、FIRE計画における位置づけ」→ 一人法人の／基本と、／FIRE計画に／おける／位置づけ
+[PASS] 「一人法人を考える前に、まずは自分の必要資産額を確認してみてください。」→ 一人法人を／考える／前に、／まずは／自分の／必要資産額を／確認してみてください。
+[PASS] 「法人に残す？個人に移す？」→ 法人に／残す？／個人に／移す？
+[PASS] 全22文で、用語（一人法人・法人）の途中に区切りがない
+
+--- 3. 文字列の保存 ---
+[PASS] 全33件で、連結結果が元の文字列と一致する
+
+--- 4. 例外が出ないこと ---
+[PASS] "" → []
+[PASS] "FIRE" → ["FIRE"]
+[PASS] "abc123" → ["abc123"]
+[PASS] "2026" → ["2026"]
+[PASS] "！？。、・…" → ["！？。、","・…"]
+[PASS] "---" → ["---"]
+[PASS] "　" → ["　"]
+[PASS] "a" → ["a"]
+[PASS] "法" → ["法"]
+[PASS] "人" → ["人"]
+[PASS] "一人法人" → ["一人法人"]
+[PASS] 空文字は空の配列を返す（公式Parserと同じ）
+================================================================================
+結果: PASS=36 FAIL=0
+
+====================================================================================================
+【サイト内リンクのutm撤去】verify-internal-utm.js
+====================================================================================================
+[PASS] 1. 公開中の記事本文（29ファイル）に、utm付きのサイト内リンクが0件
+[PASS] 2. お悩みカード（16件）のリンクにutmが含まれていない
+[PASS] 3. src/ のコード（記事本文を除く）に、utm付きのサイト内リンクが0件
+[PASS] （判定ロジックの自己確認）サイト内のutmを検出し、外部サイト宛てのutmは検出しない
+================================================================================
+結果: PASS=4 FAIL=0
+
+====================================================================================================
+【FAQPage構造化データ抽出】verify-faq-extraction.js
+====================================================================================================
+[PASS] パターン1（空行あり + A.プレフィックスあり）
+[PASS] パターン2（空行なし + A.プレフィックスなし）
+[PASS] パターン1（空行あり + A.プレフィックスなし）
+[PASS] パターン2（空行なし + A.プレフィックスあり）
+[PASS] 複数段落にまたがる回答（パターン1）
+[PASS] 質問・回答内の強調/リンクをプレーンテキスト化
+[PASS] 末尾の---区切りは内容として読み飛ばし、セクション終端にしない
+[PASS] 見出し表記ゆれ「よくある質問(FAQ)」も検出する
+[PASS] ドキュメント末尾までがFAQセクション（後続見出しなし）
+[PASS] FAQセクションが存在しない記事は空配列
+
+[verify-faq-extraction] 合計: 10 PASS / 0 FAIL
