@@ -5,7 +5,7 @@ import AffiliateLink from '@/components/AffiliateLink';
 import RelatedArticles from '@/components/tools/RelatedArticles';
 import { trackEvent } from '@/lib/gtag';
 
-const SIMULATOR_HREF = '/app?utm_source=tools&utm_medium=referral&utm_campaign=resident_tax_timing_tool';
+const SIMULATOR_HREF = '/app';
 
 /**
  * RetirementTaxCta.tsxと同一方針(シミュレーターへの導線を主役、アフィリエイトCTAを従とする)。
@@ -21,7 +21,7 @@ export default function ResidentTaxTimingCta({ relatedArticles }: { relatedArtic
           </p>
           <Link
             href={SIMULATOR_HREF}
-            onClick={() => trackEvent('tool_to_simulator_cta_click')}
+            onClick={() => trackEvent('tool_to_simulator_cta_click', { tool: 'resident_tax_timing' })}
             className="mt-2 w-full sm:w-auto inline-block bg-accent text-white font-bold text-center px-8 py-3 rounded-lg transition-all duration-150 ease-out hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg"
           >
             → 資産シミュレーターで続きを試算する

@@ -1,12 +1,11 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getHitoriHojinPostsBySeries } from '@/lib/hitoriHojinBlog';
 import HitoriHojinGuideSection from '@/components/hitori-hojin/HitoriHojinGuideSection';
 import HitoriHojinManageSection from '@/components/hitori-hojin/HitoriHojinManageSection';
+import HitoriHojinSimulatorCta from '@/components/hitori-hojin/HitoriHojinSimulatorCta';
 import Container from '@/components/layout/Container';
 import PhraseBreak from '@/components/text/PhraseBreak';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
-import { SIMULATOR_CTA_LABEL } from '@/lib/ctaCopy';
 
 const SERIES = 'hitori-hojin-intro';
 
@@ -101,12 +100,7 @@ export default function HitoriHojinLandingPage() {
             <br />
             <PhraseBreak text="一人法人はFIREを実現するための選択肢の一つです。" />
           </p>
-          <Link
-            href="/app?utm_source=hojin_lp&utm_medium=referral&utm_campaign=hitori_hojin_lp"
-            className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded hover:opacity-90 transition-opacity"
-          >
-            {SIMULATOR_CTA_LABEL}
-          </Link>
+          <HitoriHojinSimulatorCta />
         </div>
       </section>
     </div>
