@@ -9,6 +9,7 @@ require('ts-node').register({
 });
 const { simulate, runMC } = require('../src/lib');
 const { calcMortgageTermFromPayment } = require('../src/lib/helpers');
+const { makeShockMatrix } = require('./lib/seededShocks');
 
 // ---- ユーティリティ ----
 function pad(s, n) { return String(s).padStart(n); }
@@ -245,7 +246,8 @@ console.log('  ※収入表示の差異は sevYrs パラメータ（退職金控
 // SECTION 3: 山本シリーズ モンテカルロ
 // ================================================================
 console.log('\n' + '='.repeat(80));
-console.log('【山本シリーズ】モンテカルロ確定値 (N=1000)');
+console.log('【山本シリーズ】モンテカルロ 参考値（乱数・シードなし、目安。判定の件数・終了コードには数えない）(N=1000)');
+console.log('  ※判定に数える検証は「モンテカルロ 固定シード検証」セクションを参照');
 console.log('  退職年齢: 両シナリオ共に55歳（KENZO確認）');
 console.log('='.repeat(80));
 
@@ -269,19 +271,20 @@ console.log('計算中 (7%シナリオ, N=1000)...');
 const mc7 = runMC(MC7_P, [], ['proportional'], 1000);
 const mc7Rate = mc7.strategies['proportional'].bankruptcyRate.toFixed(1);
 
-console.log(`\n  設定            | 期待破綻率 | 実際破綻率 | 許容±2% | 結果`);
+console.log(`\n  設定            | 期待破綻率 | 実際破綻率 | 許容±3% | 参考判定`);
 console.log(`  ----------------+------------+------------+---------+------`);
 const ok4 = Math.abs(parseFloat(mc4Rate) - 14.3) <= 3;
 const ok7 = Math.abs(parseFloat(mc7Rate) - 6.0) <= 3;
-console.log(`  利回り4%・σ10%  |    14.3%   |   ${mc4Rate}%   |  ±3%  | ${ok4?'PASS':'FAIL'}`);
-console.log(`  利回り7%・σ16%  |     6.0%   |   ${mc7Rate}%   |  ±3%  | ${ok7?'PASS':'FAIL'}`);
+console.log(`  利回り4%・σ10%  |    14.3%   |   ${mc4Rate}%   |  ±3%  | ${ok4?'範囲内':'範囲外'}`);
+console.log(`  利回り7%・σ16%  |     6.0%   |   ${mc7Rate}%   |  ±3%  | ${ok7?'範囲内':'範囲外'}`);
 console.log('  ※モンテカルロは乱数のため毎回微妙に変動します');
 
 // ================================================================
 // SECTION 4: 中村夫婦 モンテカルロ
 // ================================================================
 console.log('\n' + '='.repeat(80));
-console.log('【中村夫婦シリーズ】モンテカルロ確定値 (N=1000)');
+console.log('【中村夫婦シリーズ】モンテカルロ 参考値（乱数・シードなし、目安。判定の件数・終了コードには数えない）(N=1000)');
+console.log('  ※判定に数える検証は「モンテカルロ 固定シード検証」セクションを参照');
 console.log('='.repeat(80));
 console.log('計算中...');
 const nakMC = runMC(NAKAMURA_P, NAKAMURA_EVENTS, ['proportional'], 1000);
@@ -296,7 +299,7 @@ console.log(`\n  指標                   | 期待値        | 実際値`);
 console.log(`  -----------------------+---------------+---------------`);
 // 特定口座の取崩課税（capital gains 20.315%）により、実機(HTML)より数%高め。フィクスチャ注釈参照。
 const nakRateOk = Math.abs(parseFloat(nakRate) - 20.4) <= 5;
-console.log(`  破綻率（90歳）         |     20.4%     |    ${nakRate}%   ${nakRateOk?'PASS':'FAIL (許容±5%)'}`);
+console.log(`  破綻率（90歳）         |     20.4%     |    ${nakRate}%   ${nakRateOk?'範囲内（参考・許容±5%）':'範囲外（参考・許容±5%）'}`);
 console.log(`  平均枯渇年齢           |     80歳      |    ${nakDepMean ?? 'n/a'}歳`);
 console.log(`  最短枯渇年齢           |     64歳      |    ${nakDepMin ?? 'n/a'}歳`);
 console.log(`  90歳時点 p10           |  0万（破綻）  |    ${nakP10[years90]}万`);
@@ -528,7 +531,8 @@ const TANAKA_MC_P_CFULL = {
 };
 
 console.log('\n' + '='.repeat(80));
-console.log('【田中シリーズ】MCシナリオ比較 (N=1000) [HTML実機突き合わせ済み]');
+console.log('【田中シリーズ】MCシナリオ比較 参考値（乱数・シードなし、目安。判定の件数・終了コードには数えない）(N=1000) [HTML実機突き合わせ済み]');
+console.log('  ※判定に数える検証は「モンテカルロ 固定シード検証」セクションを参照');
 console.log('  mcStd=10%（積立期）mcStdR=16%（取崩期・ポートフォリオσ）');
 console.log('  取崩期: rRNisa=4%/rRIdeco=2%/rRTax=1%（sameAsWorking=false時の保存値）');
 console.log('='.repeat(80));
@@ -560,13 +564,58 @@ for (const sc of MC_SCENARIOS) {
   const ok = ref ? Math.abs(r.bankruptcyRate - ref.rate) <= 5 : true;
   console.log(' 完了');
   console.log('  破綻率（90歳）: ' + r.bankruptcyRate.toFixed(1) + '%' +
-    (ref ? '  (HTML実機: ' + ref.rate + '%  許容±5%  ' + (ok ? 'PASS' : 'FAIL') + ')' : ''));
+    (ref ? '  (HTML実機: ' + ref.rate + '%  許容±5%  参考判定: ' + (ok ? '範囲内' : '範囲外') + ')' : ''));
   console.log('  90歳時点 p10=' + Math.round(p10_90/100)*100 + '万  p50=' + Math.round(p50_90/100)*100 + '万  p90=' + Math.round(p90_90/100)*100 + '万');
   if (r.depletionMean !== null) {
     console.log('  平均枯渇年齢=' + r.depletionMean + '歳  最短枯渇=' + r.depletionMin + '歳');
   }
   console.log();
 }
+
+console.log('\n' + '='.repeat(80));
+
+// ================================================================
+// SECTION 6b: モンテカルロ 固定シード検証（PASS/FAIL件数・終了コードに数える）
+// docs/fixes の verify-seed-stability・implementation_verify_seed.md。
+//
+// 上の山本・中村・田中のMC（参考値）は Math.random() ベースで実行ごとに値がぶれるため、判定に数えない。
+// ここでは同じ7シナリオを、固定シードで作った決定的なショック列（scripts/lib/seededShocks.js）を
+// runMC() の第5引数 shockOverrides に渡して実行する。結果は毎回同じ値になるため、固定した期待値との
+// 一致（浮動小数点の誤差を吸収する±0.01%）で判定し、FAILがあれば終了コードを1にする。
+// runMC()（ロックファイル）・本番の乱数生成（helpers.ts の randNorm）は変更していない。
+//
+// 期待値は2026-09-26に、このショック列で本番のrunMC()を実行して得た値を固定したもの。
+// simulate()/runMC() の計算を変えたときにこの値が変わった場合は、変化が意図どおりかを確認してから更新すること。
+// シードはシナリオ名から作るため、シナリオ名（seedKey）を変えると期待値も変わる。
+// ================================================================
+console.log('\n' + '='.repeat(80));
+console.log('【モンテカルロ 固定シード検証】7シナリオ (N=1000、固定シードのショック列) — 判定の件数・終了コードに数える');
+console.log('='.repeat(80));
+
+const SEEDED_MC_TRIALS = 1000;
+const SEEDED_MC_TOLERANCE = 0.01; // 破綻率(%)の許容差。決定的な計算のため浮動小数点の誤差だけを吸収する
+const SEEDED_MC_CASES = [
+  { seedKey: 'full-verify:山本 利回り4%・σ10%',        p: MC4_P,              evs: [],                     expected: 14.6 },
+  { seedKey: 'full-verify:山本 利回り7%・σ16%',        p: MC7_P,              evs: [],                     expected: 6.3 },
+  { seedKey: 'full-verify:中村夫婦 破綻率（90歳）',     p: NAKAMURA_P,         evs: NAKAMURA_EVENTS,        expected: 21.9 },
+  { seedKey: 'full-verify:田中 MCbase（セミリタイヤ基本）', p: TANAKA_MC_P,     evs: TANAKA_MC_EVENTS_BASE,  expected: 26.3 },
+  { seedKey: 'full-verify:田中 MC-10%（生活費270万）',  p: TANAKA_MC_P,        evs: TANAKA_MC_EVENTS_M10,   expected: 10.5 },
+  { seedKey: 'full-verify:田中 MC+2years（両者57歳退職）', p: TANAKA_MC_P_PLUS2, evs: TANAKA_MC_EVENTS_PLUS2, expected: 11.7 },
+  { seedKey: 'full-verify:田中 MCCFall（余剰CF全額投資）', p: TANAKA_MC_P_CFULL, evs: TANAKA_MC_EVENTS_BASE,  expected: 18.3 },
+];
+
+let seedPass = 0, seedFail = 0;
+for (const c of SEEDED_MC_CASES) {
+  const years = c.p.lifeEx - c.p.curAge + 1;
+  const shocks = makeShockMatrix(c.seedKey, SEEDED_MC_TRIALS, years);
+  const rate = runMC(c.p, c.evs, ['proportional'], SEEDED_MC_TRIALS, shocks).strategies.proportional.bankruptcyRate;
+  const ok = c.expected !== null && Math.abs(rate - c.expected) <= SEEDED_MC_TOLERANCE;
+  if (ok) seedPass++; else seedFail++;
+  console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${c.seedKey.replace('full-verify:', '')}  破綻率=${rate.toFixed(1)}%  期待値=${c.expected === null ? '未設定' : c.expected + '%'}`);
+}
+console.log('-'.repeat(80));
+console.log(`合計: ${seedPass} PASS / ${seedFail} FAIL`);
+if (seedFail > 0) process.exitCode = 1;
 
 console.log('\n' + '='.repeat(80));
 
