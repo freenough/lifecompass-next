@@ -49,7 +49,7 @@ topics: ["resident_tax_timing"]
 
 収入が下がっても、退職の直後半年間は新しい住民税がまだ始まっていない、という空白期間があることが分かります。この空白期間があるために、油断していると翌年6月からの請求に驚きやすくなります。
 
-まずは、自分の場合どれくらいの負担になりそうか、60秒ほどで確認してみてください。[退職後の住民税キャッシュフロー試算ツール](/asset-simulator/tools/resident-tax-timing?utm_source=blog&utm_medium=referral&utm_campaign=resident_tax_timing_blog)
+まずは、自分の場合どれくらいの負担になりそうか、60秒ほどで確認してみてください。[退職後の住民税キャッシュフロー試算ツール](/asset-simulator/tools/resident-tax-timing)
 
 ## 退職月別に試算してみる(退職前年年収600万円)
 
@@ -105,7 +105,7 @@ topics: ["resident_tax_timing"]
 
 退職後の住民税キャッシュフロー試算ツールでは、ご自身の退職前年の年収・退職月を入力するだけで、同じ考え方で試算できます。「より正確に試算する」を開くと、社会保険料率や退職年の給与収入を実額で入力することも可能です。
 
-[退職後の住民税キャッシュフロー試算ツールで試算する](/asset-simulator/tools/resident-tax-timing?utm_source=blog&utm_medium=referral&utm_campaign=resident_tax_timing_blog)
+[退職後の住民税キャッシュフロー試算ツールで試算する](/asset-simulator/tools/resident-tax-timing)
 
 ## よくある質問
 

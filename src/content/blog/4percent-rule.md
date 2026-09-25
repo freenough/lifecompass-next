@@ -75,7 +75,7 @@ FIREを目指す人なら一度は聞いたことがある「4%ルール」。�
 - **公的年金**:65歳から受給が始まれば、それ以降の取り崩し額を大きく軽減できる
 - **資産取り崩し時の税金**:特定口座からの取り崩しには20.315%の譲渡益課税がかかる
 
-具体的な退職金の手取り額は、[退職金手取り計算ツール](/asset-simulator/tools/retirement-tax?utm_source=blog&utm_medium=referral&utm_campaign=retirement_tax_blog)で確認できます。
+具体的な退職金の手取り額は、[退職金手取り計算ツール](/asset-simulator/tools/retirement-tax)で確認できます。
 
 これらを考慮すると、「資産×25倍あればOK」という単純な基準だけでは、実際の資金繰りの形が見えてきません。年金が始まる65歳より前と後では、必要な取り崩し額がまったく違うからです。
 
@@ -89,7 +89,7 @@ NISAは4%ルールの実践においても土台になる制度です。まだ�
 
 ここまで読んで「自分の場合はどうなる?」と思った方は、一度試算してみてください。
 
-→ [資産シミュレーターで試算する](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=4percent_rule&utm_content=mid_cta)
+→ [資産シミュレーターで試算する](/asset-simulator/app)
 
 ---
 
@@ -173,7 +173,7 @@ NISAは4%ルールの実践においても土台になる制度です。まだ�
 - データはブラウザ内で処理され、保存されません
 - NISA・iDeCo・退職金・年金など日本の制度に対応
 
-→ [自分の資産で試算してみる](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=4percent_rule&utm_content=bottom_cta)
+→ [自分の資産で試算してみる](/asset-simulator/app)
 
 ---
 

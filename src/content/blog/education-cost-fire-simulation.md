@@ -45,7 +45,7 @@ FIRE(経済的自立)を目指す場合、教育費は「支出の変動要因�
 
 まずは60秒で、お子さんの教育費が「いつ・いくら」かかるか確認してみてください。
 
-[教育費シミュレーターで試算する](/asset-simulator/tools/education-cost?utm_source=blog&utm_medium=referral&utm_campaign=education_cost_blog)
+[教育費シミュレーターで試算する](/asset-simulator/tools/education-cost)
 
 ---
 
@@ -111,9 +111,9 @@ FIRE(経済的自立)を目指す場合、教育費は「支出の変動要因�
 
 教育費が一番かかる時期に備えるには、その前の期間にNISAなどの非課税制度を活用して資産形成の土台を作っておくことも有効です。[PR] <AffiliateLink provider="matsui" landing="nisa" />
 
-[教育費シミュレーターで試算する](/asset-simulator/tools/education-cost?utm_source=blog&utm_medium=referral&utm_campaign=education_cost_blog)
+[教育費シミュレーターで試算する](/asset-simulator/tools/education-cost)
 
-[資産シミュレーターで確認する](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=education_cost_blog)
+[資産シミュレーターで確認する](/asset-simulator/app)
 
 ---
 

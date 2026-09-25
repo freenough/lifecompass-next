@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { getAllHitoriHojinPosts, getHitoriHojinPostBySlug, getHitoriHojinPostFaq } from '@/lib/hitoriHojinBlog';
 import { HITORI_HOJIN_CATEGORIES } from '@/lib/hitoriHojinCategories';
 import { HITORI_HOJIN_SITE_URL, ORGANIZATION_REF, SITE_URL } from '@/lib/siteConfig';
+import ArticleLinkTracker from '@/components/blog/ArticleLinkTracker';
 
 export async function generateStaticParams() {
   return getAllHitoriHojinPosts().map((post) => ({ slug: post.slug }));
@@ -137,7 +138,9 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
 
       <hr className="border-slate-200 mb-8" />
 
-      {/* 記事本文(記事内に既にCTAリンクが含まれているため、末尾に別途CTAブロックは追加しない) */}
+      {/* 記事本文(記事内に既にCTAリンクが含まれているため、末尾に別途CTAブロックは追加しない)。
+          本文中のサイト内リンクのクリックはArticleLinkTrackerでGA4イベントとして計測する */}
+      <ArticleLinkTracker postSlug={post.slug} section="hitori_hojin">
       <article
         className="prose prose-lg max-w-none
           prose-headings:text-[#0F2A4A] prose-headings:font-bold
@@ -154,6 +157,7 @@ export default async function HitoriHojinBlogPostPage({ params }: { params: Prom
           prose-blockquote:border-l-4 prose-blockquote:border-blue-300 prose-blockquote:text-slate-500"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+      </ArticleLinkTracker>
       </main>
     </>
   );

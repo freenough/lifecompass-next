@@ -49,7 +49,7 @@ NISA口座をまだお持ちでない場合は、こうした投資の選択肢�
 
 なお、住宅ローン控除を受けている期間は実質的な借入コストが下がるため、この判断基準がそのまま当てはまらない場合があります。控除がある場合は、控除終了後の金利で試算すると実態に近づけられます。
 
-まずは60秒で、自分のローン残高・金利条件を入力して試算してみてください。[繰上返済 vs 投資比較ツール](/asset-simulator/tools/prepay-vs-invest?utm_source=blog&utm_medium=referral&utm_campaign=housing_loan_blog)で確認できます。
+まずは60秒で、自分のローン残高・金利条件を入力して試算してみてください。[繰上返済 vs 投資比較ツール](/asset-simulator/tools/prepay-vs-invest)で確認できます。
 
 ## 実際にツールで試算する
 
@@ -105,7 +105,7 @@ NISA口座をまだお持ちでない場合は、こうした投資の選択肢�
 
 「繰上返済 vs 投資比較」ツールなら、ローン残高・金利・残年数・繰上返済額・繰上返済タイプ・投資利回りを入力するだけで、60秒程度で確実な効果と期待評価額を比較できます。入力したデータが保存されることもありません。
 
-[繰上返済 vs 投資比較ツールで試算する](/asset-simulator/tools/prepay-vs-invest?utm_source=blog&utm_medium=referral&utm_campaign=housing_loan_blog)
+[繰上返済 vs 投資比較ツールで試算する](/asset-simulator/tools/prepay-vs-invest)
 
 より詳しく、住宅ローンを抱えたままFIREした場合の資産推移まで確認したい方は、[住宅ローンを抱えたままFIREしても大丈夫?の記事](/asset-simulator/blog/housing-loan-fire)もあわせてご覧ください。
 
@@ -138,4 +138,4 @@ NISA口座をまだお持ちでない場合は、こうした投資の選択肢�
 - 繰上返済は確実な利息削減効果、投資は市場次第の期待値というように、性質そのものが異なります
 - 今回の試算条件では、金利1%のとき利息削減額26万円、金利3%のとき96万円という結果になり、金利水準によって繰上返済の相対的な魅力は変わります
 - 繰上返済のタイプ(期間短縮型・返済額軽減型)によっても効果は大きく異なります
-- ご自身の借入条件で試算してみたい方は、[繰上返済 vs 投資比較ツール](/asset-simulator/tools/prepay-vs-invest?utm_source=blog&utm_medium=referral&utm_campaign=housing_loan_blog)をご利用ください
+- ご自身の借入条件で試算してみたい方は、[繰上返済 vs 投資比較ツール](/asset-simulator/tools/prepay-vs-invest)をご利用ください

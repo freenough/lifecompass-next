@@ -885,6 +885,15 @@ console.log('='.repeat(100));
 require('./verify-phrase-break.js');
 
 // ================================================================
+// サイト内リンクのutm撤去（再発防止）
+// internal-utm-to-ga4-event/implementation.md 5節の回帰テスト。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【サイト内リンクのutm撤去】verify-internal-utm.js');
+console.log('='.repeat(100));
+require('./verify-internal-utm.js');
+
+// ================================================================
 // FAQPage構造化データ抽出（remark ASTベース） src/lib/faqExtraction.ts
 // claude_instruction_faq_logo_implementation_v2.md の回帰テスト。extractFaqFromMarkdown()が
 // 動的import()を使い非同期のため、full-verify.js内の他のverify-*.jsとの出力の前後入れ替わりを

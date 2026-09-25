@@ -66,7 +66,7 @@ topics: ["ideco", "retirement_tax"]
 ---
 
 **まずは60秒で、ご自身の受給タイミングでの手取りを試算してみてください。**
-[退職金×iDeCo受給タイミングシミュレーターを試してみる →](/asset-simulator/tools/retirement-ideco-timing?utm_source=blog&utm_medium=referral&utm_campaign=retirement_ideco_timing_blog)
+[退職金×iDeCo受給タイミングシミュレーターを試してみる →](/asset-simulator/tools/retirement-ideco-timing)
 
 ---
 
@@ -131,7 +131,7 @@ topics: ["ideco", "retirement_tax"]
 
 退職金の見込み額・勤続年数、iDeCoの加入期間・受け取り予定額を入力するだけで、ご自身のケースで重複排除ルールが適用されるかどうか、また受給タイミングによって手取り額がどう変わるかを試算できます。
 
-[退職金×iDeCo受給タイミングシミュレーターで試算する →](/asset-simulator/tools/retirement-ideco-timing?utm_source=blog&utm_medium=referral&utm_campaign=retirement_ideco_timing_blog)
+[退職金×iDeCo受給タイミングシミュレーターで試算する →](/asset-simulator/tools/retirement-ideco-timing)
 
 入力したデータが保存されることはなく、3分程度で試算いただけます。
 

@@ -74,7 +74,7 @@ FIREやセミリタイアを目指す人にとっても、「60代前半で年�
 
 まずは自分の年金額の目安を、繰り上げ・繰り下げも含めて確認してみてください。
 
-[60秒で年金受給タイミングを試算する →](/asset-simulator/tools/pension-timing?utm_source=blog&utm_medium=referral&utm_campaign=zaishoku_rourei_blog)
+[60秒で年金受給タイミングを試算する →](/asset-simulator/tools/pension-timing)
 
 ## 具体的なパターンで試算する
 
@@ -117,7 +117,7 @@ FIREやセミリタイアを目指す人にとっても、「60代前半で年�
 
 自分の年金額の目安がまだわからない場合は、繰り上げ・繰り下げによる受給額の変化も含めて、まず年金受給タイミングのシミュレーターで確認してみてください。入力したデータが外部に保存されることはありません。
 
-[年金受給タイミングを試算する →](/asset-simulator/tools/pension-timing?utm_source=blog&utm_medium=referral&utm_campaign=zaishoku_rourei_blog)
+[年金受給タイミングを試算する →](/asset-simulator/tools/pension-timing)
 
 ## よくある質問
 

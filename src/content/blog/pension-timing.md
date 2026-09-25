@@ -49,7 +49,7 @@ topics: ["pension"]
 
 この対立、実は「感覚」で終わらせず、自分の年金見込み額・生活費・想定運用利回りを入れて実際に試算することができます。年金受給タイミング比較シミュレーターで繰り上げ受給時の年金額を算出し、資産シミュレーターに転記すれば、「繰り上げ+運用」と「65歳受給」で資産推移がどう変わるかを比較できます。この記事の後半で、実際に試算した結果を紹介します。
 
-ここまで読んで「自分の場合はどうなる?」と思った方は、まずは60秒で、自分の損益分岐年齢だけ確認してみてください。[年金受給タイミング比較シミュレーター](/asset-simulator/tools/pension-timing?utm_source=blog&utm_medium=referral&utm_campaign=pension_timing_blog)
+ここまで読んで「自分の場合はどうなる?」と思った方は、まずは60秒で、自分の損益分岐年齢だけ確認してみてください。[年金受給タイミング比較シミュレーター](/asset-simulator/tools/pension-timing)
 
 ## 資産シミュレーターで検証する
 
@@ -133,8 +133,8 @@ A・B・Cの差を要因ごとに分解すると、次のようになります�
 
 以下の手順で、自分の条件での試算ができます。
 
-1. [年金受給タイミング比較シミュレーター](/asset-simulator/tools/pension-timing?utm_source=blog&utm_medium=referral&utm_campaign=pension_timing_blog)で、繰り上げ・繰り下げ受給時の年金額を算出する
-2. [資産シミュレーター](/asset-simulator/app?utm_source=blog&utm_medium=referral&utm_campaign=pension_timing_blog)の「年金受給開始」「年金受給額」欄に、算出した年額を転記する
+1. [年金受給タイミング比較シミュレーター](/asset-simulator/tools/pension-timing)で、繰り上げ・繰り下げ受給時の年金額を算出する
+2. [資産シミュレーター](/asset-simulator/app)の「年金受給開始」「年金受給額」欄に、算出した年額を転記する
 3. 「退職後の収支黒字を運用する」をONにする
 4. 受給開始年齢を変えたプロファイルをそれぞれ試算し、資産推移を比較する
 
