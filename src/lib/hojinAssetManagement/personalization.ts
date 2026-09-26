@@ -3,9 +3,13 @@
 // 回帰テストできるようにする（instruction_remove_transfer_helper_and_update_personalization_ratio.md
 // 0.4節：「個人＋法人（個人化後）」合計行の追加に対する回帰テスト）。
 
-/** 法人保有資産合計×比率＝個人化想定額（表示専用、simulate.tsには一切連携しない）。 */
+/**
+ * 法人保有資産合計×（100−適用税率）％＝個人化想定額（表示専用、simulate.tsには一切連携しない）。
+ * 適用税率は画面上「負担率」として説明しているため、手元に残るのは100%から差し引いた分
+ * （fix_hojin_personalization_rate.md）。
+ */
 export function calcPersonalizedAmount(hojinTotal: number, ratioPercent: number): number {
-  return Math.round(hojinTotal * (ratioPercent / 100));
+  return Math.round(hojinTotal * ((100 - ratioPercent) / 100));
 }
 
 /** 個人資産＋個人化想定額（＝法人資産のうち将来個人化されると見積もった分）の合計。 */
