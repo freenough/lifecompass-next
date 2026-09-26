@@ -64,32 +64,48 @@ console.log('\n' + '='.repeat(80));
 console.log('【calcPersonalizedAmount / calcCombinedTotal：「個人＋法人（個人化後）」合計行】');
 console.log('='.repeat(80));
 
+// fix_hojin_personalization_rate.md：適用税率は負担率なので、個人化想定額＝法人保有資産×(100−適用税率)%。
 {
   const result = calcPersonalizedAmount(1000, 25);
-  record('3. 法人保有資産1000万円・適用税率25%（新デフォルト）→個人化想定額250万円',
-    result === 250, `result=${result}`);
+  record('3. 法人保有資産1000万円・適用税率25%（デフォルト）→個人化想定額750万円',
+    result === 750, `result=${result}`);
 }
 {
   const result = calcCombinedTotal(585, 1000, 25);
-  record('4. 個人資産585万円＋法人保有資産1000万円×25%（250万円）→個人＋法人（個人化後）835万円',
-    result === 835, `result=${result}`);
+  record('4. 個人資産585万円＋法人保有資産1000万円×(100−25)%（750万円）→個人＋法人（個人化後）1335万円',
+    result === 1335, `result=${result}`);
 }
 {
   const result = calcCombinedTotal(585, 1000, 0);
-  record('5. 適用税率0%→個人＋法人（個人化後）は個人資産のみ(585万円)',
-    result === 585, `result=${result}`);
+  record('5. 適用税率0%→個人＋法人（個人化後）は個人資産＋法人保有資産全額(1585万円)',
+    result === 1585, `result=${result}`);
 }
 {
   const result = calcCombinedTotal(585, 1000, 100);
-  record('6. 適用税率100%→個人＋法人（個人化後）は個人資産＋法人保有資産全額(1585万円)',
-    result === 1585, `result=${result}`);
+  record('6. 適用税率100%→個人＋法人（個人化後）は個人資産のみ(585万円)',
+    result === 585, `result=${result}`);
 }
 {
   // スライダーを動かした際に連動して変わることの確認（同じhojinTotal・personalTotalで比率だけ変える）。
   const before = calcCombinedTotal(500, 800, 20);
   const after = calcCombinedTotal(500, 800, 60);
-  record('7. 比率を20%→60%に変更すると、個人＋法人（個人化後）の合計も連動して変わる（160万円増）',
-    after - before === 320 && after === 980, `before=${before}, after=${after}`);
+  record('7. 比率を20%→60%に変更すると、個人＋法人（個人化後）の合計も連動して変わる（320万円減）',
+    before - after === 320 && before === 1140 && after === 820, `before=${before}, after=${after}`);
+}
+{
+  const result = calcPersonalizedAmount(1000, 42);
+  record('8. 法人保有資産1000万円・適用税率42%→個人化想定額580万円',
+    result === 580, `result=${result}`);
+}
+{
+  const result = calcPersonalizedAmount(1000, 0);
+  record('9. 法人保有資産1000万円・適用税率0%→個人化想定額1000万円（全額）',
+    result === 1000, `result=${result}`);
+}
+{
+  const result = calcPersonalizedAmount(1000, 100);
+  record('10. 法人保有資産1000万円・適用税率100%→個人化想定額0万円',
+    result === 0, `result=${result}`);
 }
 
 console.log('\n' + '='.repeat(80));
