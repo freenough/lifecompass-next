@@ -5,10 +5,7 @@
  * simulate.ts/analyze.ts/types.tsは変更しない（コードを共有せず、数値を突き合わせる）。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { simulate } = require('../src/lib');
 const { calcRequiredMonthlyContribution, calcFutureValue } = require('../src/lib/financeCore');
 

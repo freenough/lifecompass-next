@@ -31,10 +31,7 @@
  * 実行: node scripts/sequence-risk-tanaka-numbers.js
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { simulate } = require('../src/lib');
 const { randNorm } = require('../src/lib/helpers');
 

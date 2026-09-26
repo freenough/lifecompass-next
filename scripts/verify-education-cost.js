@@ -5,10 +5,7 @@
  * 統計データからの積み上げが正しいかどうかの検証。implementation_education_cost_phase1.md 3章）。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const {
   calcChildYearlyCosts,
   calcTotalEducationCost,

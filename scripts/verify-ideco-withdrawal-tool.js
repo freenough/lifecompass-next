@@ -7,10 +7,7 @@
  * 実行: node scripts/verify-ideco-withdrawal-tool.js
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const {
   calcPublicPensionDeduction,
   calcPublicPensionTaxableIncome,

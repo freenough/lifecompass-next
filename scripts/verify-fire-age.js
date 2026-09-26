@@ -6,10 +6,7 @@
  * 独自の財務計算式は使わず、financeCore.tsの2関数のみを直接importして呼び出す。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { calcRequiredMonthlyContribution, calcAchievementAge } = require('../src/lib/financeCore');
 
 const TOLERANCE_YEARS = 0.1;

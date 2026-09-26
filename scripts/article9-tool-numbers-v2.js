@@ -16,10 +16,7 @@
  * 実行: node scripts/article9-tool-numbers-v2.js
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { simulate, runMC } = require('../src/lib');
 const { calcRequiredMonthlyContribution } = require('../src/lib/financeCore');
 const { SAMPLE_PROFILE, ASSET_CLASSES } = require('../src/lib/profile');

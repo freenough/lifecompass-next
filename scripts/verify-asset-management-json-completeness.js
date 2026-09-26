@@ -13,10 +13,7 @@
  * 依存するためNode上では直接呼べず、ブラウザ実機での確認と役割分担する。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 
 let store = {};
 global.window = global.window || {};

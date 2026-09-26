@@ -3,10 +3,7 @@
  * 山本シリーズ全件・中村夫婦・モンテカルロの完全検証
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { simulate, runMC } = require('../src/lib');
 const { calcMortgageTermFromPayment } = require('../src/lib/helpers');
 const { makeShockMatrix } = require('./lib/seededShocks');
@@ -941,6 +938,16 @@ console.log('\n' + '='.repeat(100));
 console.log('【サイト内リンクのutm撤去】verify-internal-utm.js');
 console.log('='.repeat(100));
 require('./verify-internal-utm.js');
+
+// ================================================================
+// ts-node の登録を1回にまとめる（再発防止）
+// fix_verify_ts_node_register_once.md 3節の回帰テスト。scripts/ 配下で ts-node を直接登録している
+// ファイルがあればFAILにする（登録が重なると .ts ファイルが何重にもコンパイルされメモリが膨らむため）。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【ts-node登録の一本化】verify-ts-node-register.js');
+console.log('='.repeat(100));
+require('./verify-ts-node-register.js');
 
 // ================================================================
 // FAQPage構造化データ抽出（remark ASTベース） src/lib/faqExtraction.ts

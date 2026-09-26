@@ -10,10 +10,7 @@
  * までexitしないため、exit codeも正しく反映される）。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { extractFaqFromMarkdown } = require('../src/lib/faqExtraction');
 
 let pass = 0, fail = 0;

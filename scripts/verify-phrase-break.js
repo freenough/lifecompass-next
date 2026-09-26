@@ -7,10 +7,7 @@
  * 解決できないため、処理本体の src/lib/budoux/segment.ts を直接読み込む。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { segmentJapanese } = require('../src/lib/budoux/segment');
 const { PROTECTED_TERMS } = require('../src/lib/budoux/protectedTerms');
 

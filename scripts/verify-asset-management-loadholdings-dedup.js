@@ -11,10 +11,7 @@
  * （独自の重複排除ロジックの再実装は行わない）。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 
 // --- 最小限のlocalStorageシム（Node上でstorage.tsのwindow/localStorage依存コードを動かすため） ---
 let store = {};

@@ -14,10 +14,7 @@
  * 実行: node scripts/blog11-pension-timing-numbers.js
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { calcPensionAmountAtAge, calcBreakEvenAge, calcCumulativeAmount } = require('../src/lib/pensionCore');
 const { simulate, runMC } = require('../src/lib');
 const { SAMPLE_PROFILE } = require('../src/lib/profile');

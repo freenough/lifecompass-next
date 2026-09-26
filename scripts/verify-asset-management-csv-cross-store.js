@@ -10,10 +10,7 @@
  * verify-asset-management-loadholdings-dedup.jsと同じ最小限のパターンを再利用）。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 
 let store = {};
 global.window = global.window || {};

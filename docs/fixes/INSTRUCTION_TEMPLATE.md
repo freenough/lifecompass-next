@@ -73,6 +73,7 @@
 - `localStorage.clear()` などの破壊的な操作は行わない。どうしても必要な場合は、対象のオリジンが検証専用であることを確認し、実施前に報告する。判別できなければ操作せずにKENZOに確認する
 - `tsc --noEmit`・`npm run build`・devサーバーの起動で `tsconfig.tsbuildinfo`・`next-env.d.ts` が書き換わったら、`git restore` で元に戻す（戻したファイル名を報告する）
 - `docs/fixes/active/` フォルダ自体と `.gitkeep` には触れない（処理済みの指示書を `done/` へ移したあとも、`active/` と `.gitkeep` が残っていることを確認する）
+- 新しいverifyスクリプトでTypeScriptを読み込むときは、`require('./lib/registerTsNode')`を使う。`ts-node`を直接登録しない（登録が重なると`full-verify.js`のメモリが膨らむため。`verify-ts-node-register.js`がチェックする）
 - ロックファイル（`simulate.ts`・`analyze.ts`・`montecarlo.ts`・`types.ts`・`PortfolioPanel.tsx`・`simulatorStore.ts`・`profile.ts`・`blog.ts`・`blogTopics.ts`・`concerns.ts`・`ConcernCard.tsx`）は変更しない。変更が必要な場合は、指示書で「管理された例外」として明示されたときだけ、指定された範囲に限る
 
 ### Git

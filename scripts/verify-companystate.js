@@ -6,10 +6,7 @@
  * 実行: node scripts/verify-companystate.js
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const {
   calcMu, calcPortfolioMetrics, getEffectivePhaseMetrics, getEffectiveRetirementMu, getEffectiveRetirementSigma,
 } = require('../src/lib/hojinCompanyState/portfolioMath');

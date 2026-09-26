@@ -17,10 +17,7 @@
  * 実行: node scripts/article10-tool-numbers.js
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { simulate, runMC } = require('../src/lib');
 const { calcAchievementAge } = require('../src/lib/financeCore');
 const { SAMPLE_PROFILE } = require('../src/lib/profile');

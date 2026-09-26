@@ -13,10 +13,7 @@
  *   FIXTURES に書かれた期待値は reference/simulation_fixtures.md からそのまま転記すること。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { simulate } = require('../src/lib');
 
 const FIXTURES = {
