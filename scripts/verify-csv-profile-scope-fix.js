@@ -17,10 +17,7 @@
  * 使うため、他のスクリプトへの影響を避けるためfull-verify.js内で最後の方で実行する。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 
 let store = {};
 global.window = global.window || {};

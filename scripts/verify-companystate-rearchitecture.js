@@ -14,10 +14,7 @@
  * 直接importして呼び出すだけで、独自の再実装は含まない。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 
 // simulatorStore.ts等が`@/lib`のようなパスエイリアスでimportしているため（Next.js/webpackは
 // 解決するが、素のts-node+requireでは解決できない）、tsconfig-pathsを新規依存として追加せず、

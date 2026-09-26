@@ -13,10 +13,7 @@
  * 基づいて構成した。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { calcFutureValue, calcRequiredMonthlyContribution } = require('../src/lib/financeCore');
 
 const TOLERANCE_MANYEN = 0.1; // 万円。往復整合性チェックの許容誤差（第2弾のTOLERANCE_YEARSに準じ、小さめに設定）

@@ -8,10 +8,7 @@
  * 実行: node scripts/verify-retirement-tax-80man-floor.js
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { retirementTaxCalc } = require('../src/lib/helpers');
 
 let pass = 0, fail = 0;

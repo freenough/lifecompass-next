@@ -5,10 +5,7 @@
  * 直接importして呼び出すだけで、独自の財務計算式・再実装ロジックは一切含まない。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const {
   calcPensionAmountAtAge,
   calcBreakEvenAge,

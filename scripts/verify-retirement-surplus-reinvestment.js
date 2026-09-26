@@ -5,10 +5,7 @@
  * 一切含まない（住替え口座の按分比率・税引後手取り等はすべてsimulate()自身が計算した結果）。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const { simulate } = require('../src/lib');
 
 const TOLERANCE = 0.05; // 万円。浮動小数点演算の丸め誤差許容

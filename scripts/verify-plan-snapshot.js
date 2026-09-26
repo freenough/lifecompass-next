@@ -10,10 +10,7 @@
  * 本番のgeneratePlan/simulate/storage関数を直接importして呼び出すだけで、独自の再実装は含まない。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 
 let store = {};
 global.window = global.window || {};

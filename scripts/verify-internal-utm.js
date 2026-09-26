@@ -16,10 +16,7 @@
  * 失敗した場合は、対象のファイル:行を出力する。
  */
 
-require('ts-node').register({
-  project: require('path').join(__dirname, '..', 'tsconfig.json'),
-  transpileOnly: true,
-});
+require('./lib/registerTsNode');
 const fs = require('fs');
 const path = require('path');
 const { CONCERNS } = require('../src/data/concerns');
