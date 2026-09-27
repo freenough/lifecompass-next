@@ -3,9 +3,11 @@ import { getHitoriHojinPostsBySeries } from '@/lib/hitoriHojinBlog';
 import HitoriHojinGuideSection from '@/components/hitori-hojin/HitoriHojinGuideSection';
 import HitoriHojinManageSection from '@/components/hitori-hojin/HitoriHojinManageSection';
 import HitoriHojinSimulatorCta from '@/components/hitori-hojin/HitoriHojinSimulatorCta';
+import HitoriHojinForkDiagram from '@/components/hitori-hojin/HitoriHojinForkDiagram';
 import Container from '@/components/layout/Container';
 import PhraseBreak from '@/components/text/PhraseBreak';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
+import { FREE_NO_SIGNUP_NOTE } from '@/lib/ctaCopy';
 
 const SERIES = 'hitori-hojin-intro';
 
@@ -33,39 +35,57 @@ export default function HitoriHojinLandingPage() {
   // （impl_hitori_hojin_lp_ui.md 5-4節）。
   return (
     <div>
-      {/* Hero */}
-      <section className="py-16 bg-[#EFF6FF]">
-        <div className="mx-auto max-w-5xl px-6 text-center">
-          {/* 下の本文・セクション群(max-w-5xl)と同じ幅のコンテナに広げた上で、
-              word-break: keep-all + wbrで「一人法人を、」/「FIREの選択肢に。」の
-              意味の区切りでのみ改行させる(幅に余裕があれば1行に収まる)。 */}
-          <h1 className="text-[clamp(2.25rem,8vw,3.75rem)] font-bold text-[#0F2A4A] leading-snug [word-break:keep-all]">
-            一人法人を、<wbr />FIREの選択肢に。
-          </h1>
-          {/* 説明文だけが見出しより横に広がらないようmax-w-3xlで中央に置き、md以上は文の切れ目で改行する
-              （md未満は自然に折り返す。impl_hitori_hojin_lp_ui_followup.md 1節）。 */}
-          <p className="mx-auto mt-4 max-w-3xl text-sm md:text-base text-slate-600 leading-relaxed [line-break:strict]">
-            これから法人化を考える人にも、すでに一人法人を運営している人にも。
-            <br className="hidden md:inline" />
-            税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。
-          </p>
-        </div>
+      {/* Hero（implementation_hitori_hojin_hero_redesign.md 1節）。背景は白。
+          PC・スマホ共通の1つのJSXを、grid-template-areasの並び替えで出し分ける：
+          xl未満は1列で「見出し→説明文→分かれ道の図→CTA」、xl以上は左に「見出し・説明文・CTA」、右に図。
+          2列にするのはxl（1280px）から：見出しは資産シミュレーターLPと同じclampでxl以上は66pxになり、
+          「FIREの選択肢に。」が約526px必要なため、コンテナの内側1,104pxから図の列520px・列間40pxを除いた544pxに収まる幅から。
+          左列の上下にある1frの空き行で、左列を図に対して上下中央に置く。
+          揃え：sm未満（スマホ）は見出し・説明文・CTAまわりを中央揃え、sm以上は左揃え（資産シミュレーターLPの
+          Heroと同じ切り替え。implementation_hitori_hojin_hero_redesign.md 背景・判断結果6番）。 */}
+      <section className="pt-10 pb-8 xl:pt-16 xl:pb-12">
+        <Container>
+          <div className="grid gap-y-6 text-center sm:text-left [grid-template-areas:'title'_'desc'_'fig'_'cta'] xl:grid-cols-[minmax(0,1fr)_minmax(0,520px)] xl:grid-rows-[1fr_auto_auto_auto_1fr] xl:gap-x-10 xl:[grid-template-areas:'._fig'_'title_fig'_'desc_fig'_'cta_fig'_'._fig']">
+            {/* 見出しのサイズ・字間は資産シミュレーターLP（src/app/page.tsx）の見出しと同じクラス。
+                word-break: keep-all + wbrで「一人法人を、」/「FIREの選択肢に。」の意味の区切りでのみ改行させる。
+                360px幅では「FIREの選択肢に。」が数pxはみ出すが、資産シミュレーターLPと同じ扱いとして許容する。 */}
+            <h1 className="[grid-area:title] text-[clamp(2.5rem,1.5094rem+4.2264vw,3.2rem)] sm:text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900 [word-break:keep-all]">
+              一人法人を、<wbr />FIREの選択肢に。
+            </h1>
+            <p className="[grid-area:desc] text-base text-slate-600 leading-relaxed [line-break:strict]">
+              これから法人化を考える人にも、すでに一人法人を運営している人にも。税金や社会保険だけでなく、法人と個人のお金をどう考えるかを、FIREの視点から整理します。
+            </p>
+            <div className="[grid-area:fig] xl:self-center">
+              <HitoriHojinForkDiagram />
+            </div>
+            {/* ボタンの見た目は資産シミュレーターLPのCTAボタンと同じクラス。文言はSIMULATOR_CTA_LABEL。
+                クリックはGA4イベント hojin_lp_cta_click（location: 'hero'）で計測し、下部CTA（'bottom'）と区別する。 */}
+            <div className="[grid-area:cta]">
+              <p className="mt-3 text-base font-bold text-[#16202e] leading-relaxed [line-break:strict]">
+                法人からの取り崩しも織り込んで、あなたのFIREの時期を試算できます。
+              </p>
+              <HitoriHojinSimulatorCta
+                location="hero"
+                className="mt-6 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg bg-[#334155]"
+              />
+              <p className="mt-2 text-sm text-slate-400">{FREE_NO_SIGNUP_NOTE}</p>
+            </div>
+          </div>
+        </Container>
       </section>
 
-      {/* Intro。本文の幅はContainer（本体LPと同じ基準幅）に合わせ、段落はmax-w-2xl（1行およそ40字）に
-          絞る。[line-break:strict]は和文の禁則処理（impl_hitori_hojin_lp_ui.md 3節）。
-          ブロックはHeroに合わせて中央に置き、ブロック内のテキストは左寄せのまま
-          （impl_hitori_hojin_lp_ui_followup.md 2節）。
-          text-prettyは付けない：Safari（WebKit）では段落全体の行長をそろえる挙動になり、375px幅で
-          すべての行が右端の50〜60px手前で折り返されていた（fix_hitori_hojin_intro_safari.md）。 */}
-      <section className="py-12">
+      {/* 導入（Heroと同じコンテナ幅いっぱい・左揃え。文字の大きさはHeroの本文と同じ）。
+          [line-break:strict]は和文の禁則処理。text-prettyは付けない：Safari（WebKit）では段落全体の行長を
+          そろえる挙動になり、375px幅ですべての行が右端の50〜60px手前で折り返されていた
+          （fix_hitori_hojin_intro_safari.md）。 */}
+      <section className="pb-12">
         <Container>
-          <div className="mx-auto max-w-2xl text-sm md:text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict]">
+          <div className="text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict]">
             <p>
               FIREというと、「完全に働くのをやめること」だけをイメージしがちです。でも、完全リタイアと会社員の間には、仕事を続けながら働き方や収入の持ち方を変え、資産形成を続けるという選択肢もあります。その選択肢の一つとして、一人法人があります。
             </p>
             <p>
-              このシリーズでは、「法人化すれば得をする」という切り口ではなく、税金・社会保険・役員報酬・資産の置き場所といった一人法人特有の論点を、自分のFIRE計画の中でどう位置づけるかという視点で整理します。
+              このシリーズでは、「法人化すれば得をする」という切り口ではなく、一人法人特有の論点を、自分のFIRE計画の中でどう位置づけるかという視点で整理します。
             </p>
           </div>
         </Container>
