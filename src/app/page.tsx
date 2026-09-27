@@ -249,7 +249,7 @@ export default function HomePage() {
               応じた高さ（可変・auto）になる。以前はself-stretchでテキスト列と同じ高さまで
               引き伸ばされ、カード内部に余分な空白ができていた（実測: 900px幅でカード下部に
               88px分の空白を確認）。 */}
-          <div className="hidden lg:flex lg:w-(--lp-hero-chart-width) lg:shrink-0">
+          <div className="hidden lg:flex lg:w-(--lp-hero-chart-width) lg:min-w-0">
             <HeroDemo />
           </div>
 
