@@ -18,6 +18,12 @@ interface PersonaAvatarProps {
   /** 佐々木さん（近日公開）用：点線フレームでグレーアウト表現を追加する */
   dashed?: boolean;
   className?: string;
+  /**
+   * 円形フレームの大きさのクラス。既定はケーススタディ用の72px。一人法人LPのHero（分かれ道の図）では
+   * 親の枠に合わせて伸縮させるため'w-full h-full'を渡す（classNameで後から上書きすると、
+   * Tailwindのクラスの優先順位が不確実なため、propとして分けている）。
+   */
+  sizeClassName?: string;
 }
 
 /**
@@ -34,10 +40,11 @@ export default function PersonaAvatar({
   strokeColor,
   dashed = false,
   className = '',
+  sizeClassName = 'w-[72px] h-[72px]',
 }: PersonaAvatarProps) {
   return (
     <div
-      className={`relative w-[72px] h-[72px] shrink-0 rounded-full overflow-hidden ${
+      className={`relative ${sizeClassName} shrink-0 rounded-full overflow-hidden ${
         dashed ? 'border-2 border-dashed border-slate-300' : ''
       } ${className}`}
       style={{ backgroundColor }}
