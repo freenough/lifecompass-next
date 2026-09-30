@@ -23,6 +23,7 @@ import FireGuideCarousel from '@/components/lp/FireGuideCarousel';
 import PersonaAvatar from '@/components/lp/PersonaAvatar';
 import SectionHeading from '@/components/layout/SectionHeading';
 import Container from '@/components/layout/Container';
+import Reveal from '@/components/motion/Reveal';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 
 const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
@@ -262,13 +263,13 @@ export default function HomePage() {
         <Container>
         <div className="grid gap-8 sm:grid-cols-3">
           {features.map((f) => (
-            <div key={f.title} className="flex flex-col items-center text-center">
+            <Reveal key={f.title} className="flex flex-col items-center text-center">
               <div className="mb-4 flex aspect-square h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-slate-600">
                 <f.Icon size={26} className="text-slate-600" />
               </div>
               <h3 className="text-base font-semibold text-slate-900">{f.title}</h3>
               <p className="mt-2 text-sm text-slate-500 leading-relaxed">{f.body}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
         </Container>
@@ -283,13 +284,15 @@ export default function HomePage() {
       {/* ③.5 FIREガイド */}
       <section className="py-12">
         <Container>
-          <SectionHeading
-            label="FIREガイド"
-            heading="FIREガイド"
-            body="シミュレーターをより活用するための解説記事を公開しています"
-            linkHref="/blog"
-            linkLabel="記事一覧を見る→"
-          />
+          <Reveal>
+            <SectionHeading
+              label="FIREガイド"
+              heading="FIREガイド"
+              body="シミュレーターをより活用するための解説記事を公開しています"
+              linkHref="/blog"
+              linkLabel="記事一覧を見る→"
+            />
+          </Reveal>
 
           {/* 横スクロールカルーセル（CSS Scroll Snapのみ、ライブラリ不使用）。
               矢印ボタン＋クリック&ドラッグスクロールはFireGuideCarousel（Client Component）側で
@@ -305,27 +308,32 @@ export default function HomePage() {
           （implementation_tool_section_outer_padding_realign_inner_tighten.md 1節）。 */}
       <section className="bg-slate-50 py-12">
         <Container>
-          <SectionHeading
-            label="ツール"
-            heading="かんたん計算ツール"
-            body="シミュレーターの前に、気になる数字だけサクッと試せます"
-            linkHref="/tools"
-            linkLabel="ツール一覧を見る→"
-          />
+          <Reveal>
+            <SectionHeading
+              label="ツール"
+              heading="かんたん計算ツール"
+              body="シミュレーターの前に、気になる数字だけサクッと試せます"
+              linkHref="/tools"
+              linkLabel="ツール一覧を見る→"
+            />
+          </Reveal>
 
           {/* gap-x-3/p-3はモバイル限定。デスクトップ(lg:gap-x-8/lg:p-6)は現状のまま変更しない
               （implementation_tool_section_outer_padding_realign_inner_tighten.md 2節）。 */}
           <div className="grid grid-cols-2 gap-x-3 lg:grid-cols-4 lg:gap-x-8">
+            {/* Revealがグリッドの子になるため、Linkはblock h-fullで、元の（グリッドの子として
+                block化・行の高さに伸長されていた）見た目に合わせる（implementation_lp_scroll_reveal.md 4-1節）。 */}
             {lpTools.map((tool) => (
-              <Link
-                key={tool.href}
-                href={tool.href}
-                className="border-y border-slate-200 rounded-none p-3 lg:p-6 hover:bg-white transition-colors"
-              >
-                <tool.Icon size={32} className="text-slate-600 mb-3" />
-                <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
-                <p className="mt-2 text-xs lg:text-sm text-slate-500 leading-relaxed">{tool.body}</p>
-              </Link>
+              <Reveal key={tool.href}>
+                <Link
+                  href={tool.href}
+                  className="block h-full border-y border-slate-200 rounded-none p-3 lg:p-6 hover:bg-white transition-colors"
+                >
+                  <tool.Icon size={32} className="text-slate-600 mb-3" />
+                  <h3 className="text-base font-semibold text-slate-900">{tool.title}</h3>
+                  <p className="mt-2 text-xs lg:text-sm text-slate-500 leading-relaxed">{tool.body}</p>
+                </Link>
+              </Reveal>
             ))}
           </div>
 
@@ -333,19 +341,21 @@ export default function HomePage() {
       </section>
 
       {/* ③.8 資産管理ツール導線 */}
-      <AssetManagementPromoSection />
+      <AssetManagementPromoSection reveal />
 
       {/* ④ あなたはどのタイプ？ */}
       <section className="bg-slate-50 py-12">
         <Container>
-          <SectionHeading
-            label="ケーススタディ"
-            heading="あなたはどのタイプ？"
-            body="年齢や家族構成が近いケースのシミュレーション結果を、参考として確認できます"
-            linkHref="https://note.com/freenough"
-            linkLabel="NOTEを見る→"
-            linkExternal
-          />
+          <Reveal>
+            <SectionHeading
+              label="ケーススタディ"
+              heading="あなたはどのタイプ？"
+              body="年齢や家族構成が近いケースのシミュレーション結果を、参考として確認できます"
+              linkHref="https://note.com/freenough"
+              linkLabel="NOTEを見る→"
+              linkExternal
+            />
+          </Reveal>
           {/* 見出しエリアは6xl(Container)のまま、リスト本体だけさらに1段狭める
               （各行の左(アバター+テキスト)と右(バッジ+リンク)の間の空白を縮めるため）。 */}
           <div className="flex flex-col divide-y divide-slate-200 max-w-[1048px] mx-auto">
@@ -420,20 +430,25 @@ export default function HomePage() {
                 </div>
               );
 
-              return c.href ? (
-                <a
-                  key={c.name}
-                  href={c.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:bg-white/60 transition-colors"
-                >
-                  {rowContent}
-                </a>
-              ) : (
-                <div key={c.name} className="cursor-default">
-                  {rowContent}
-                </div>
+              // 外側のRevealがdivide-yの対象になる。<a>はRevealの中でインライン要素に
+              // ならないようblockを付ける（implementation_lp_scroll_reveal.md 4-1節）。
+              return (
+                <Reveal key={c.name}>
+                  {c.href ? (
+                    <a
+                      href={c.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block hover:bg-white/60 transition-colors"
+                    >
+                      {rowContent}
+                    </a>
+                  ) : (
+                    <div className="cursor-default">
+                      {rowContent}
+                    </div>
+                  )}
+                </Reveal>
               );
             })}
           </div>
@@ -443,16 +458,16 @@ export default function HomePage() {
       {/* ⑤ 使い方（3ステップ） */}
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 w-full">
-          <h2 className="text-[1.75rem] sm:text-4xl font-bold text-slate-900 text-center mb-12">使い方</h2>
+          <Reveal as="h2" className="text-[1.75rem] sm:text-4xl font-bold text-slate-900 text-center mb-12">使い方</Reveal>
           <ol className="flex flex-col sm:flex-row gap-6 sm:gap-0 sm:divide-x sm:divide-slate-200">
             {steps.map((s) => (
-              <li key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
+              <Reveal as="li" key={s.step} className="flex-1 flex flex-col items-center text-center px-6">
                 <s.Icon size={32} className="text-slate-600 mb-2" />
                 <span className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
                   {s.step}
                 </span>
                 <span className="mt-1 text-base font-semibold text-slate-900">{s.label}</span>
-              </li>
+              </Reveal>
             ))}
           </ol>
         </div>
@@ -467,34 +482,39 @@ export default function HomePage() {
         <div className="mx-auto max-w-xl px-6 text-center">
           {/* instruction_asset_simulator_lp_polish_addendum4.md 修正1: 自動折り返しに任せず、
               幅に関わらず常に2行(「まず、自分の数字を」/「入れてみる。」)で表示する */}
-          <h2 className="text-[1.75rem] sm:text-4xl font-bold text-slate-900">
+          <Reveal as="h2" className="text-[1.75rem] sm:text-4xl font-bold text-slate-900">
             まず、自分の数字を<br />入れてみる。
-          </h2>
-          <p className="mt-3 text-slate-500">それだけでFIREが見えてくる。</p>
-          <Link
-            href="/app"
-            className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
-            style={{ backgroundColor: '#334155' }}
-          >
-            シミュレーターを開く →
-          </Link>
-          <p className="mt-4 text-sm text-slate-400">無料・登録不要</p>
+          </Reveal>
+          <Reveal as="p" className="mt-3 text-slate-500">それだけでFIREが見えてくる。</Reveal>
+          {/* ボタンのホバー用transition（transition-all）と干渉しないよう、Revealは外側に付ける */}
+          <Reveal>
+            <Link
+              href="/app"
+              className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
+              style={{ backgroundColor: '#334155' }}
+            >
+              シミュレーターを開く →
+            </Link>
+          </Reveal>
+          <Reveal as="p" className="mt-4 text-sm text-slate-400">無料・登録不要</Reveal>
 
           {/* 資産管理ツールへの従属導線（3章）。主CTAより視覚的優先度を下げるため、
               ボタンではなく通常のテキストリンクとして実装する。 */}
-          <div className="mt-10 flex items-center gap-4 max-w-xs mx-auto">
-            <div className="flex-1 border-t border-slate-200" />
-            <span className="text-xs text-slate-400 whitespace-nowrap">すでに試算した方は</span>
-            <div className="flex-1 border-t border-slate-200" />
-          </div>
-          <p className="mt-3">
-            <Link
-              href={ASSET_MANAGEMENT_PATH}
-              className="text-sm text-slate-500 underline underline-offset-2 hover:text-slate-700"
-            >
-              資産を記録して、進捗を確認する →
-            </Link>
-          </p>
+          <Reveal>
+            <div className="mt-10 flex items-center gap-4 max-w-xs mx-auto">
+              <div className="flex-1 border-t border-slate-200" />
+              <span className="text-xs text-slate-400 whitespace-nowrap">すでに試算した方は</span>
+              <div className="flex-1 border-t border-slate-200" />
+            </div>
+            <p className="mt-3">
+              <Link
+                href={ASSET_MANAGEMENT_PATH}
+                className="text-sm text-slate-500 underline underline-offset-2 hover:text-slate-700"
+              >
+                資産を記録して、進捗を確認する →
+              </Link>
+            </p>
+          </Reveal>
         </div>
       </section>
 

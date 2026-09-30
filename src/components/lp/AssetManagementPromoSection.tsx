@@ -4,6 +4,7 @@ import { IconChartDonut, IconTarget, IconTrendingUp } from '@tabler/icons-react'
 import type { Icon } from '@tabler/icons-react';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 import Container from '@/components/layout/Container';
+import Reveal from '@/components/motion/Reveal';
 
 // Rechartsコンポーネントは必ずssr:falseの動的importで読み込む（ResponsiveContainerがDOM
 // 計測に依存するため。HeroDemo.tsx/src/app/page.tsxの既存パターンを踏襲）。
@@ -19,7 +20,15 @@ const features: { label: string; Icon: Icon }[] = [
   { label: '前回記録との増減がひと目でわかる', Icon: IconTrendingUp },
 ];
 
-export default function AssetManagementPromoSection() {
+interface AssetManagementPromoSectionProps {
+  // 資産シミュレーターLPからだけtrueを渡し、左の文章列をスクロール表示演出の対象にする
+  // （implementation_lp_scroll_reveal.md 2節。右のデモは既存のカウントアップのまま）。
+  reveal?: boolean;
+}
+
+export default function AssetManagementPromoSection({ reveal = false }: AssetManagementPromoSectionProps) {
+  const LeftColumn = reveal ? Reveal : 'div';
+
   return (
     <section className="py-12">
       <Container>
@@ -28,7 +37,7 @@ export default function AssetManagementPromoSection() {
           {/* 左：テキスト＋CTA。lg:max-w-[620px]は見出し「毎月の資産を、記録する。」が
               1行に収まる幅を確保しつつ、右カードとの視覚ボリュームのバランスを取るための上限
               （instruction_lp_container_width_and_block_frame.md 追加対応4節）。 */}
-          <div className="flex-1 lg:max-w-[620px] flex flex-col items-center text-center lg:items-start lg:text-left">
+          <LeftColumn className="flex-1 lg:max-w-[620px] flex flex-col items-center text-center lg:items-start lg:text-left">
             <h2 className="text-[2rem] sm:text-5xl font-bold text-slate-900 text-balance">
               毎月の資産を、記録する。
             </h2>
@@ -63,7 +72,7 @@ export default function AssetManagementPromoSection() {
               資産管理ツールを開く →
             </Link>
             <p className="mt-4 text-sm text-slate-400">無料・登録不要・データは端末内に保存</p>
-          </div>
+          </LeftColumn>
 
           {/* 右：ミニダッシュボード。ヒーロー（HeroDemo.tsx）と同じ「上にKPIバッジ3枠、
               下にグラフ」構成。KPI3枠は資産管理ツール本体の「FIRE進捗」ブロックと同じ情報
