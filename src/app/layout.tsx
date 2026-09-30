@@ -33,10 +33,20 @@ export const metadata: Metadata = {
   },
 };
 
+const REVEAL_BOOT_SCRIPT =
+  "(function(){var d=document.documentElement;d.classList.add('js-reveal');" +
+  "setTimeout(function(){if(!window.__rvReady&&document.querySelector('.rv'))d.classList.remove('js-reveal');},4000);})();";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={notoSansJP.className}>
+    <html lang="ja" className={notoSansJP.className} suppressHydrationWarning>
       <body className="bg-white text-slate-800 antialiased min-h-screen flex flex-col">
+        {/* スクロール表示演出（Reveal）用。HTML解析中に<html>へjs-revealを付け、初期表示のちらつきを
+            防ぐ。4秒後に.rv要素があるのにRevealが動作開始していなければ（ハイドレーション失敗等）
+            js-revealを外し、内容が非表示のまま残る事故を防ぐ（implementation_lp_scroll_reveal.md 3-4節）。
+            .rvのないページでは外さない（後からLPへクライアント遷移したときに演出を効かせるため。
+            implementation_lp_scroll_reveal_fallback_guard.md）。 */}
+        <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOT_SCRIPT }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}

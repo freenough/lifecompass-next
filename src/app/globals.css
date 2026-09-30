@@ -67,6 +67,32 @@
     flex: 0 0 30%;
   }
 }
+/* LPのスクロール表示演出（src/components/motion/Reveal.tsx、implementation_lp_scroll_reveal.md）。
+   初期の非表示は<html>にjs-revealクラスがあるときだけ適用する（layout.tsxのインライン
+   スクリプトが付与。JS無効環境やハイドレーション失敗時は最初から表示されたままになる）。 */
+:root {
+  --rv-dist: 24px;
+  --rv-dur: 0.9s;
+  --rv-stagger: 0.12s;
+}
+.js-reveal .rv {
+  transition: opacity var(--rv-dur) ease-out, transform var(--rv-dur) ease-out;
+}
+.js-reveal .rv:not(.in) {
+  opacity: 0;
+  transform: translateY(var(--rv-dist));
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rv,
+  .js-reveal .rv,
+  .js-reveal .rv:not(.in) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fireguide-track {
     scroll-behavior: auto;
