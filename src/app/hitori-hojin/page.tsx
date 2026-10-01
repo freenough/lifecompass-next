@@ -5,6 +5,7 @@ import HitoriHojinManageSection from '@/components/hitori-hojin/HitoriHojinManag
 import HitoriHojinSimulatorCta from '@/components/hitori-hojin/HitoriHojinSimulatorCta';
 import HitoriHojinForkDiagram from '@/components/hitori-hojin/HitoriHojinForkDiagram';
 import Container from '@/components/layout/Container';
+import Reveal from '@/components/motion/Reveal';
 import PhraseBreak from '@/components/text/PhraseBreak';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 import { FREE_NO_SIGNUP_NOTE } from '@/lib/ctaCopy';
@@ -84,14 +85,16 @@ export default function HitoriHojinLandingPage() {
           （fix_hitori_hojin_intro_safari.md）。 */}
       <section className="pb-12">
         <Container>
-          <div className="text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict]">
+          {/* スクロール表示演出は段落ごとに分けず1つにまとめる（space-y-4の間隔を変えないため。
+              implementation_hitori_hojin_scroll_reveal.md 3節）。 */}
+          <Reveal className="text-base text-slate-700 leading-relaxed space-y-4 [line-break:strict]">
             <p>
               FIREというと、「完全に働くのをやめること」だけをイメージしがちです。でも、完全リタイアと会社員の間には、仕事を続けながら働き方や収入の持ち方を変え、資産形成を続けるという選択肢もあります。その選択肢の一つとして、一人法人があります。
             </p>
             <p>
               このシリーズでは、「法人化すれば得をする」という切り口ではなく、一人法人特有の論点を、自分のFIRE計画の中でどう位置づけるかという視点で整理します。
             </p>
-          </div>
+          </Reveal>
         </Container>
       </section>
 
@@ -119,12 +122,15 @@ export default function HitoriHojinLandingPage() {
             代わりにBudouX（PhraseBreak）で文節の区切りに<wbr />を入れ、keep-allでその位置だけで折り返させる
             （overflow-wrap:anywhereは長すぎる文節の保険。experiment_budoux_hitori_hojin.md）。 */}
         <div className="mx-auto max-w-xl px-6 text-center">
-          <p className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict] [word-break:keep-all] [overflow-wrap:anywhere]">
+          <Reveal as="p" className="text-sm text-slate-600 leading-relaxed mb-6 [line-break:strict] [word-break:keep-all] [overflow-wrap:anywhere]">
             <PhraseBreak text="一人法人を考える前に、まずは自分の必要資産額を確認してみてください。" />
             <br />
             <PhraseBreak text="一人法人はFIREを実現するための選択肢の一つです。" />
-          </p>
-          <HitoriHojinSimulatorCta />
+          </Reveal>
+          {/* ボタンのホバー用transition（transition-opacity）と干渉しないよう、Revealは外側に付ける */}
+          <Reveal>
+            <HitoriHojinSimulatorCta />
+          </Reveal>
         </div>
       </section>
     </div>

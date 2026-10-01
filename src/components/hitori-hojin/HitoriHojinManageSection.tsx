@@ -5,6 +5,7 @@ import type { Icon } from '@tabler/icons-react';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 import { FREE_NO_SIGNUP_NOTE } from '@/lib/ctaCopy';
 import Container from '@/components/layout/Container';
+import Reveal from '@/components/motion/Reveal';
 
 // 右側のカード本体はIntersectionObserver・アニメーションを使うため、資産シミュレーター側
 // （AssetManagementPromoSection.tsx）と同じくssr:falseの動的importで読み込む。読み込み中は
@@ -33,8 +34,8 @@ export default function HitoriHojinManageSection() {
       <Container>
         <div className="flex flex-col lg:flex-row lg:items-center gap-10">
 
-          {/* 左：テキスト＋CTA */}
-          <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
+          {/* 左：テキスト＋CTA（列全体を1つのスクロール表示演出にする。右のデモは対象外） */}
+          <Reveal className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left">
             {/* 大きさ・太さ・行間は本体LP（AssetManagementPromoSection.tsx）の「毎月の資産を、記録する。」と
                 同じクラス。折り返す幅では「法人の資産も、／FIREの進捗に。」でだけ切れるよう、Heroのh1と同じ
                 word-break: keep-all＋wbrにする（impl_hitori_hojin_lp_ui_followup.md 4節）。 */}
@@ -65,7 +66,7 @@ export default function HitoriHojinManageSection() {
               法人資産管理ツールを開く →
             </Link>
             <p className="mt-4 text-sm text-slate-400">{FREE_NO_SIGNUP_NOTE}</p>
-          </div>
+          </Reveal>
 
           {/* 右：個人＋法人の内訳バー＋合計金額（デモデータで本物の計算を動かす） */}
           <div className="w-full lg:w-[340px] lg:shrink-0">
