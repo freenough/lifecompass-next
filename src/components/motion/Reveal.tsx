@@ -39,8 +39,10 @@ function getObserver(): IntersectionObserver {
         const el = entry.target as HTMLElement;
         if (entry.isIntersecting) {
           entered.push(el);
-        } else if (entry.boundingClientRect.bottom <= 0) {
-          // 既に画面より上にある要素（ページ途中でのリロード等）は演出なしで即表示する
+        } else if (entry.boundingClientRect.top < 0) {
+          // 既に画面より上にある要素（ページ途中でのリロード等）は演出なしで即表示する。
+          // 画面上端にかかって一部だけ見えている要素も、見えている割合がthresholdに届かないと
+          // 以後コールバックが来ず非表示のまま残るため、上端が画面より上なら同じ扱いにする
           el.style.transition = 'none';
           show(el);
           sharedObserver!.unobserve(el);
