@@ -51,8 +51,11 @@ export default function HitoriHojinLandingPage() {
           <div className="grid gap-y-6 text-center sm:text-left [grid-template-areas:'title'_'desc'_'fig'_'cta'] lg:grid-cols-[minmax(min-content,1fr)_minmax(0,520px)] lg:grid-rows-[1fr_auto_auto_auto_1fr] lg:gap-x-10 lg:[grid-template-areas:'._fig'_'title_fig'_'desc_fig'_'cta_fig'_'._fig']">
             {/* 見出しのサイズ・字間は資産シミュレーターLP（src/app/page.tsx）の見出しと同じクラス。
                 word-break: keep-all + wbrで「一人法人を、」/「FIREの選択肢に。」の意味の区切りでのみ改行させる。
-                360px幅では「FIREの選択肢に。」が数pxはみ出すが、資産シミュレーターLPと同じ扱いとして許容する。 */}
-            <h1 className="[grid-area:title] text-[clamp(2.5rem,1.5094rem+4.2264vw,3.2rem)] sm:text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900 [word-break:keep-all]">
+                360px幅では「FIREの選択肢に。」が数pxはみ出すが、資産シミュレーターLPと同じ扱いとして許容する。
+                360px未満だけは下限を33px（2.0625rem）に下げる。40pxのままだと「FIREの選択肢に。」（約318px）が
+                320px幅の本文（272px）を超え、グリッドごと広がって横スクロールが出るため。33pxで約263px（余り約9px）。
+                34pxでは約271px（余り約1px）しか残らない */}
+            <h1 className="[grid-area:title] text-[clamp(2.5rem,1.5094rem+4.2264vw,3.2rem)] max-[360px]:text-[2.0625rem] sm:text-[clamp(2.625rem,8vw,4.125rem)] font-bold tracking-tight text-slate-900 [word-break:keep-all]">
               一人法人を、<wbr />FIREの選択肢に。
             </h1>
             <p className="[grid-area:desc] text-base text-slate-600 leading-relaxed [line-break:strict]">
