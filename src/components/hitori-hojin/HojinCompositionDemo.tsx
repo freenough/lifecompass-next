@@ -6,7 +6,8 @@ import { calcCompositionPercentages } from '@/lib/hojinAssetManagement/compositi
 import { DEMO_HOLDINGS_TOTAL } from '@/lib/lp/demoHoldings';
 import { DEMO_HOJIN_HOLDINGS_TOTAL } from '@/lib/lp/demoHojinHoldings';
 
-// 濃紺（CTAボタンと同色）。HitoriHojinManageSection.tsxのNAVYと同じ値。
+// 濃紺。HitoriHojinForkDiagram.tsx等、一人法人LPの図で使っている色と同じ値。
+// CTAボタンの色ではない（CTAボタンは#334155。ctaButtonClass.ts参照）。
 const NAVY = '#0F2A4A';
 const HATCH_BG = 'rgba(15,42,74,0.2)';
 

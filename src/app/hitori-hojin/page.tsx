@@ -9,6 +9,7 @@ import Reveal from '@/components/motion/Reveal';
 import PhraseBreak from '@/components/text/PhraseBreak';
 import { HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 import { FREE_NO_SIGNUP_NOTE } from '@/lib/ctaCopy';
+import { CTA_BUTTON_CLASS } from '@/lib/ctaButtonClass';
 
 const SERIES = 'hitori-hojin-intro';
 
@@ -64,7 +65,7 @@ export default function HitoriHojinLandingPage() {
             <div className="[grid-area:fig] lg:self-center">
               <HitoriHojinForkDiagram />
             </div>
-            {/* ボタンの見た目は資産シミュレーターLPのCTAボタンと同じクラス。文言はSIMULATOR_CTA_LABEL。
+            {/* ボタンの見た目は一人法人LPのCTA共通クラス（CTA_BUTTON_CLASS）に余白mt-6を足したもの。文言はSIMULATOR_CTA_LABEL。
                 クリックはGA4イベント hojin_lp_cta_click（location: 'hero'）で計測し、下部CTA（'bottom'）と区別する。 */}
             <div className="[grid-area:cta]">
               {/* 2列表示の左列（1024px幅で約526px）では「す。」だけが2行目に残るため、下部CTAの説明文と同じく
@@ -74,7 +75,7 @@ export default function HitoriHojinLandingPage() {
               </p>
               <HitoriHojinSimulatorCta
                 location="hero"
-                className="mt-6 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg bg-[#334155]"
+                className={`mt-6 ${CTA_BUTTON_CLASS}`}
               />
               <p className="mt-2 text-sm text-slate-400">{FREE_NO_SIGNUP_NOTE}</p>
             </div>
@@ -130,7 +131,7 @@ export default function HitoriHojinLandingPage() {
             <br />
             <PhraseBreak text="一人法人はFIREを実現するための選択肢の一つです。" />
           </Reveal>
-          {/* ボタンのホバー用transition（transition-opacity）と干渉しないよう、Revealは外側に付ける */}
+          {/* ボタンのホバー用transition（transition-all）と干渉しないよう、Revealは外側に付ける */}
           <Reveal>
             <HitoriHojinSimulatorCta />
           </Reveal>

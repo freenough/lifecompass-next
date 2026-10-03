@@ -66,7 +66,7 @@ export default function AssetManagementPromoSection({ reveal = false }: AssetMan
 
             <Link
               href={ASSET_MANAGEMENT_PATH}
-              className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
+              className="mt-8 inline-block min-w-[min(19rem,100%)] rounded px-8 py-4 text-center text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
               style={{ backgroundColor: '#334155' }}
             >
               資産管理ツールを開く →

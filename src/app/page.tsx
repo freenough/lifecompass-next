@@ -237,7 +237,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/app"
-              className="mt-12 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
+              className="mt-12 inline-block min-w-[min(19rem,100%)] rounded px-8 py-4 text-center text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
               style={{ backgroundColor: '#334155' }}
             >
               今すぐシミュレーションする →
@@ -490,7 +490,7 @@ export default function HomePage() {
           <Reveal>
             <Link
               href="/app"
-              className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
+              className="mt-8 inline-block min-w-[min(19rem,100%)] rounded px-8 py-4 text-center text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
               style={{ backgroundColor: '#334155' }}
             >
               シミュレーターを開く →

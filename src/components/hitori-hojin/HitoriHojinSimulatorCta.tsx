@@ -3,15 +3,17 @@
 import Link from 'next/link';
 import { trackEvent } from '@/lib/gtag';
 import { SIMULATOR_CTA_LABEL } from '@/lib/ctaCopy';
+import { CTA_BUTTON_CLASS } from '@/lib/ctaButtonClass';
 
 interface HitoriHojinSimulatorCtaProps {
   // GA4イベントのlocation。Hero（'hero'）と下部CTA（'bottom'）を区別する。
   location?: 'hero' | 'bottom';
-  // ボタンの見た目。既定は下部CTAの見た目（Heroは資産シミュレーターLPのCTAボタンと同じ見た目を渡す）。
+  // ボタンの見た目。既定は一人法人LPのCTA共通クラス（Heroはこれに余白mt-6を足して渡す）。
   className?: string;
 }
 
-const BOTTOM_CTA_CLASS = 'inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded hover:opacity-90 transition-opacity';
+// 下部CTAの見た目。Hero・法人資産管理ツールのボタンと同じ共通クラス（色#334155）。
+const BOTTOM_CTA_CLASS = CTA_BUTTON_CLASS;
 
 // 一人法人LPのシミュレーター本体へのボタン（Hero・下部CTA）。page.tsxはサーバーコンポーネントのため、
 // クリックイベントを送るボタンだけをクライアントコンポーネントに切り出している。
