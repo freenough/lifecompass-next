@@ -4,6 +4,7 @@ import { IconBuildingBank, IconChartDonut, IconAdjustmentsHorizontal } from '@ta
 import type { Icon } from '@tabler/icons-react';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
 import { FREE_NO_SIGNUP_NOTE } from '@/lib/ctaCopy';
+import { CTA_BUTTON_CLASS } from '@/lib/ctaButtonClass';
 import Container from '@/components/layout/Container';
 import Reveal from '@/components/motion/Reveal';
 
@@ -23,10 +24,6 @@ const FEATURES: { label: string; Icon: Icon }[] = [
   { label: '個人資産と合わせて、資産全体の内訳を確認', Icon: IconChartDonut },
   { label: '将来の手取り目安を、自分で設定して試算', Icon: IconAdjustmentsHorizontal },
 ];
-
-// 濃紺（CTAボタンと同色）。右側のカードの内訳バーは、デモデータ（demoHoldings.ts＋
-// demoHojinHoldings.ts）を本物のcalcCompositionPercentages()で計算して描く（HojinCompositionDemo.tsx）。
-const NAVY = '#0F2A4A';
 
 export default function HitoriHojinManageSection() {
   return (
@@ -57,11 +54,11 @@ export default function HitoriHojinManageSection() {
 
             {/* 法人資産管理ツールは個人の資産管理ツール（/assets）に統合済みのため、/hitori-hojin/assets
                 （/assetsへのリダイレクトだけのページ）を経由せず直接リンクする。next/linkのままなので
-                basePathが付き/asset-simulator/assetsになる（資産シミュレーター側への移動なので正しい）。 */}
+                basePathが付き/asset-simulator/assetsになる（資産シミュレーター側への移動なので正しい）。
+                見た目は一人法人LPのCTA共通クラス（CTA_BUTTON_CLASS）に余白mt-8を足したもの。 */}
             <Link
               href={ASSET_MANAGEMENT_PATH}
-              className="mt-8 inline-block rounded px-8 py-4 text-base font-semibold text-white shadow transition-colors whitespace-nowrap"
-              style={{ backgroundColor: NAVY }}
+              className={`mt-8 ${CTA_BUTTON_CLASS}`}
             >
               法人資産管理ツールを開く →
             </Link>
