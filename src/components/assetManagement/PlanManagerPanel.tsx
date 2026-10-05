@@ -127,7 +127,7 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="計画の名前（未入力可）"
-              className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs focus:border-slate-500 focus:outline-none"
+              className="min-w-0 flex-1 rounded border border-slate-300 px-2 py-1.5 text-xs focus:border-slate-500 focus:outline-none"
             />
             <button
               type="button"

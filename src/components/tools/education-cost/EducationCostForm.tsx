@@ -82,7 +82,7 @@ const UNIVERSITY_OPTIONS: { value: UniversityTrack; label: string }[] = [
 ];
 
 const selectClassName =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
+  'w-full rounded border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
 
 function PublicPrivateToggle({
   value, onChange,
@@ -253,7 +253,7 @@ export default function EducationCostForm({
                   if (isNaN(monthlyMan)) return;
                   onChangeChild(activeIndex, { remittanceAnnual: Math.max(0, Math.round(monthlyMan)) * 12 * 10_000 });
                 }}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+                className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
               />
               <span className="shrink-0 text-sm text-slate-500">万円/月</span>
             </div>

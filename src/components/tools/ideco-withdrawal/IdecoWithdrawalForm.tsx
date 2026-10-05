@@ -79,7 +79,7 @@ function NumberField({ label, id, value, suffix, onChange, min }: NumberFieldPro
           }}
           onFocus={e => { isFocused.current = true; clearZeroOrSelect(e.currentTarget); }}
           onClick={e => clearZeroOrSelect(e.currentTarget)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+          className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
         />
         <span className="shrink-0 text-sm text-slate-500">{suffix}</span>
       </div>
@@ -96,7 +96,7 @@ const RECEIVE_METHOD_OPTIONS: { key: ReceiveMethod; label: string }[] = [
 ];
 
 const selectClassName =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
+  'w-full rounded border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
 
 export default function IdecoWithdrawalForm({ values, onChange }: IdecoWithdrawalFormProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);

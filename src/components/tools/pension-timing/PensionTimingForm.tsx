@@ -50,7 +50,7 @@ function NumberField({ label, id, value, suffix, onChange }: NumberFieldProps) {
           }}
           onFocus={e => clearZeroOrSelect(e.currentTarget)}
           onClick={e => clearZeroOrSelect(e.currentTarget)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+          className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
         />
         <span className="shrink-0 text-sm text-slate-500">{suffix}</span>
       </div>
@@ -63,7 +63,7 @@ const TARGET_AGE_OPTIONS = Array.from({ length: MAX_AGE - MIN_AGE + 1 }, (_, i) 
 const COMPARE_END_AGE_OPTIONS = [80, 85, 90, 95, 100];
 
 const selectClassName =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
+  'w-full rounded border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
 
 export default function PensionTimingForm({ values, onChange }: PensionTimingFormProps) {
   return (

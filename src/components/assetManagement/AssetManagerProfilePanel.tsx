@@ -225,7 +225,7 @@ export default function AssetManagerProfilePanel({
                   value={saveName}
                   onChange={(e) => setSaveName(e.target.value)}
                   placeholder="プロファイル名を入力"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
                 />
                 <button onClick={handleSave} className="w-full rounded bg-slate-800 py-2 text-sm text-white hover:bg-slate-700">
                   {isUpdate ? '上書き保存' : '新規保存'}

@@ -219,7 +219,7 @@ export default function PlanComparisonSection({
             <select
               value={selectedPlan?.id ?? ''}
               onChange={(e) => setSelectedPlanId(e.target.value)}
-              className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+              className="rounded border border-slate-300 px-2 py-1.5 text-xs"
             >
               {sortedPlans.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
