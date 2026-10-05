@@ -107,7 +107,7 @@ export default function PrepayVsInvestForm({ values, onChange }: PrepayVsInvestF
           <button
             type="button"
             onClick={() => onChange({ prepayType: 'shorten' })}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
               values.prepayType === 'shorten' ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
             }`}
           >
@@ -116,7 +116,7 @@ export default function PrepayVsInvestForm({ values, onChange }: PrepayVsInvestF
           <button
             type="button"
             onClick={() => onChange({ prepayType: 'reduce' })}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
               values.prepayType === 'reduce' ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
             }`}
           >

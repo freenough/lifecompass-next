@@ -473,7 +473,7 @@ export default function AssetManagementPage() {
               <button
                 type="button"
                 onClick={handleSaveHoldings}
-                className="shrink-0 rounded-lg bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-700"
+                className="shrink-0 rounded bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-700"
               >
                 保存
               </button>
@@ -486,7 +486,7 @@ export default function AssetManagementPage() {
           <button
             type="button"
             onClick={() => setFormOpen((o) => !o)}
-            className="lg:hidden w-full mb-3 rounded-lg border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
+            className="lg:hidden w-full mb-3 rounded border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
           >
             {formOpen ? '入力を閉じる ▲' : '入力を編集 ▼'}
           </button>
@@ -555,7 +555,7 @@ export default function AssetManagementPage() {
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500">表示:</span>
-                <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs">
+                <div className="flex rounded overflow-hidden border border-slate-300 text-xs">
                   <button
                     type="button"
                     onClick={() => setDisplayScopePref('personalOnly')}

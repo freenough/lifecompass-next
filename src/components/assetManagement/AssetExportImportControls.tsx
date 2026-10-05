@@ -135,8 +135,8 @@ export default function AssetExportImportControls({
   // 統一し、並び順をCSVでエクスポート→CSVをインポート→JSONでエクスポート→JSONをインポート
   // に固定する（呼び出し元のAssetManagerProfilePanel.tsxが、名前欄・保存ボタンの直後にこの
   // コンポーネントを配置し、その下に保存済みプロファイル一覧を続ける）。
-  const buttonClass = 'w-full rounded-lg border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50';
-  const importLabelClass = 'w-full cursor-pointer rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 text-center hover:border-slate-400';
+  const buttonClass = 'w-full rounded border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50';
+  const importLabelClass = 'w-full cursor-pointer rounded border border-dashed border-slate-300 py-2 text-sm text-slate-500 text-center hover:border-slate-400';
 
   return (
     <div className="flex flex-col gap-2">

@@ -16,7 +16,7 @@ export default function MonthlyRecordBanner({ snapshots, onRecord }: MonthlyReco
       <p className="text-xs text-amber-800">今月はまだ記録していません。資産の推移を残しておきましょう。</p>
       <button
         onClick={onRecord}
-        className="shrink-0 text-xs font-semibold bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 transition-colors"
+        className="shrink-0 text-xs font-semibold bg-amber-600 text-white px-3 py-1.5 rounded hover:bg-amber-700 transition-colors"
       >
         今すぐ記録する
       </button>

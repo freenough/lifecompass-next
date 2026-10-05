@@ -215,7 +215,7 @@ export default function SensitivityPanel() {
           <div className="flex justify-end mb-3">
             <button
               onClick={() => { setDeltas(ZERO); applyDeltas(ZERO); }}
-              className="text-[10px] border border-slate-300 rounded-full px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
+              className="text-[10px] border border-slate-300 rounded px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
             >
               ↺ リセット
             </button>

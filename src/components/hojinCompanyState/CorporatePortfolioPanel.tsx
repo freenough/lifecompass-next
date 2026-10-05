@@ -419,7 +419,7 @@ export default function CorporatePortfolioPanel() {
           <button
             onClick={handleImport}
             disabled={assetProfiles.length === 0}
-            className="text-[11px] border border-blue-300 text-blue-600 rounded-full px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            className="text-[11px] border border-blue-300 text-blue-600 rounded px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           >
             インポート
           </button>
@@ -443,7 +443,7 @@ export default function CorporatePortfolioPanel() {
         subAction={
           <button
             onClick={copyCurrentToWorking}
-            className="text-[10px] border border-slate-300 rounded-full px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
+            className="text-[10px] border border-slate-300 rounded px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
           >
             ①の比率をコピー
           </button>

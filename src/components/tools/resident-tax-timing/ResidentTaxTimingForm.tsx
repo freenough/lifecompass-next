@@ -158,7 +158,7 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
             <button
               type="button"
               onClick={() => onChange({ lumpSumPreference: 'installment' })}
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
                 values.lumpSumPreference === 'installment' ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
               }`}
             >
@@ -167,7 +167,7 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
             <button
               type="button"
               onClick={() => onChange({ lumpSumPreference: 'lump' })}
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
                 values.lumpSumPreference === 'lump' ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
               }`}
             >

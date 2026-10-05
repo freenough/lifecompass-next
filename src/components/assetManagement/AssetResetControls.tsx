@@ -38,7 +38,7 @@ export default function AssetResetControls({ onReset }: AssetResetControlsProps)
         保有資産・記録履歴（法人は移転履歴ログを含む）を完全に削除します。この操作は取り消せません。
       </p>
 
-      <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs w-fit">
+      <div className="flex rounded overflow-hidden border border-slate-300 text-xs w-fit">
         {(['personal', 'hojin', 'both'] as ResetScope[]).map((s) => (
           <button
             key={s}
@@ -63,7 +63,7 @@ export default function AssetResetControls({ onReset }: AssetResetControlsProps)
       <button
         type="button"
         onClick={handleExecute}
-        className="mt-1 text-xs font-semibold bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 w-fit"
+        className="mt-1 text-xs font-semibold bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 w-fit"
       >
         削除を実行
       </button>

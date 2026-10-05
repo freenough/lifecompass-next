@@ -161,7 +161,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <p className="text-sm text-slate-500 mb-6">無料・登録不要・データは端末内に保存</p>
         <Link
           href="/app"
-          className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
+          className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded hover:opacity-90 transition-opacity"
         >
           無料で試す →
         </Link>

@@ -194,12 +194,12 @@ export default function SimulatorPage() {
           <div className="lg:hidden h-[33px]" aria-hidden="true" />
           <div className="lg:hidden fixed top-14 left-4 right-4 z-30 flex items-center gap-2">
             <button
-              className="flex-1 rounded-lg border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
+              className="flex-1 rounded border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
               onClick={() => setFormOpen(o => !o)}
             >
               {formOpen ? '入力を閉じる ▲' : '入力を編集 ▼'}
             </button>
-            <ProfileDrawer triggerClassName="shrink-0 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50" />
+            <ProfileDrawer triggerClassName="shrink-0 whitespace-nowrap rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50" />
           </div>
           {/* トグンボタンの表示範囲（lg:hidden＝1024px未満）と、フォームの開閉が実際に
               機能する範囲を一致させる。以前は`hidden sm:flex`（640px以上で強制表示）
@@ -247,7 +247,7 @@ export default function SimulatorPage() {
 
           {/* MC ↔ 固定 toggle */}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+            <div className="flex rounded overflow-hidden border border-slate-200 text-sm">
               <button
                 onClick={() => setMode('fixed')}
                 className={`px-4 py-1.5 ${mode === 'fixed' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
@@ -266,7 +266,7 @@ export default function SimulatorPage() {
               <button
                 onClick={runMonteCarloWithCorporateAwareness}
                 disabled={isMcRunning}
-                className="rounded-lg bg-slate-700 text-white text-sm px-4 py-1.5 hover:bg-slate-600 disabled:opacity-50"
+                className="rounded bg-slate-700 text-white text-sm px-4 py-1.5 hover:bg-slate-600 disabled:opacity-50"
               >
                 {isMcRunning ? '計算中…' : '1,000試行を実行'}
               </button>
@@ -280,7 +280,7 @@ export default function SimulatorPage() {
           <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">比較モード</span>
-              <div className="flex rounded-lg overflow-hidden border border-slate-200 text-xs">
+              <div className="flex rounded overflow-hidden border border-slate-200 text-xs">
                 <button
                   onClick={() => setCmpMode('strategy')}
                   className={`px-3 py-1 ${cmpMode === 'strategy' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}

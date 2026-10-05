@@ -24,7 +24,7 @@ export default function EducationCostCta({ relatedArticles }: { relatedArticles:
           <Link
             href={SIMULATOR_HREF}
             onClick={() => trackEvent('tool_to_simulator_cta_click', { tool: 'education_cost' })}
-            className="mt-3 w-full sm:w-auto inline-block bg-accent text-white font-bold text-center px-8 py-3 rounded-lg transition-all duration-150 ease-out hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg"
+            className="mt-3 w-full sm:w-auto inline-block bg-accent text-white font-bold text-center px-8 py-3 rounded transition-all duration-150 ease-out hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg"
           >
             → 資産シミュレーターで確認する
           </Link>

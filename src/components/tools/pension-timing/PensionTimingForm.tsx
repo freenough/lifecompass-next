@@ -89,7 +89,7 @@ export default function PensionTimingForm({ values, onChange }: PensionTimingFor
           <button
             type="button"
             onClick={() => onChange({ isNewRate: true })}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
               values.isNewRate ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
             }`}
           >
@@ -98,7 +98,7 @@ export default function PensionTimingForm({ values, onChange }: PensionTimingFor
           <button
             type="button"
             onClick={() => onChange({ isNewRate: false })}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
               !values.isNewRate ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
             }`}
           >

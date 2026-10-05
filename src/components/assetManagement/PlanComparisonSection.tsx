@@ -226,7 +226,7 @@ export default function PlanComparisonSection({
               ))}
             </select>
 
-            <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs">
+            <div className="flex rounded overflow-hidden border border-slate-300 text-xs">
               <button
                 type="button"
                 onClick={() => setMode('fixed')}

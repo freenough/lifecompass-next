@@ -148,7 +148,7 @@ export default function IdecoWithdrawalForm({ values, onChange }: IdecoWithdrawa
 
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-slate-600">注目する受取方法</label>
-        <div className="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+        <div className="flex rounded overflow-hidden border border-slate-200 text-sm">
           {RECEIVE_METHOD_OPTIONS.map(opt => (
             <button
               key={opt.key}
