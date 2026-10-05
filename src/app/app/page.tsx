@@ -219,19 +219,19 @@ export default function SimulatorPage() {
         <div className="flex flex-1 flex-col gap-4 min-w-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto lg:pr-4 lg:-mr-4">
 
           {unconfiguredAccounts.length > 0 && (
-            <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+            <p className="rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
               {unconfiguredAccounts.join('、')}の資産配分が未設定です（利回り0%として計算されています）。ポートフォリオに1行追加するか、利回り設定で直接利回りを入力してください。
             </p>
           )}
 
           {retirementAgeWarnings.length > 0 && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
+            <div className="rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
               {retirementAgeWarnings.map((w, i) => <p key={i}>{w}</p>)}
             </div>
           )}
 
           {cryptoManualWarnings.length > 0 && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
+            <div className="rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
               {cryptoManualWarnings.map((w, i) => <p key={i}>{w}</p>)}
             </div>
           )}
@@ -376,7 +376,7 @@ export default function SimulatorPage() {
           </div>
 
           {cmpMode === 'strategy' && activeStrategies.length > 1 && (
-            <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+            <div className="flex items-center gap-2 rounded bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
               <span aria-hidden="true">ℹ️</span>
               <span>
                 戦略比較モード　単一値のKPI・グラフの帯は「{STRATEGY_LABELS[displayStrategy] ?? displayStrategy}」基準。破綻確率の詳細はモンテカルロ分析欄で全戦略を確認できます。

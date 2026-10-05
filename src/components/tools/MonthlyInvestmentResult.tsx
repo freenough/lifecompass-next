@@ -18,7 +18,7 @@ export default function MonthlyInvestmentResult({
 }: MonthlyInvestmentResultProps) {
   if (years <= 0) {
     return (
-      <div className="rounded-xl bg-warn-bg p-4 text-sm text-warn-text">
+      <div className="rounded bg-warn-bg p-4 text-sm text-warn-text">
         目標達成年齢は現在の年齢より後に設定してください。
       </div>
     );

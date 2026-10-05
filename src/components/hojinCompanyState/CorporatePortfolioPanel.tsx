@@ -394,7 +394,7 @@ export default function CorporatePortfolioPanel() {
   return (
     <div className="flex flex-col gap-1">
       {cryptoWarnings.length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 mb-1">
+        <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 mb-1">
           {cryptoWarnings.map((w, i) => (
             <p key={i} className="text-[11px] text-amber-700">{w}</p>
           ))}

@@ -441,7 +441,7 @@ export default function AssetManagementPage() {
       </div>
 
       {removalNotice && (
-        <div className="mb-6 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
+        <div className="mb-6 rounded bg-slate-50 border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
           <p className="text-xs text-slate-600">{removalNotice}</p>
           <button
             onClick={() => setRemovalNotice(null)}
@@ -468,7 +468,7 @@ export default function AssetManagementPage() {
           {/* instruction_phase2_ui_alignment.md 1節：保有資産編集は下書き→明示保存方式。
               未保存の変更がある間はここに表示し、「保存」ボタンで確定する。 */}
           {holdingsDirty && (
-            <div className="mb-3 flex items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
+            <div className="mb-3 flex items-center justify-between gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-2">
               <span className="text-xs text-amber-700">未保存の変更があります</span>
               <button
                 type="button"

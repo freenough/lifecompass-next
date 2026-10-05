@@ -176,7 +176,7 @@ export default function RetirementIdecoTimingResult({ values }: RetirementIdecoT
         </div>
       )}
 
-      <div className="mt-3 rounded-lg bg-warn-bg p-3 text-xs text-warn-text leading-relaxed">
+      <div className="mt-3 rounded bg-warn-bg p-3 text-xs text-warn-text leading-relaxed">
         本ツールの結果は源泉徴収時点の概算です。実際の確定申告での精算額とは異なる場合があります。還付が生じる場合は確定申告が必要です。
       </div>
 

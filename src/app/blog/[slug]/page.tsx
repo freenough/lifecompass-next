@@ -104,7 +104,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       {/* アイキャッチ画像 */}
       {post.eyecatch && (
-        <div className="relative mb-8 aspect-[3/2] rounded-xl overflow-hidden">
+        <div className="relative mb-8 aspect-[3/2] rounded overflow-hidden">
           <Image
             src={post.eyecatch}
             alt={post.title}
@@ -146,7 +146,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           prose-th:bg-[#0F2A4A] prose-th:text-white prose-th:p-2
           prose-td:p-2 prose-td:border prose-td:border-slate-200
           prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded prose-code:text-[#0F2A4A] prose-code:before:content-none prose-code:after:content-none
-          prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded-lg
+          prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded
           prose-blockquote:border-l-4 prose-blockquote:border-blue-300 prose-blockquote:text-slate-500"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />

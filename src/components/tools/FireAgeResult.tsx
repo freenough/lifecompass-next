@@ -8,7 +8,7 @@ interface FireAgeResultProps {
 export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
   if (result === null) {
     return (
-      <div className="rounded-xl bg-warn-bg p-4 text-sm text-warn-text">
+      <div className="rounded bg-warn-bg p-4 text-sm text-warn-text">
         現在の条件では目標資産への到達は見込めません。積立額を増やす、目標資産を見直す、運用期間を延ばす、などをご検討ください。
       </div>
     );

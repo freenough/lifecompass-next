@@ -83,7 +83,7 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
         </div>
         <p className="mt-1 text-xs text-slate-400 leading-relaxed">{currentYearTax.note}</p>
         {currentYearTax.nonTaxableWarning.mayBeNonTaxable && (
-          <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
+          <p className="mt-2 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
             ⚠ {currentYearTax.nonTaxableWarning.message}
           </p>
         )}
@@ -107,7 +107,7 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
           <span className="font-bold text-accent">{fmt(roundedNext)}万円</span>
         </div>
         {nextYearTax.nonTaxableWarning.mayBeNonTaxable && (
-          <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
+          <p className="mt-2 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
             ⚠ {nextYearTax.nonTaxableWarning.message}
           </p>
         )}

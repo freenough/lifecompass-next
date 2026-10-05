@@ -29,7 +29,7 @@ export default function SampleDataBanner() {
   if (!show) return null;
 
   return (
-    <div className="mb-2 flex items-start gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-500 leading-relaxed">
+    <div className="mb-2 flex items-start gap-2 rounded bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-500 leading-relaxed">
       <p className="flex-1">
         この画面はサンプルデータです。ご自身の数字に置き換えると、結果がリアルタイムで更新されます。いつでも「サンプル」で元に戻せます。
       </p>
