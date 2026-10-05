@@ -143,7 +143,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
     <div className="fixed inset-0 z-[60] flex items-start justify-center pt-20 sm:pt-28 px-4">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative w-full max-w-lg bg-white rounded-xl shadow-xl flex flex-col max-h-[70vh] overflow-hidden">
+      <div className="relative w-full max-w-lg bg-white rounded shadow-xl flex flex-col max-h-[70vh] overflow-hidden">
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3 shrink-0">
           <IconSearch size={18} className="text-slate-400 shrink-0" />
           <input
@@ -172,7 +172,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                     type="button"
                     onMouseEnter={() => setFocusedIndex(idx)}
                     onClick={() => runHistoryQuery(q)}
-                    className={`w-full flex items-center justify-between gap-2 text-left px-2 py-2 rounded-lg text-sm text-slate-600 transition-colors ${
+                    className={`w-full flex items-center justify-between gap-2 text-left px-2 py-2 rounded text-sm text-slate-600 transition-colors ${
                       isFocused ? 'bg-slate-50' : ''
                     }`}
                   >
@@ -213,7 +213,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                         }}
                         onMouseEnter={() => setFocusedIndex(idx)}
                         onClick={() => activate(query)}
-                        className={`flex items-center justify-between gap-2 px-2 py-2 rounded-lg transition-colors ${
+                        className={`flex items-center justify-between gap-2 px-2 py-2 rounded transition-colors ${
                           isFocused ? 'bg-slate-50' : ''
                         }`}
                       >

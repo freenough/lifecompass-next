@@ -370,7 +370,7 @@ export default function SimulatorForm() {
     (p.spNisaBal ?? 0) + (p.spIdecoBal ?? 0) + (p.spTaxBal ?? 0) + (p.spCashBal ?? 0);
 
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+    <div className="flex flex-col gap-1 rounded border border-slate-200 bg-white p-4 text-sm">
       <SampleDataBanner />
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-sm font-bold text-slate-800">入力パラメータ</h2>
@@ -627,7 +627,7 @@ export default function SimulatorForm() {
             <button
               onClick={handleImportPersonalAssets}
               disabled={assetProfiles.length === 0}
-              className="text-[11px] border border-blue-300 text-blue-600 rounded-full px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+              className="text-[11px] border border-blue-300 text-blue-600 rounded px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             >
               資産管理ツールからインポート
             </button>

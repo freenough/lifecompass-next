@@ -16,7 +16,7 @@ const SIMULATOR_HREF = '/app';
 export default function RetirementIdecoTimingCta({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   return (
     <div className="flex flex-col items-center gap-5">
-      <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
+      <div className="w-full rounded bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
         <div className="text-center">
           <p className="text-sm text-slate-500">
             受給タイミングによる手取り額が分かったら、資産シミュレーターの退職イベント・iDeCoイベントに転記すれば、
@@ -25,7 +25,7 @@ export default function RetirementIdecoTimingCta({ relatedArticles }: { relatedA
           <Link
             href={SIMULATOR_HREF}
             onClick={() => trackEvent('tool_to_simulator_cta_click', { tool: 'retirement_ideco_timing' })}
-            className="mt-2 w-full sm:w-auto inline-block bg-accent text-white font-bold text-center px-8 py-3 rounded-lg transition-all duration-150 ease-out hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg"
+            className="mt-2 w-full sm:w-auto inline-block bg-accent text-white font-bold text-center px-8 py-3 rounded transition-all duration-150 ease-out hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg"
           >
             → 資産シミュレーターで続きを試算する
           </Link>

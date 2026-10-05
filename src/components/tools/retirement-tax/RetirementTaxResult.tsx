@@ -42,7 +42,7 @@ export default function RetirementTaxResult({
 
   return (
     <ToolCard variant="result">
-      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+      <div className="rounded border border-accent bg-blue-50 p-4">
         <p className="text-sm font-medium text-slate-500">手取り額</p>
         <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
           {fmt(netManYen)}
@@ -77,7 +77,7 @@ export default function RetirementTaxResult({
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-slate-200">
+      <div className="mt-4 rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}

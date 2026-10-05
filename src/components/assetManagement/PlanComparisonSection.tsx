@@ -199,7 +199,7 @@ export default function PlanComparisonSection({
   };
 
   return (
-    <section className="rounded-lg border border-slate-200 p-4">
+    <section className="rounded border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-bold text-slate-700">予実比較</h2>
         <button
@@ -219,14 +219,14 @@ export default function PlanComparisonSection({
             <select
               value={selectedPlan?.id ?? ''}
               onChange={(e) => setSelectedPlanId(e.target.value)}
-              className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+              className="rounded border border-slate-300 px-2 py-1.5 text-xs"
             >
               {sortedPlans.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
 
-            <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs">
+            <div className="flex rounded overflow-hidden border border-slate-300 text-xs">
               <button
                 type="button"
                 onClick={() => setMode('fixed')}

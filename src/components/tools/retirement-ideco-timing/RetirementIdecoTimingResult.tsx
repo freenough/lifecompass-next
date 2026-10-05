@@ -43,7 +43,7 @@ export default function RetirementIdecoTimingResult({ values }: RetirementIdecoT
 
   return (
     <ToolCard variant="result">
-      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+      <div className="rounded border border-accent bg-blue-50 p-4">
         <p className="text-sm font-medium text-slate-500">手取り合計(退職金+iDeCo一時金)</p>
         <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
           {fmt(totalNetManYen)}
@@ -51,7 +51,7 @@ export default function RetirementIdecoTimingResult({ values }: RetirementIdecoT
         </p>
       </div>
 
-      <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 leading-relaxed">
+      <div className="mt-3 rounded bg-slate-50 px-3 py-2 text-xs text-slate-600 leading-relaxed">
         <div className="flex justify-between py-0.5">
           <span className="text-slate-500">受給順序</span>
           <span className="font-medium">{ORDER_LABEL[rule.order]}(受給間隔{rule.interval}年)</span>
@@ -176,7 +176,7 @@ export default function RetirementIdecoTimingResult({ values }: RetirementIdecoT
         </div>
       )}
 
-      <div className="mt-3 rounded-lg bg-warn-bg p-3 text-xs text-warn-text leading-relaxed">
+      <div className="mt-3 rounded bg-warn-bg p-3 text-xs text-warn-text leading-relaxed">
         本ツールの結果は源泉徴収時点の概算です。実際の確定申告での精算額とは異なる場合があります。還付が生じる場合は確定申告が必要です。
       </div>
 

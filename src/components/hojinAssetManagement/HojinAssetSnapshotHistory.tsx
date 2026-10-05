@@ -80,12 +80,12 @@ export default function HojinAssetSnapshotHistory({
   const hasMore = descending.length > INITIAL_HISTORY_COUNT;
 
   return (
-    <div className="rounded-lg border border-slate-200 p-4">
+    <div className="rounded border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-bold text-slate-700">資産推移</h2>
         <button
           onClick={onRecord}
-          className="text-xs font-semibold bg-slate-800 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+          className="text-xs font-semibold bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700 transition-colors"
         >
           記録する
         </button>

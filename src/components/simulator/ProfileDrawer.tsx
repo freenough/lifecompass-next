@@ -84,7 +84,7 @@ export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) 
     <>
       <button
         onClick={() => setOpen(true)}
-        className={triggerClassName ?? 'rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors'}
+        className={triggerClassName ?? 'rounded border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors'}
       >
         保存 / 読み込み
       </button>
@@ -105,16 +105,16 @@ export default function ProfileDrawer({ triggerClassName }: ProfileDrawerProps) 
                   value={saveName}
                   onChange={e => setSaveName(e.target.value)}
                   placeholder="プロファイル名を入力"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
                 />
-                <button onClick={handleSave} className="w-full rounded-lg bg-slate-800 py-2 text-sm text-white hover:bg-slate-700">
+                <button onClick={handleSave} className="w-full rounded bg-slate-800 py-2 text-sm text-white hover:bg-slate-700">
                   {isUpdate ? '上書き保存' : '新規保存'}
                 </button>
-                <button onClick={handleShare} className="w-full rounded-lg border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                <button onClick={handleShare} className="w-full rounded border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50">
                   {copied ? 'コピーしました！' : 'URLで共有'}
                 </button>
-                <button onClick={handleExport} className="w-full rounded-lg border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50">JSONでエクスポート</button>
-                <label className="w-full cursor-pointer rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 text-center hover:border-slate-400">
+                <button onClick={handleExport} className="w-full rounded border border-slate-300 py-2 text-sm text-slate-700 hover:bg-slate-50">JSONでエクスポート</button>
+                <label className="w-full cursor-pointer rounded border border-dashed border-slate-300 py-2 text-sm text-slate-500 text-center hover:border-slate-400">
                   JSONをインポート
                   <input type="file" accept=".json" onChange={handleImport} className="hidden" />
                 </label>

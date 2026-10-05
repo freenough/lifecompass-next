@@ -87,7 +87,7 @@ function NumberField({ label, id, value, suffix, onChange, min, step = 1 }: Numb
           }}
           onFocus={e => { isFocused.current = true; clearZeroOrSelect(e.currentTarget); }}
           onClick={e => clearZeroOrSelect(e.currentTarget)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+          className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
         />
         <span className="shrink-0 text-sm text-slate-500">{suffix}</span>
       </div>
@@ -96,7 +96,7 @@ function NumberField({ label, id, value, suffix, onChange, min, step = 1 }: Numb
 }
 
 const selectClassName =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
+  'w-full rounded border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
 
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -158,7 +158,7 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
             <button
               type="button"
               onClick={() => onChange({ lumpSumPreference: 'installment' })}
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
                 values.lumpSumPreference === 'installment' ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
               }`}
             >
@@ -167,7 +167,7 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
             <button
               type="button"
               onClick={() => onChange({ lumpSumPreference: 'lump' })}
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded px-3 py-2 text-sm font-medium transition-colors ${
                 values.lumpSumPreference === 'lump' ? 'bg-accent text-white' : 'bg-bg-sub text-slate-600 hover:bg-border'
               }`}
             >
@@ -178,7 +178,7 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
         </div>
       )}
 
-      <div className="rounded-lg border border-slate-200">
+      <div className="rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}

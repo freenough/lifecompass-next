@@ -197,13 +197,13 @@ export default function AssetManagerProfilePanel({
   return (
     <>
       {/* 3節：ドロワーを閉じていても常に見える「現在のプロファイル」表示。トリガーボタンとは別。 */}
-      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <div className="flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2">
         <span className="text-xs text-slate-500">
           現在のプロファイル: <span className="font-bold text-slate-800">{mounted ? (currentProfile?.name ?? 'デフォルト') : 'デフォルト'}</span>
         </span>
         <button
           onClick={handleOpen}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+          className="rounded border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition-colors"
         >
           プロファイル管理
         </button>
@@ -225,9 +225,9 @@ export default function AssetManagerProfilePanel({
                   value={saveName}
                   onChange={(e) => setSaveName(e.target.value)}
                   placeholder="プロファイル名を入力"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
                 />
-                <button onClick={handleSave} className="w-full rounded-lg bg-slate-800 py-2 text-sm text-white hover:bg-slate-700">
+                <button onClick={handleSave} className="w-full rounded bg-slate-800 py-2 text-sm text-white hover:bg-slate-700">
                   {isUpdate ? '上書き保存' : '新規保存'}
                 </button>
 

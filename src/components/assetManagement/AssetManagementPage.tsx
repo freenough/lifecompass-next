@@ -431,7 +431,7 @@ export default function AssetManagementPage() {
       </div>
 
       {saveToast && (
-        <div className="fixed bottom-4 right-4 z-50 rounded-lg bg-slate-800 text-white text-xs px-4 py-2 shadow-lg">
+        <div className="fixed bottom-4 right-4 z-50 rounded bg-slate-800 text-white text-xs px-4 py-2 shadow-lg">
           保存しました
         </div>
       )}
@@ -441,7 +441,7 @@ export default function AssetManagementPage() {
       </div>
 
       {removalNotice && (
-        <div className="mb-6 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
+        <div className="mb-6 rounded bg-slate-50 border border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
           <p className="text-xs text-slate-600">{removalNotice}</p>
           <button
             onClick={() => setRemovalNotice(null)}
@@ -468,12 +468,12 @@ export default function AssetManagementPage() {
           {/* instruction_phase2_ui_alignment.md 1節：保有資産編集は下書き→明示保存方式。
               未保存の変更がある間はここに表示し、「保存」ボタンで確定する。 */}
           {holdingsDirty && (
-            <div className="mb-3 flex items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
+            <div className="mb-3 flex items-center justify-between gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-2">
               <span className="text-xs text-amber-700">未保存の変更があります</span>
               <button
                 type="button"
                 onClick={handleSaveHoldings}
-                className="shrink-0 rounded-lg bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-700"
+                className="shrink-0 rounded bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-700"
               >
                 保存
               </button>
@@ -486,7 +486,7 @@ export default function AssetManagementPage() {
           <button
             type="button"
             onClick={() => setFormOpen((o) => !o)}
-            className="lg:hidden w-full mb-3 rounded-lg border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
+            className="lg:hidden w-full mb-3 rounded border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
           >
             {formOpen ? '入力を閉じる ▲' : '入力を編集 ▼'}
           </button>
@@ -552,10 +552,10 @@ export default function AssetManagementPage() {
         {/* 右: サマリー群 */}
         <div className="flex flex-1 flex-col gap-6 min-w-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto lg:pr-4 lg:-mr-4">
           {includeCorporate && (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded border border-slate-200 bg-white p-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500">表示:</span>
-                <div className="flex rounded-lg overflow-hidden border border-slate-300 text-xs">
+                <div className="flex rounded overflow-hidden border border-slate-300 text-xs">
                   <button
                     type="button"
                     onClick={() => setDisplayScopePref('personalOnly')}
@@ -638,7 +638,7 @@ export default function AssetManagementPage() {
               <HojinAssetCompositionBar hojinHoldings={hojinHoldings} personalHoldings={holdings} displayScope={displayScope} />
             )}
 
-            <section className="rounded-lg border border-slate-200 p-4">
+            <section className="rounded border border-slate-200 p-4">
               <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1">
                 資産クラス内訳
                 {/* 0.5節：FIRE進捗が「個人資産のみ」と明記しているのに対し、このセクションが
@@ -671,7 +671,7 @@ export default function AssetManagementPage() {
           {/* 5. 法人資産を個人化した場合（旧「適用税率」カード）。「今の事実」とは性質が異なる
               将来の仮定の見積もりのため、最後に明確に区切って独立させる。 */}
           {includeCorporate && (
-            <section className="rounded-lg border border-slate-200 p-4">
+            <section className="rounded border border-slate-200 p-4">
               <h2 className="text-sm font-bold text-slate-700 mb-3">法人資産を個人化した場合</h2>
               <PersonalizationRatioSlider
                 ratio={personalizationRatio}

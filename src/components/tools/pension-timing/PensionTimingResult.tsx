@@ -32,7 +32,7 @@ export default function PensionTimingResult({
 
   return (
     <ToolCard variant="result">
-      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+      <div className="rounded border border-accent bg-blue-50 p-4">
         <p className="text-sm font-medium text-slate-500">{targetAge}歳受給での年額(概算)</p>
         <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
           {selected.totalAmount.toLocaleString('ja-JP')}

@@ -118,7 +118,7 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+    <div className="rounded border border-slate-200 bg-white px-3 py-2">
       {linked ? (
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -127,13 +127,13 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="計画の名前（未入力可）"
-              className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs focus:border-slate-500 focus:outline-none"
+              className="min-w-0 flex-1 rounded border border-slate-300 px-2 py-1.5 text-xs focus:border-slate-500 focus:outline-none"
             />
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
+              className="shrink-0 rounded bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
             >
               {saving ? '計算中…' : '計画を保存'}
             </button>
@@ -156,7 +156,7 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
       ) : (
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs text-slate-400">シミュレータープロファイルと連携すると計画を保存できます</span>
-          <button type="button" disabled className="shrink-0 rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed">
+          <button type="button" disabled className="shrink-0 rounded bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed">
             計画を保存
           </button>
         </div>

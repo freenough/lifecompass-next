@@ -24,7 +24,7 @@ export default function PrepayVsInvestResult({
 
   return (
     <ToolCard variant="result">
-      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+      <div className="rounded border border-accent bg-blue-50 p-4">
         <p className="text-sm font-medium text-slate-500">繰上返済{prepayAmount.toLocaleString('ja-JP')}万円による利息削減額（確実な効果）</p>
         {savings.noSolution ? (
           <p className="mt-1 text-lg font-semibold text-slate-700">

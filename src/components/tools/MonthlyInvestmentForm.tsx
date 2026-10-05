@@ -55,7 +55,7 @@ function NumberField({ label, id, value, suffix, step = 1, onChange }: NumberFie
           }}
           onFocus={e => clearZeroOrSelect(e.currentTarget)}
           onClick={e => clearZeroOrSelect(e.currentTarget)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+          className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
         />
         <span className="shrink-0 text-sm text-slate-500">{suffix}</span>
       </div>
@@ -119,7 +119,7 @@ export default function MonthlyInvestmentForm({ values, onChange }: MonthlyInves
             }}
             onFocus={e => clearZeroOrSelect(e.currentTarget)}
             onClick={e => clearZeroOrSelect(e.currentTarget)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+            className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
           />
           <span className="shrink-0 text-sm text-slate-500">%</span>
           <div className="flex shrink-0 gap-1">

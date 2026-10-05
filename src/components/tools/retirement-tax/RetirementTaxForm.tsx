@@ -75,7 +75,7 @@ function NumberField({ label, id, value, suffix, onChange, min }: NumberFieldPro
           }}
           onFocus={e => { isFocused.current = true; clearZeroOrSelect(e.currentTarget); }}
           onClick={e => clearZeroOrSelect(e.currentTarget)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+          className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
         />
         <span className="shrink-0 text-sm text-slate-500">{suffix}</span>
       </div>
@@ -123,7 +123,7 @@ export default function RetirementTaxForm({ values, onChange }: RetirementTaxFor
         </label>
       )}
 
-      <div className="rounded-lg border border-slate-200">
+      <div className="rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}

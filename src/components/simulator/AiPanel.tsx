@@ -403,7 +403,7 @@ export default function AiPanel() {
   const mcReady = mcResult !== null;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
+    <div className="rounded border border-slate-200 bg-white">
       <button
         onClick={() => setOpen(o => !o)}
         className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
@@ -447,7 +447,7 @@ export default function AiPanel() {
 
           {/* MC gate */}
           {!mcReady ? (
-            <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600 space-y-2">
+            <div className="rounded bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600 space-y-2">
               <p>破綻確率を含む精度の高い分析のため、先にMCシミュレーションを実行してください。</p>
               <button
                 onClick={() => runMonteCarloWithCorporateAwareness()}
@@ -461,7 +461,7 @@ export default function AiPanel() {
             <button
               onClick={run}
               disabled={loading || !hasApiKey}
-              className="w-full rounded-lg bg-slate-800 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50 transition-colors"
+              className="w-full rounded bg-slate-800 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50 transition-colors"
             >
               {loading ? '分析中…（最大45秒）' : '分析を生成'}
             </button>
@@ -476,7 +476,7 @@ export default function AiPanel() {
           )}
 
           {result && (
-            <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+            <div className="rounded bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
               {result}
             </div>
           )}

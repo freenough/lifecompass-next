@@ -25,7 +25,7 @@ export default function EducationCostResult({ kids }: EducationCostResultProps) 
       ) : (
         <>
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-accent bg-blue-50 p-3">
+            <div className="rounded border border-accent bg-blue-50 p-3">
               <p className="text-xs font-medium text-slate-500">教育費総額</p>
               <p className="mt-1 text-2xl sm:text-3xl font-bold text-slate-800 leading-tight">
                 {fmtMan(calcTotalEducationCost(kids))}<span className="text-xs font-medium ml-0.5">万円</span>
@@ -34,7 +34,7 @@ export default function EducationCostResult({ kids }: EducationCostResultProps) 
             {(() => {
               const peak = calcPeakYear(kids);
               return (
-                <div className="rounded-lg border border-slate-200 p-3">
+                <div className="rounded border border-slate-200 p-3">
                   <p className="text-xs font-medium text-slate-500">ピーク時の年間負担額({peak.yearOffset}年後)</p>
                   <p className="mt-1 text-2xl sm:text-3xl font-bold text-slate-800 leading-tight">
                     {fmtMan(peak.amount)}<span className="text-xs font-medium ml-0.5">万円</span>

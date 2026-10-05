@@ -8,7 +8,7 @@ interface FireAgeResultProps {
 export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
   if (result === null) {
     return (
-      <div className="rounded-xl bg-warn-bg p-4 text-sm text-warn-text">
+      <div className="rounded bg-warn-bg p-4 text-sm text-warn-text">
         現在の条件では目標資産への到達は見込めません。積立額を増やす、目標資産を見直す、運用期間を延ばす、などをご検討ください。
       </div>
     );
@@ -31,7 +31,7 @@ export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
 
   return (
     <ToolCard variant="result">
-      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+      <div className="rounded border border-accent bg-blue-50 p-4">
         <p className="text-sm font-medium text-slate-500">目標資産到達年齢</p>
         <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
           {achievedAge}

@@ -38,7 +38,7 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
 
   return (
     <ToolCard variant="result">
-      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+      <div className="rounded border border-accent bg-blue-50 p-4">
         <p className="text-sm font-medium text-slate-500">確保しておきたい現金の目安</p>
         <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
           {fmt(headlineManYen)}
@@ -59,7 +59,7 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
         </p>
       </div>
 
-      <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 leading-relaxed">
+      <p className="mt-3 rounded bg-slate-50 px-3 py-2 text-xs text-slate-500 leading-relaxed">
         本ツールは、独身・扶養家族なし・給与所得のみを前提とした簡易試算です(社会保険料控除は
         概算料率で考慮しています)。配偶者控除・扶養控除、事業所得・不動産所得等がある場合や、
         ふるさと納税・住宅ローン控除等を利用している場合は、実際の税額と異なります。
@@ -83,7 +83,7 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
         </div>
         <p className="mt-1 text-xs text-slate-400 leading-relaxed">{currentYearTax.note}</p>
         {currentYearTax.nonTaxableWarning.mayBeNonTaxable && (
-          <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
+          <p className="mt-2 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
             ⚠ {currentYearTax.nonTaxableWarning.message}
           </p>
         )}
@@ -107,21 +107,21 @@ export default function ResidentTaxTimingResult({ input }: ResidentTaxTimingResu
           <span className="font-bold text-accent">{fmt(roundedNext)}万円</span>
         </div>
         {nextYearTax.nonTaxableWarning.mayBeNonTaxable && (
-          <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
+          <p className="mt-2 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 leading-relaxed">
             ⚠ {nextYearTax.nonTaxableWarning.message}
           </p>
         )}
       </div>
 
       {assumptionNotes.length > 0 && (
-        <div className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 leading-relaxed space-y-1">
+        <div className="mt-4 rounded bg-slate-50 p-3 text-xs text-slate-500 leading-relaxed space-y-1">
           {assumptionNotes.map((note, i) => (
             <p key={i}>※ {note}</p>
           ))}
         </div>
       )}
 
-      <div className="mt-4 rounded-lg border border-slate-200">
+      <div className="mt-4 rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}

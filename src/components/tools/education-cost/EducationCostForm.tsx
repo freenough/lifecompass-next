@@ -82,13 +82,13 @@ const UNIVERSITY_OPTIONS: { value: UniversityTrack; label: string }[] = [
 ];
 
 const selectClassName =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
+  'w-full rounded border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
 
 function PublicPrivateToggle({
   value, onChange,
 }: { value: PublicPrivate; onChange: (v: PublicPrivate) => void }) {
   return (
-    <div className="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+    <div className="flex rounded overflow-hidden border border-slate-200 text-sm">
       {(['public', 'private'] as PublicPrivate[]).map(opt => (
         <button
           key={opt}
@@ -147,7 +147,7 @@ export default function EducationCostForm({
               key={i}
               type="button"
               onClick={() => onSelectTab(i)}
-              className={`flex flex-col items-start rounded-lg border px-3 py-1.5 text-left transition-colors ${
+              className={`flex flex-col items-start rounded border px-3 py-1.5 text-left transition-colors ${
                 isActive ? 'border-accent bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'
               }`}
             >
@@ -166,7 +166,7 @@ export default function EducationCostForm({
           <button
             type="button"
             onClick={onAddChild}
-            className="rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-600 transition-colors"
+            className="rounded border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-600 transition-colors"
           >
             + 子供を追加
           </button>
@@ -174,7 +174,7 @@ export default function EducationCostForm({
       </div>
 
       {/* 選択中タブの入力ブロック */}
-      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="currentGrade" className="text-xs font-medium text-slate-600">
             現在の学年
@@ -228,7 +228,7 @@ export default function EducationCostForm({
           </select>
         </div>
 
-        <div className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+        <div className="flex items-center justify-between rounded border border-slate-200 px-3 py-2">
           <span className="text-sm text-slate-600">大学で一人暮らしになる予定ですか?</span>
           <LivingAloneSwitch
             checked={active.livingAlone}
@@ -253,7 +253,7 @@ export default function EducationCostForm({
                   if (isNaN(monthlyMan)) return;
                   onChangeChild(activeIndex, { remittanceAnnual: Math.max(0, Math.round(monthlyMan)) * 12 * 10_000 });
                 }}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+                className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
               />
               <span className="shrink-0 text-sm text-slate-500">万円/月</span>
             </div>

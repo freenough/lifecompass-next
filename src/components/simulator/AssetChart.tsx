@@ -223,7 +223,7 @@ export default function AssetChart({
           return row;
         });
       return (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded border border-slate-200 bg-white p-4">
           <h3 className="text-sm font-semibold text-slate-700 mb-3">モンテカルロ — 総資産推移（1,000試行）</h3>
           <ResponsiveContainer width="100%" height={320}>
             <ComposedChart data={data} margin={{ top: 4, right: 10, bottom: 0, left: 0 }}>
@@ -280,7 +280,7 @@ export default function AssetChart({
       現金:  s.cash  + (s.spCash  ?? 0),
     }));
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-slate-700">口座内訳</h3>
           <TabButtons tab={tab} setTab={setTab} />
@@ -336,7 +336,7 @@ export default function AssetChart({
         return row;
       });
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-slate-700">シナリオ比較（楽観/中立/悲観）</h3>
           <TabButtons tab={tab} setTab={setTab} disabled />
@@ -383,7 +383,7 @@ export default function AssetChart({
     });
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded border border-slate-200 bg-white p-4">
       <div className={`flex items-center justify-between ${inflR > 0 ? 'mb-1' : 'mb-3'}`}>
         <h3 className="text-sm font-semibold text-slate-700">総資産推移</h3>
         <TabButtons tab={tab} setTab={setTab} />
@@ -442,7 +442,7 @@ export default function AssetChart({
 
 function TabButtons({ tab, setTab, disabled }: { tab: TabKey; setTab: (t: TabKey) => void; disabled?: boolean }) {
   return (
-    <div className={`flex rounded-lg overflow-hidden border border-slate-200 text-xs ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
+    <div className={`flex rounded overflow-hidden border border-slate-200 text-xs ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
       {(['total', 'breakdown'] as TabKey[]).map(t => (
         <button key={t} onClick={() => setTab(t)} className={`px-3 py-1 ${tab === t ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>
           {t === 'total' ? '総資産' : '内訳'}

@@ -21,7 +21,7 @@ export default function AssetAllocationChangeTable({ holdings, snapshots }: Asse
   if (allClasses.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-slate-200 p-4">
+    <div className="rounded border border-slate-200 p-4">
       <p className="text-xs font-semibold text-slate-600 mb-2">資産配分の変化（{latest.date}比）</p>
       <table className="w-full text-xs">
         <thead>

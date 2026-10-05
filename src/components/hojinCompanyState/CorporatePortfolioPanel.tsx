@@ -66,7 +66,7 @@ function AssetCard({ phase, data }: AssetCardProps) {
   const totalAmount = isCurrent ? rows.reduce((s, r) => s + (r.amount ?? 0), 0) : 0;
 
   return (
-    <div className="rounded-lg border border-slate-200 p-3 flex flex-col gap-2">
+    <div className="rounded border border-slate-200 p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-600">法人資産（投資分）</span>
         {isCurrent
@@ -394,7 +394,7 @@ export default function CorporatePortfolioPanel() {
   return (
     <div className="flex flex-col gap-1">
       {cryptoWarnings.length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 mb-1">
+        <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 mb-1">
           {cryptoWarnings.map((w, i) => (
             <p key={i} className="text-[11px] text-amber-700">{w}</p>
           ))}
@@ -419,7 +419,7 @@ export default function CorporatePortfolioPanel() {
           <button
             onClick={handleImport}
             disabled={assetProfiles.length === 0}
-            className="text-[11px] border border-blue-300 text-blue-600 rounded-full px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            className="text-[11px] border border-blue-300 text-blue-600 rounded px-2 py-1 hover:bg-blue-50 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           >
             インポート
           </button>
@@ -443,14 +443,14 @@ export default function CorporatePortfolioPanel() {
         subAction={
           <button
             onClick={copyCurrentToWorking}
-            className="text-[10px] border border-slate-300 rounded-full px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
+            className="text-[10px] border border-slate-300 rounded px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
           >
             ①の比率をコピー
           </button>
         }
       >
         <AssetCard phase="working" data={portfolio.working} />
-        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">
+        <div className="rounded bg-slate-50 px-3 py-2 text-xs flex gap-4">
           <span className="text-slate-500">μ/σ</span>
           <span><strong>{muWLive.toFixed(1)}% / {sigmaWLive.toFixed(1)}%</strong></span>
         </div>
@@ -470,7 +470,7 @@ export default function CorporatePortfolioPanel() {
         {!retirementSameAsWorking && (
           <AssetCard phase="retirement" data={portfolio.retirement} />
         )}
-        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">
+        <div className="rounded bg-slate-50 px-3 py-2 text-xs flex gap-4">
           <span className="text-slate-500">μ/σ</span>
           <span><strong>{muRLive.toFixed(1)}% / {sigmaRLive.toFixed(1)}%</strong></span>
         </div>

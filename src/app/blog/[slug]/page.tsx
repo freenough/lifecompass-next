@@ -104,7 +104,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       {/* アイキャッチ画像 */}
       {post.eyecatch && (
-        <div className="relative mb-8 aspect-[3/2] rounded-xl overflow-hidden">
+        <div className="relative mb-8 aspect-[3/2] rounded overflow-hidden">
           <Image
             src={post.eyecatch}
             alt={post.title}
@@ -146,14 +146,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           prose-th:bg-[#0F2A4A] prose-th:text-white prose-th:p-2
           prose-td:p-2 prose-td:border prose-td:border-slate-200
           prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded prose-code:text-[#0F2A4A] prose-code:before:content-none prose-code:after:content-none
-          prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded-lg
+          prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded
           prose-blockquote:border-l-4 prose-blockquote:border-blue-300 prose-blockquote:text-slate-500"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
       </ArticleLinkTracker>
 
       {/* CTA */}
-      <div className="mt-12 bg-[#EFF6FF] border border-blue-100 rounded-xl p-8 text-center">
+      <div className="mt-12 bg-[#EFF6FF] border border-blue-100 rounded p-8 text-center">
         <p className="text-sm text-slate-500 mb-2">この記事を読んで気になった方へ</p>
         <h2 className="text-xl font-bold text-[#0F2A4A] mb-4">
           FREENOUGH 資産シミュレーターで<br />あなたのFIRE達成時期を試算する
@@ -161,7 +161,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <p className="text-sm text-slate-500 mb-6">無料・登録不要・データは端末内に保存</p>
         <Link
           href="/app"
-          className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
+          className="inline-block bg-[#0F2A4A] text-white font-bold px-8 py-3 rounded hover:opacity-90 transition-opacity"
         >
           無料で試す →
         </Link>
@@ -176,7 +176,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <li key={r.slug}>
                 <Link
                   href={`/blog/${r.slug}`}
-                  className="flex items-start gap-3 group p-4 border border-slate-200 rounded-lg hover:shadow-sm transition-shadow"
+                  className="flex items-start gap-3 group p-4 border border-slate-200 rounded hover:shadow-sm transition-shadow"
                 >
                   <span className="text-xs bg-[#EFF6FF] text-[#0F2A4A] px-2 py-0.5 rounded-full shrink-0 mt-0.5">
                     {r.category}

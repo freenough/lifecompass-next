@@ -147,7 +147,7 @@ export default function MethodologyPage() {
               をご利用ください。
             </p>
           </div>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2">
+          <div className="bg-gray-50 border border-gray-200 rounded p-4 mt-2">
             <h3 className="font-medium text-slate-700 mb-2">計算上の留意事項</h3>
             <ul className="space-y-3 text-slate-600 text-xs leading-relaxed list-none">
               <li>
@@ -247,7 +247,7 @@ export default function MethodologyPage() {
             各試行で毎年の運用リターンを正規分布からランダムに生成し（平均μ・標準偏差σ）、
             平均余命までに資産がゼロになった試行の割合を「破綻確率」として表示します。
           </p>
-          <div className="bg-slate-50 border border-slate-200 rounded-md px-4 py-3 mt-2">
+          <div className="bg-slate-50 border border-slate-200 rounded px-4 py-3 mt-2">
             <p className="font-medium text-slate-700 mb-1 text-xs">破綻確率の目安</p>
             <div className="space-y-1 text-xs">
               <div className="flex gap-3"><span className="text-slate-600 font-medium w-16">5%未満</span><span>概ね安全圏</span></div>

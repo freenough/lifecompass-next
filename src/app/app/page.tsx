@@ -194,12 +194,12 @@ export default function SimulatorPage() {
           <div className="lg:hidden h-[33px]" aria-hidden="true" />
           <div className="lg:hidden fixed top-14 left-4 right-4 z-30 flex items-center gap-2">
             <button
-              className="flex-1 rounded-lg border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
+              className="flex-1 rounded border border-slate-300 bg-white py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50"
               onClick={() => setFormOpen(o => !o)}
             >
               {formOpen ? '入力を閉じる ▲' : '入力を編集 ▼'}
             </button>
-            <ProfileDrawer triggerClassName="shrink-0 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50" />
+            <ProfileDrawer triggerClassName="shrink-0 whitespace-nowrap rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm hover:bg-slate-50" />
           </div>
           {/* トグンボタンの表示範囲（lg:hidden＝1024px未満）と、フォームの開閉が実際に
               機能する範囲を一致させる。以前は`hidden sm:flex`（640px以上で強制表示）
@@ -219,19 +219,19 @@ export default function SimulatorPage() {
         <div className="flex flex-1 flex-col gap-4 min-w-0 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto lg:pr-4 lg:-mr-4">
 
           {unconfiguredAccounts.length > 0 && (
-            <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+            <p className="rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
               {unconfiguredAccounts.join('、')}の資産配分が未設定です（利回り0%として計算されています）。ポートフォリオに1行追加するか、利回り設定で直接利回りを入力してください。
             </p>
           )}
 
           {retirementAgeWarnings.length > 0 && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
+            <div className="rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
               {retirementAgeWarnings.map((w, i) => <p key={i}>{w}</p>)}
             </div>
           )}
 
           {cryptoManualWarnings.length > 0 && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
+            <div className="rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 space-y-1">
               {cryptoManualWarnings.map((w, i) => <p key={i}>{w}</p>)}
             </div>
           )}
@@ -247,7 +247,7 @@ export default function SimulatorPage() {
 
           {/* MC ↔ 固定 toggle */}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+            <div className="flex rounded overflow-hidden border border-slate-200 text-sm">
               <button
                 onClick={() => setMode('fixed')}
                 className={`px-4 py-1.5 ${mode === 'fixed' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
@@ -266,7 +266,7 @@ export default function SimulatorPage() {
               <button
                 onClick={runMonteCarloWithCorporateAwareness}
                 disabled={isMcRunning}
-                className="rounded-lg bg-slate-700 text-white text-sm px-4 py-1.5 hover:bg-slate-600 disabled:opacity-50"
+                className="rounded bg-slate-700 text-white text-sm px-4 py-1.5 hover:bg-slate-600 disabled:opacity-50"
               >
                 {isMcRunning ? '計算中…' : '1,000試行を実行'}
               </button>
@@ -277,10 +277,10 @@ export default function SimulatorPage() {
           )}
 
           {/* 比較モード */}
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 flex flex-col gap-2">
+          <div className="rounded border border-slate-200 bg-white px-4 py-3 flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">比較モード</span>
-              <div className="flex rounded-lg overflow-hidden border border-slate-200 text-xs">
+              <div className="flex rounded overflow-hidden border border-slate-200 text-xs">
                 <button
                   onClick={() => setCmpMode('strategy')}
                   className={`px-3 py-1 ${cmpMode === 'strategy' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
@@ -353,7 +353,7 @@ export default function SimulatorPage() {
               特定口座で運用継続するかどうかのトグル。比例取崩・現金優先・課税優先の
               取崩戦略選択の直下に置き、「黒字/赤字で挙動が変わる」設定であることが
               視覚的に伝わる位置にする。 */}
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 flex flex-col gap-1.5">
+          <div className="rounded border border-slate-200 bg-white px-4 py-3 flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm text-slate-700">退職後の収支黒字を運用する</span>
               <button
@@ -376,7 +376,7 @@ export default function SimulatorPage() {
           </div>
 
           {cmpMode === 'strategy' && activeStrategies.length > 1 && (
-            <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+            <div className="flex items-center gap-2 rounded bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
               <span aria-hidden="true">ℹ️</span>
               <span>
                 戦略比較モード　単一値のKPI・グラフの帯は「{STRATEGY_LABELS[displayStrategy] ?? displayStrategy}」基準。破綻確率の詳細はモンテカルロ分析欄で全戦略を確認できます。

@@ -87,7 +87,7 @@ export default function CorporateEventTimeline() {
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white">
+    <div className="rounded border border-slate-200 bg-white">
       <button
         onClick={() => setOpen(o => !o)}
         className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
@@ -196,7 +196,7 @@ function EventForm({
   isEdit: boolean;
 }) {
   return (
-    <div className="mt-2 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+    <div className="mt-2 flex flex-col gap-2 rounded border border-slate-200 bg-slate-50 p-3">
       <select
         value={form.kind}
         onChange={e => setForm(f => ({ ...f, kind: e.target.value as CorporateEventKind }))}

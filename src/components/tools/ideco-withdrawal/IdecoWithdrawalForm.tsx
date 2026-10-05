@@ -79,7 +79,7 @@ function NumberField({ label, id, value, suffix, onChange, min }: NumberFieldPro
           }}
           onFocus={e => { isFocused.current = true; clearZeroOrSelect(e.currentTarget); }}
           onClick={e => clearZeroOrSelect(e.currentTarget)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
+          className="w-full rounded border border-slate-300 px-3 py-2 text-right text-base focus:border-accent focus:outline-none"
         />
         <span className="shrink-0 text-sm text-slate-500">{suffix}</span>
       </div>
@@ -96,7 +96,7 @@ const RECEIVE_METHOD_OPTIONS: { key: ReceiveMethod; label: string }[] = [
 ];
 
 const selectClassName =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
+  'w-full rounded border border-slate-300 px-3 py-2 text-base bg-white focus:border-accent focus:outline-none';
 
 export default function IdecoWithdrawalForm({ values, onChange }: IdecoWithdrawalFormProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -148,7 +148,7 @@ export default function IdecoWithdrawalForm({ values, onChange }: IdecoWithdrawa
 
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-slate-600">注目する受取方法</label>
-        <div className="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+        <div className="flex rounded overflow-hidden border border-slate-200 text-sm">
           {RECEIVE_METHOD_OPTIONS.map(opt => (
             <button
               key={opt.key}
@@ -202,7 +202,7 @@ export default function IdecoWithdrawalForm({ values, onChange }: IdecoWithdrawa
         iDeCo標準的な受給期間を代表値としています。企業型DCは運営管理機関により異なる場合があります。
       </p>
 
-      <div className="rounded-lg border border-slate-200">
+      <div className="rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}
