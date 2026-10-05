@@ -153,7 +153,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       </ArticleLinkTracker>
 
       {/* CTA */}
-      <div className="mt-12 bg-[#EFF6FF] border border-blue-100 rounded-xl p-8 text-center">
+      <div className="mt-12 bg-[#EFF6FF] border border-blue-100 rounded p-8 text-center">
         <p className="text-sm text-slate-500 mb-2">この記事を読んで気になった方へ</p>
         <h2 className="text-xl font-bold text-[#0F2A4A] mb-4">
           FREENOUGH 資産シミュレーターで<br />あなたのFIRE達成時期を試算する
@@ -176,7 +176,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <li key={r.slug}>
                 <Link
                   href={`/blog/${r.slug}`}
-                  className="flex items-start gap-3 group p-4 border border-slate-200 rounded-lg hover:shadow-sm transition-shadow"
+                  className="flex items-start gap-3 group p-4 border border-slate-200 rounded hover:shadow-sm transition-shadow"
                 >
                   <span className="text-xs bg-[#EFF6FF] text-[#0F2A4A] px-2 py-0.5 rounded-full shrink-0 mt-0.5">
                     {r.category}

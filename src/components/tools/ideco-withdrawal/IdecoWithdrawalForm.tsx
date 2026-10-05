@@ -202,7 +202,7 @@ export default function IdecoWithdrawalForm({ values, onChange }: IdecoWithdrawa
         iDeCo標準的な受給期間を代表値としています。企業型DCは運営管理機関により異なる場合があります。
       </p>
 
-      <div className="rounded-lg border border-slate-200">
+      <div className="rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}

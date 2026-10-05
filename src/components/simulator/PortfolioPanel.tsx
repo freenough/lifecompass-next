@@ -65,7 +65,7 @@ function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
   const totalAmount = mainTotal + spTotal;
 
   return (
-    <div className="rounded-lg border border-slate-200 p-3 flex flex-col gap-2">
+    <div className="rounded border border-slate-200 p-3 flex flex-col gap-2">
       {/* header */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-600">{ACCT_LABELS[acct]}</span>
@@ -268,7 +268,7 @@ export default function PortfolioPanel() {
         <AssetCard phase="working" acct="nisa"  rows={pf.working.nisa} />
         <AssetCard phase="working" acct="ideco" rows={pf.working.ideco} />
         <AssetCard phase="working" acct="tax"   rows={pf.working.tax} />
-        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">
+        <div className="rounded bg-slate-50 px-3 py-2 text-xs flex gap-4">
           <span className="text-slate-500">全口座集計</span>
           <span>μ: <strong>{muW.toFixed(1)}%</strong></span>
           <span>σ: <strong>{sigmaW.toFixed(1)}%</strong></span>
@@ -293,7 +293,7 @@ export default function PortfolioPanel() {
             <AssetCard phase="retirement" acct="tax"   rows={pf.retirement.tax} />
           </>
         )}
-        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">
+        <div className="rounded bg-slate-50 px-3 py-2 text-xs flex gap-4">
           <span className="text-slate-500">全口座集計</span>
           <span>μ: <strong>{muR.toFixed(1)}%</strong></span>
           <span>σ: <strong>{sigmaR.toFixed(1)}%</strong></span>

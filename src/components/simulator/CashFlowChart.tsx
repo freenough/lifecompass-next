@@ -20,7 +20,7 @@ export default function CashFlowChart({ snaps }: CashFlowChartProps) {
   const data = snaps.map(s => ({ age: s.age, CF: s.cashFlow }));
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
+    <div className="rounded border border-slate-200 bg-white">
       <button
         onClick={() => setOpen(o => !o)}
         className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"

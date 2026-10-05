@@ -16,7 +16,7 @@ const SIMULATOR_HREF = '/app';
 export default function EducationCostCta({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   return (
     <div className="flex flex-col items-center gap-5">
-      <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
+      <div className="w-full rounded bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
         <div className="text-center">
           <p className="text-sm text-slate-500">
             この教育費のピークが資産形成にどう影響するか、本格シミュレーターの「ライフイベント」機能で確認できます

@@ -16,7 +16,7 @@ const SIMULATOR_HREF = '/app';
 export default function PrepayVsInvestCta({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   return (
     <div className="flex flex-col items-center gap-5">
-      <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
+      <div className="w-full rounded bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
         <div className="text-center">
           <p className="text-sm text-slate-500">
             この試算は繰上返済と投資それぞれの効果を単体で比較した簡易計算です。

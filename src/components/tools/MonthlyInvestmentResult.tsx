@@ -35,7 +35,7 @@ export default function MonthlyInvestmentResult({
           既に目標資産に到達しています。積立は必要ありません。
         </p>
       ) : (
-        <div className="mt-3 rounded-lg border border-accent bg-blue-50 p-4">
+        <div className="mt-3 rounded border border-accent bg-blue-50 p-4">
           <p className="text-sm font-medium text-slate-500">毎月の積立額(概算)</p>
           <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
             {fmtMonthly(result as number)}

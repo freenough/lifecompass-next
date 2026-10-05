@@ -197,7 +197,7 @@ export default function AssetManagerProfilePanel({
   return (
     <>
       {/* 3節：ドロワーを閉じていても常に見える「現在のプロファイル」表示。トリガーボタンとは別。 */}
-      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <div className="flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2">
         <span className="text-xs text-slate-500">
           現在のプロファイル: <span className="font-bold text-slate-800">{mounted ? (currentProfile?.name ?? 'デフォルト') : 'デフォルト'}</span>
         </span>

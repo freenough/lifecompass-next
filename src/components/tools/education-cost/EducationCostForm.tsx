@@ -174,7 +174,7 @@ export default function EducationCostForm({
       </div>
 
       {/* 選択中タブの入力ブロック */}
-      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="currentGrade" className="text-xs font-medium text-slate-600">
             現在の学年
@@ -228,7 +228,7 @@ export default function EducationCostForm({
           </select>
         </div>
 
-        <div className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+        <div className="flex items-center justify-between rounded border border-slate-200 px-3 py-2">
           <span className="text-sm text-slate-600">大学で一人暮らしになる予定ですか?</span>
           <LivingAloneSwitch
             checked={active.livingAlone}

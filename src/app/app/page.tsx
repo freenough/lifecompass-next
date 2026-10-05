@@ -277,7 +277,7 @@ export default function SimulatorPage() {
           )}
 
           {/* 比較モード */}
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 flex flex-col gap-2">
+          <div className="rounded border border-slate-200 bg-white px-4 py-3 flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">比較モード</span>
               <div className="flex rounded overflow-hidden border border-slate-200 text-xs">
@@ -353,7 +353,7 @@ export default function SimulatorPage() {
               特定口座で運用継続するかどうかのトグル。比例取崩・現金優先・課税優先の
               取崩戦略選択の直下に置き、「黒字/赤字で挙動が変わる」設定であることが
               視覚的に伝わる位置にする。 */}
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 flex flex-col gap-1.5">
+          <div className="rounded border border-slate-200 bg-white px-4 py-3 flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm text-slate-700">退職後の収支黒字を運用する</span>
               <button

@@ -133,7 +133,7 @@ export default function CorporateSettingsSection() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-3">
+          <div className="rounded border border-slate-200 bg-white p-3">
             <h3 className="text-xs font-semibold text-slate-600 mb-2">実効税率</h3>
             <div className="flex items-center gap-2">
               <input

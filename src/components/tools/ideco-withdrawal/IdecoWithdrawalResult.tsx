@@ -68,7 +68,7 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
           return (
             <div
               key={key}
-              className={`rounded-lg border p-3 ${
+              className={`rounded border p-3 ${
                 isSelected ? 'border-accent bg-blue-50' : 'border-slate-200'
               }`}
             >
@@ -86,7 +86,7 @@ export default function IdecoWithdrawalResult({ values }: IdecoWithdrawalResultP
         })}
       </div>
 
-      <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2">
+      <div className="mt-3 rounded bg-slate-50 px-3 py-2">
         <p className="text-xs text-slate-500">
           参考:公的年金 年間{fmt(values.publicPensionAnnualManYen)}万円(税引前)
         </p>

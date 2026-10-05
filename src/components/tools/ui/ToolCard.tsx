@@ -21,7 +21,7 @@ export default function ToolCard({ variant, className = '', children }: ToolCard
   return (
     <div
       className={[
-        'rounded-xl border border-slate-300 bg-white shadow-sm',
+        'rounded border border-slate-300 bg-white shadow-sm',
         VARIANT_CLASS[variant],
         className,
       ].filter(Boolean).join(' ')}

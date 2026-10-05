@@ -286,7 +286,7 @@ export default function KpiGrid({
       </div>
 
       {/* 詳細指標：興味があれば深掘りする4枠（モバイル2×2、SM以上1行4列） */}
-      <div className="rounded-xl border border-slate-200 bg-white">
+      <div className="rounded border border-slate-200 bg-white">
         <button
           onClick={() => setDetailsOpen(o => !o)}
           className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
@@ -327,7 +327,7 @@ export default function KpiGrid({
 
       {/* 退職イベント：退職金・iDeCo受給イベントがある場合のみアコーディオンで詳細表示 */}
       {eventsExpandable && (
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <div className="rounded border border-slate-200 bg-white">
           <button
             onClick={() => setEventsOpen(o => !o)}
             className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"

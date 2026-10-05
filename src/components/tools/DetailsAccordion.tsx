@@ -17,7 +17,7 @@ export default function DetailsAccordion({ label, children, className }: Details
   const [open, setOpen] = useState(false);
 
   return (
-    <div className={`rounded-lg border border-slate-200 ${className ?? ''}`}>
+    <div className={`rounded border border-slate-200 ${className ?? ''}`}>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}

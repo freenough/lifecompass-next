@@ -22,7 +22,7 @@ export default function RelatedArticles({ articles }: { articles: RelatedArticle
           <Link
             key={article.href}
             href={article.href}
-            className="flex items-start gap-2.5 sm:gap-3 rounded-xl border border-slate-100 bg-white px-3 py-2.5 sm:px-4 sm:py-3 hover:border-slate-300 hover:shadow-sm transition-all"
+            className="flex items-start gap-2.5 sm:gap-3 rounded border border-slate-100 bg-white px-3 py-2.5 sm:px-4 sm:py-3 hover:border-slate-300 hover:shadow-sm transition-all"
           >
             <IconBook2 size={20} className="shrink-0 mt-0.5 w-4 h-4 sm:w-5 sm:h-5 text-accent" />
             <span>

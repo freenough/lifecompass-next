@@ -66,7 +66,7 @@ function AssetCard({ phase, data }: AssetCardProps) {
   const totalAmount = isCurrent ? rows.reduce((s, r) => s + (r.amount ?? 0), 0) : 0;
 
   return (
-    <div className="rounded-lg border border-slate-200 p-3 flex flex-col gap-2">
+    <div className="rounded border border-slate-200 p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-600">法人資産（投資分）</span>
         {isCurrent
@@ -450,7 +450,7 @@ export default function CorporatePortfolioPanel() {
         }
       >
         <AssetCard phase="working" data={portfolio.working} />
-        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">
+        <div className="rounded bg-slate-50 px-3 py-2 text-xs flex gap-4">
           <span className="text-slate-500">μ/σ</span>
           <span><strong>{muWLive.toFixed(1)}% / {sigmaWLive.toFixed(1)}%</strong></span>
         </div>
@@ -470,7 +470,7 @@ export default function CorporatePortfolioPanel() {
         {!retirementSameAsWorking && (
           <AssetCard phase="retirement" data={portfolio.retirement} />
         )}
-        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs flex gap-4">
+        <div className="rounded bg-slate-50 px-3 py-2 text-xs flex gap-4">
           <span className="text-slate-500">μ/σ</span>
           <span><strong>{muRLive.toFixed(1)}% / {sigmaRLive.toFixed(1)}%</strong></span>
         </div>

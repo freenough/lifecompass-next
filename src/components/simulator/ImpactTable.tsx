@@ -207,7 +207,7 @@ export default function ImpactTable() {
   );
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-700">改善案インパクト比較</h3>
         {mode !== 'mc' && (

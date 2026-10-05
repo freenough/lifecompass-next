@@ -16,7 +16,7 @@ const SIMULATOR_HREF = '/app';
 export default function IdecoWithdrawalCta({ relatedArticles }: { relatedArticles: { title: string; href: string }[] }) {
   return (
     <div className="flex flex-col items-center gap-5">
-      <div className="w-full rounded-xl bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
+      <div className="w-full rounded bg-slate-50 px-6 py-6 flex flex-col items-center gap-4">
         <div className="text-center">
           <p className="text-sm text-slate-500">
             受取方法が決まったら、資産シミュレーターの「iDeCo」欄に転記すれば、

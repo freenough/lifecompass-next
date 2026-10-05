@@ -32,7 +32,7 @@ export default function AssetHoldingCard({
   const total = holdings.reduce((s, h) => s + (h.amount || 0), 0);
 
   return (
-    <div className="rounded-lg border border-slate-200 p-3 flex flex-col gap-2">
+    <div className="rounded border border-slate-200 p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold text-slate-600">{category}</span>
         <span className="text-xs text-slate-400">合計: {total.toLocaleString()}万円</span>

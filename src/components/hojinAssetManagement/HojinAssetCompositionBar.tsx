@@ -27,7 +27,7 @@ export default function HojinAssetCompositionBar({ hojinHoldings, personalHoldin
   const { personalPct, hojinPct } = calcCompositionPercentages(personalTotal, hojinTotal);
 
   return (
-    <div className="rounded-lg border border-slate-200 p-4">
+    <div className="rounded border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-slate-700">個人資産＋法人保有資産</h3>
         <span className="text-sm font-bold text-slate-800">合計 {currentScopedTotal.toLocaleString()}万円</span>

@@ -60,7 +60,7 @@ export default function YearlyTable({ snaps, retAge, penAge, idecoStartAge, stra
   const showCorporate = !!corporateBalanceByAge;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
+    <div className="rounded border border-slate-200 bg-white">
       <div className="flex items-center">
         <button
           onClick={() => setOpen(o => !o)}

@@ -118,7 +118,7 @@ export default function PlanManagerPanel({ currentProfileId, linkedSimulatorProf
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+    <div className="rounded border border-slate-200 bg-white px-3 py-2">
       {linked ? (
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">

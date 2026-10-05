@@ -32,7 +32,7 @@ export default function AssetResetControls({ onReset }: AssetResetControlsProps)
   };
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex flex-col gap-2">
+    <div className="rounded border border-red-200 bg-red-50 p-3 flex flex-col gap-2">
       <h3 className="text-xs font-semibold text-red-700">全データを削除する</h3>
       <p className="text-[11px] text-red-500">
         保有資産・記録履歴（法人は移転履歴ログを含む）を完全に削除します。この操作は取り消せません。

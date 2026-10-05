@@ -199,7 +199,7 @@ export default function SensitivityPanel() {
   );
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
+    <div className="rounded border border-slate-200 bg-white">
       <button
         onClick={() => setOpen(o => !o)}
         className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
@@ -235,7 +235,7 @@ export default function SensitivityPanel() {
           </div>
 
           {/* FIRE年齢KPI */}
-          <div className="rounded-lg bg-slate-50 px-3 py-2 mb-3">
+          <div className="rounded bg-slate-50 px-3 py-2 mb-3">
             <p className="text-[10px] font-semibold text-slate-500 mb-1">{kpiLabel}</p>
             <div className="grid grid-cols-3 gap-1 text-xs">
               <span className="text-slate-400">ベースライン</span>

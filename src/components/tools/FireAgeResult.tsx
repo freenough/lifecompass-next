@@ -31,7 +31,7 @@ export default function FireAgeResult({ curAge, result }: FireAgeResultProps) {
 
   return (
     <ToolCard variant="result">
-      <div className="rounded-lg border border-accent bg-blue-50 p-4">
+      <div className="rounded border border-accent bg-blue-50 p-4">
         <p className="text-sm font-medium text-slate-500">目標資産到達年齢</p>
         <p className="mt-1 text-4xl sm:text-5xl font-bold text-slate-800 leading-none [text-wrap:balance]">
           {achievedAge}

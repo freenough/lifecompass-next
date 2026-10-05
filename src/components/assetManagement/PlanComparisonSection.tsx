@@ -199,7 +199,7 @@ export default function PlanComparisonSection({
   };
 
   return (
-    <section className="rounded-lg border border-slate-200 p-4">
+    <section className="rounded border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-bold text-slate-700">予実比較</h2>
         <button

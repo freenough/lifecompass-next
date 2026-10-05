@@ -178,7 +178,7 @@ export default function ResidentTaxTimingForm({ values, onChange }: ResidentTaxT
         </div>
       )}
 
-      <div className="rounded-lg border border-slate-200">
+      <div className="rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}

@@ -123,7 +123,7 @@ export default function RetirementTaxForm({ values, onChange }: RetirementTaxFor
         </label>
       )}
 
-      <div className="rounded-lg border border-slate-200">
+      <div className="rounded border border-slate-200">
         <button
           type="button"
           onClick={() => setDetailsOpen(o => !o)}

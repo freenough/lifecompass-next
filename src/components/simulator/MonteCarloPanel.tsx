@@ -50,7 +50,7 @@ export default function MonteCarloPanel() {
   const stResult = mcResult?.strategies[displayStrategy as keyof typeof mcResult.strategies];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded border border-slate-200 bg-white p-4">
       <h3 className="text-sm font-semibold text-slate-700 mb-3">モンテカルロ分析</h3>
 
       {!mcResult && mode !== 'mc' && (
