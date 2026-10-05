@@ -67,7 +67,7 @@ export default function HitoriHojinManageSection() {
 
           {/* 右：個人＋法人の内訳バー＋合計金額（デモデータで本物の計算を動かす） */}
           <div className="w-full lg:w-[340px] lg:shrink-0">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+            <div className="rounded border border-slate-200 bg-slate-50 p-6">
               <p className="text-xs font-semibold text-slate-500 mb-4">個人＋法人 合算</p>
               <HojinCompositionDemo />
             </div>

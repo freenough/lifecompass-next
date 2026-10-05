@@ -106,7 +106,7 @@ export default function InfoTooltip({ text, children }: InfoTooltipProps) {
           <div
             ref={tipRef}
             style={{ position: 'fixed', top: pos.top, left: pos.left, width: TOOLTIP_WIDTH }}
-            className="z-[61] rounded-lg bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed normal-case font-normal tracking-normal"
+            className="z-[61] rounded bg-slate-800 text-white text-xs p-3 shadow-xl leading-relaxed normal-case font-normal tracking-normal"
           >
             <div
               className="absolute w-3 h-3 bg-slate-800 rotate-45"

@@ -88,7 +88,7 @@ export default function HojinCompositionDemo() {
         </li>
       </ul>
 
-      <div className="rounded-lg bg-white p-3 h-[68px]">
+      <div className="rounded bg-white p-3 h-[68px]">
         <p className="text-[11px] text-slate-400">個人＋法人 合計</p>
         <p className="mt-0.5 text-lg font-bold text-slate-900">{Math.round(totalVal).toLocaleString()}万円</p>
       </div>

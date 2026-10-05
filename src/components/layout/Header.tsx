@@ -94,7 +94,7 @@ export default function Header() {
           <button
             onClick={() => setSearchOpen(true)}
             aria-label="検索"
-            className={`rounded-lg border p-1.5 transition-colors ${
+            className={`rounded border p-1.5 transition-colors ${
               searchOpen
                 ? 'bg-[#E6F1FB] border-[#92BCF0] text-[#0C447C]'
                 : 'border-transparent text-slate-600 hover:bg-slate-100'
