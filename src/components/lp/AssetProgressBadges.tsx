@@ -20,6 +20,26 @@ const PREV_LABEL = '2026-08比';
 // 同じ理由。LP独自のラベルのため他画面には影響しない）。
 const KPI_LABELS = ['目標資産', '進捗率', '前回比'];
 
+// カウントアップが終わる前（マウント直後〜カウントアップ中）のKPI行の高さを、終わった後と同じにするための
+// 見えない複製の文言。幅326〜413pxでは、マウント時の「0万円」は1行だが、カウントアップが「11,122万円」に
+// 届くと2行になり、KPI行が約17.5px伸びて下の「資産の内訳」を押し下げる（asset_mgmt_card_shift_investigation.md）。
+// 目標資産はsimulate()/analyze()（乱数なし）から決まるため、HeroDemo.tsxのDEMO_STATICと同じく
+// モジュール読み込み時にカウントアップの終点と同じ文言を確定できる。
+const STATIC_TARGET_AMOUNT = (() => {
+  const snaps = simulate(DEMO_PROFILE, DEMO_EVENTS, 'cash_first');
+  const a = analyze(snaps, DEMO_PROFILE);
+  if (a.fA == null) return null;
+  return snaps.find((s) => s.age === a.fA)?.totalAssets ?? null;
+})();
+const STATIC_PROGRESS_PCT = STATIC_TARGET_AMOUNT != null
+  ? Math.round((DEMO_HOLDINGS_TOTAL / STATIC_TARGET_AMOUNT) * 1000) / 10
+  : null;
+const KPI_SIZER_VALUES = [
+  STATIC_TARGET_AMOUNT != null ? `${Math.round(STATIC_TARGET_AMOUNT).toLocaleString()}万円` : '—',
+  STATIC_PROGRESS_PCT != null ? `${STATIC_PROGRESS_PCT.toFixed(1)}%` : '—',
+  `+${Math.round(PREV_DIFF_AMOUNT).toLocaleString()}万円`,
+];
+
 export default function AssetProgressBadges() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [entered, setEntered] = useState(false);
@@ -79,12 +99,20 @@ export default function AssetProgressBadges() {
 
   const { setRef: setKpiCardRef, maxHeight: kpiCardMaxHeight } = useEqualHeight(3);
 
+  // 3つの値がすべてカウントアップの終点（複製と同じ文言）に届いたら、複製を外す。HeroDemo.tsxは計算完了で
+  // 外すが、ここではカウントアップが計算完了よりずっと後（画面に入った時）に始まるため、終点に届くまで残す。
+  // 外す時点の文言は複製と同じなので、高さは変わらない。
+  const countUpDone = kpiValues.every((v, i) => v === KPI_SIZER_VALUES[i]);
+
   return (
     <div ref={rootRef} className="grid grid-cols-3 gap-2">
       {KPI_LABELS.map((label, i) => (
         <div
           key={label}
           ref={setKpiCardRef(i)}
+          // カウントアップが終わるまでだけ、終点の文言の見えない複製を同じマス（grid-area 1/1）に重ね、高さを終点とそろえる
+          // （HeroDemo.tsxと同じ方法）。grid-cols-1（minmax(0,1fr)）で列幅を固定し、複製の文言の長さで横に広がらないようにする。
+          className={countUpDone ? undefined : 'grid grid-cols-1'}
           style={{
             opacity:   entered ? 1 : 0,
             transform: entered ? 'translateY(0)' : 'translateY(8px)',
@@ -92,7 +120,12 @@ export default function AssetProgressBadges() {
             ...(kpiCardMaxHeight ? { minHeight: kpiCardMaxHeight } : undefined),
           }}
         >
-          <KpiCard label={label} value={kpiValues[i]} variant={kpiVariants[i]} size="sm" />
+          <KpiCard label={label} value={kpiValues[i]} variant={kpiVariants[i]} size="sm" wrapperClassName={countUpDone ? undefined : '[grid-area:1/1]'} />
+          {!countUpDone && (
+            <div className="invisible pointer-events-none [grid-area:1/1]" aria-hidden="true">
+              <KpiCard label={label} value={KPI_SIZER_VALUES[i]} variant="neutral" size="sm" />
+            </div>
+          )}
         </div>
       ))}
     </div>
