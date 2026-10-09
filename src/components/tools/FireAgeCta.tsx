@@ -25,7 +25,7 @@ export default function FireAgeCta({ relatedArticles }: { relatedArticles: { tit
           <Link
             href={SIMULATOR_HREF}
             onClick={() => trackEvent('tool_to_simulator_cta_click', { tool: 'fire_age' })}
-            className="mt-3 w-full sm:w-auto inline-block bg-accent text-white font-bold text-center px-8 py-3 rounded transition-all duration-150 ease-out hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg"
+            className="mt-3 w-full sm:w-auto inline-block bg-accent text-white font-semibold text-center px-8 py-3 rounded transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg"
           >
             → 資産シミュレーターで続きを試算する
           </Link>
