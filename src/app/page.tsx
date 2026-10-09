@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/siteConfig';
 import {
@@ -25,8 +24,11 @@ import SectionHeading from '@/components/layout/SectionHeading';
 import Container from '@/components/layout/Container';
 import Reveal from '@/components/motion/Reveal';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
-
-const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
+// HeroDemoはサーバーでも外枠（KPI・チャートと同じ縦横比の枠）まで描き、Rechartsの部分だけを
+// HeroDemo内でssr:falseの動的importにしている。以前はHeroDemo全体をssr:falseにしていたため、
+// サーバーのHTMLで枠の高さが0になり、後から310〜424pxが現れて説明文・CTAを押し下げていた
+// （1024px未満でCLS 0.16〜0.29。cls_and_320px_implement.md 単位3）。
+import HeroDemo from '@/components/lp/HeroDemo';
 
 export const metadata: Metadata = {
   alternates: {
@@ -235,9 +237,12 @@ export default function HomePage() {
             <p className="mt-2 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
               1,000通りの市場変動で、破綻確率まで計算します。
             </p>
+            {/* 文言と左右余白px-8で約291pxあり、320px幅の本文（272px）を超えるため、360px以下だけpx-4にする
+                （max-[361px]:はTailwind v4で「361px未満」。TOPのCTAと同じ境界。cls_and_320px_implement.md 単位1）。
+                同じ見た目の最下部CTA・資産管理プロモのCTAは320pxでも収まるため変えない。 */}
             <Link
               href="/app"
-              className="mt-12 inline-block min-w-[min(19rem,100%)] rounded px-8 py-4 text-center text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
+              className="mt-12 inline-block min-w-[min(19rem,100%)] rounded px-8 max-[361px]:px-4 py-4 text-center text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
               style={{ backgroundColor: '#334155' }}
             >
               今すぐシミュレーションする →

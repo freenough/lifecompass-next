@@ -33,7 +33,9 @@ const PEOPLE: {
     label: '完全リタイア',
     persona: { body: 'PoloSweater', hair: 'GrayShort', face: 'Smile', accessory: 'None', backgroundColor: '#DCEEF5', strokeColor: ACCENT },
     avatarClass: 'left-[77.78%] top-[8.28%] w-[21.05%] sm:left-[79%] sm:top-[19.58%] sm:w-[18.67%]',
-    labelClass: 'left-[73.68%] top-[35.17%] w-[26.32%] sm:left-[76.67%] sm:top-[45.42%] sm:w-[23.33%]',
+    // 320px幅では枠（図の幅の26.32%＝約71.6px）が文字（12px×6文字＝72px）よりわずかに狭く、
+    // 「完全リタイ／ア」に折り返されるため、折り返しを禁止する（はみ出しは左右約0.2px。cls_and_320px_implement.md 単位2）。
+    labelClass: 'left-[73.68%] top-[35.17%] w-[26.32%] whitespace-nowrap sm:left-[76.67%] sm:top-[45.42%] sm:w-[23.33%]',
     emphasis: false,
   },
   {
