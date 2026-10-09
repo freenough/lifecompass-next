@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/siteConfig';
 import {
@@ -25,8 +24,11 @@ import SectionHeading from '@/components/layout/SectionHeading';
 import Container from '@/components/layout/Container';
 import Reveal from '@/components/motion/Reveal';
 import { ASSET_MANAGEMENT_PATH } from '@/lib/assetManagement/routes';
-
-const HeroDemo = dynamic(() => import('@/components/lp/HeroDemo'), { ssr: false });
+// HeroDemoはサーバーでも外枠（KPI・チャートと同じ縦横比の枠）まで描き、Rechartsの部分だけを
+// HeroDemo内でssr:falseの動的importにしている。以前はHeroDemo全体をssr:falseにしていたため、
+// サーバーのHTMLで枠の高さが0になり、後から310〜424pxが現れて説明文・CTAを押し下げていた
+// （1024px未満でCLS 0.16〜0.29。cls_and_320px_implement.md 単位3）。
+import HeroDemo from '@/components/lp/HeroDemo';
 
 export const metadata: Metadata = {
   alternates: {
