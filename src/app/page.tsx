@@ -235,9 +235,12 @@ export default function HomePage() {
             <p className="mt-2 text-sm text-slate-500 leading-relaxed text-balance sm:text-base">
               1,000通りの市場変動で、破綻確率まで計算します。
             </p>
+            {/* 文言と左右余白px-8で約291pxあり、320px幅の本文（272px）を超えるため、360px以下だけpx-4にする
+                （max-[361px]:はTailwind v4で「361px未満」。TOPのCTAと同じ境界。cls_and_320px_implement.md 単位1）。
+                同じ見た目の最下部CTA・資産管理プロモのCTAは320pxでも収まるため変えない。 */}
             <Link
               href="/app"
-              className="mt-12 inline-block min-w-[min(19rem,100%)] rounded px-8 py-4 text-center text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
+              className="mt-12 inline-block min-w-[min(19rem,100%)] rounded px-8 max-[361px]:px-4 py-4 text-center text-base font-semibold text-white shadow transition-all duration-150 ease-out whitespace-nowrap hover:-translate-y-0.5 hover:shadow-lg"
               style={{ backgroundColor: '#334155' }}
             >
               今すぐシミュレーションする →
