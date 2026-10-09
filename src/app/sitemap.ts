@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getAllPosts } from '@/lib/blog';
 import { getAllHitoriHojinPosts } from '@/lib/hitoriHojinBlog';
 import { PUBLISHED_TOOLS } from '@/lib/toolMetadata';
-import { SITE_URL } from '@/lib/siteConfig';
+import { SITE_URL, HITORI_HOJIN_SITE_URL } from '@/lib/siteConfig';
 
 // titleは検索インデックス(search-index.json/route.ts)が固定ページを拾い出すためだけに使う
 // (sitemap.xml自体はtitleを使わない)。空文字のエントリ(トップ・一覧ページ・ツール詳細)は
@@ -42,12 +42,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   // hitori-hojin(一人法人)関連URL。既存ロジックには影響しない別変数として追加。
+  // canonicalと同じクリーンURL(HITORI_HOJIN_SITE_URL、末尾が/hitori-hojin)で出す。SITE_URL(basePath込み)を
+  // 使うと/asset-simulator/hitori-hojin/...になり、canonicalと食い違ってSearch Consoleで重複扱いになる。
   const hitoriHojinEntries: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/hitori-hojin` },
-    { url: `${SITE_URL}/hitori-hojin/blog` },
+    { url: HITORI_HOJIN_SITE_URL },
+    { url: `${HITORI_HOJIN_SITE_URL}/blog` },
   ];
   const hitoriHojinPostEntries: MetadataRoute.Sitemap = getAllHitoriHojinPosts().map((post) => ({
-    url: `${SITE_URL}/hitori-hojin/blog/${post.slug}`,
+    url: `${HITORI_HOJIN_SITE_URL}/blog/${post.slug}`,
     lastModified: new Date(post.date),
   }));
 

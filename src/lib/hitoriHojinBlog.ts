@@ -4,7 +4,7 @@ import matter from 'gray-matter';
 import { remark } from 'remark';
 import remarkGfm from 'remark-gfm';
 import remarkHtml from 'remark-html';
-import { BASE_PATH, withBasePath } from '@/lib/siteConfig';
+import { BASE_PATH, HITORI_HOJIN_SITE_URL, withBasePath } from '@/lib/siteConfig';
 import { extractFaqFromMarkdown, type FaqItem } from '@/lib/faqExtraction';
 
 const POSTS_DIR = path.join(process.cwd(), 'src/content/hitori-hojin-blog');
@@ -30,10 +30,15 @@ export interface HitoriHojinBlogPost extends HitoriHojinBlogPostMeta {
  * hitori-hojin側は既存blog.tsをimportしない独立実装のため複製している。画像srcだけでなく
  * 内部リンクhrefにも必ずbasePathを付与すること(既知バグ再発防止、
  * docs/fixes/active/2026-08-16_hitori-hojin-implementation.md 4節参照)。
+ * ただし一人法人セクション（/hitori-hojin...）へのリンクだけは、basePathを付けず、ヘッダー・フッターと同じく
+ * HITORI_HOJIN_SITE_URL起点の絶対URL（canonicalと同じクリーンURL）にする。basePathを付けると
+ * /asset-simulator/hitori-hojin/...になり、canonicalと食い違ってSearch Consoleで重複扱いになるため。
+ * 絶対URLになったhrefは、次のbasePath付与（href="/で始まるものだけが対象）にかからない。
  */
 function applyBasePathToHitoriHojinHtml(html: string): string {
   return html
     .replace(/src="\/images\//g, `src="${BASE_PATH}/images/`)
+    .replace(/href="\/hitori-hojin(?=[/"?#])/g, `href="${HITORI_HOJIN_SITE_URL}`)
     .replace(/href="\/(?!\/|asset-simulator\b)/g, `href="${BASE_PATH}/`);
 }
 
