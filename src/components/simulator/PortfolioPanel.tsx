@@ -19,8 +19,8 @@ const SP_ACCT: Record<Acct, SpAcct> = {
 };
 
 // 銘柄の<select>（本人・配偶者、現在・積立期・取崩期で共通）。表示だけを扱い、値は書き換えない。
-// 一覧（ASSET_CLASSES）にない値（インポートで入る'保険'等）は、一致する<option>がないと先頭の
-// 「全世界株」と表示されてしまうため、その値を「{値}（一覧外）」として選択状態で出す。
+// 一覧（ASSET_CLASSES）にない値（CSV取り込み等で入る任意の文字列）は、一致する<option>がないと先頭の
+// 「全世界株」と表示されてしまうため、その値をそのまま選択状態で出す。
 // 未選択・一覧外は、選択済みの銘柄と見分けられるよう薄い色にする。
 function AssetClassSelect({ value, onChange, allowUnselected }: {
   value: string;
@@ -37,7 +37,7 @@ function AssetClassSelect({ value, onChange, allowUnselected }: {
     >
       {/* 「銘柄を選択」は①現在のPFだけ（working/retirementに''を入れない） */}
       {allowUnselected && <option value={UNSELECTED_ASSET_CLASS}>銘柄を選択</option>}
-      {isOutsideList && <option value={value}>{value}（一覧外）</option>}
+      {isOutsideList && <option value={value}>{value}</option>}
       {ASSET_CLASSES.map(a => (
         <option key={a.key} value={a.key} className="text-slate-800">{a.key}</option>
       ))}
@@ -257,7 +257,7 @@ export default function PortfolioPanel() {
   const handleCopyCurrentToWorking = () => {
     const skipped = copyCurrentToWorking();
     setCopySkipMessage(skipped.length > 0
-      ? `${skipped.map(a => ACCT_LABELS[a]).join('・')}は未選択（または一覧にない）銘柄があるため、積立期の配分にはコピーしませんでした`
+      ? `${skipped.map(a => ACCT_LABELS[a]).join('・')}は、銘柄が未選択、またはシミュレーターで選べない銘柄があるため、積立期の配分にはコピーしませんでした`
       : null);
   };
 
