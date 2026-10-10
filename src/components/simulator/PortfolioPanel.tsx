@@ -263,8 +263,8 @@ export default function PortfolioPanel() {
 
   // μ/σ表示: calcAggregateMu/calcAggregateSigma（プロフィール側でMC設定の実効値計算とも共有）
   // だけを参照する読み取り専用のライブ値。別ロジックでの再計算は行わない。
-  // 重みはμ・σとも実際の残高・積立額（getAggregateWeights）で統一する——資産配分の
-  // 入力有無とは無関係に、残高・積立額が0円の口座は重み0のままにする。
+  // 重みはμ・σとも現在の残高（getAggregateWeights。積立額は含めない）で統一する——資産配分の
+  // 入力有無とは無関係に、残高が0円の口座は重み0のままにする。
   const retNisaRows  = pf.retirement.sameAsWorking ? pf.working.nisa  : pf.retirement.nisa;
   const retIdecoRows = pf.retirement.sameAsWorking ? pf.working.ideco : pf.retirement.ideco;
   const retTaxRows   = pf.retirement.sameAsWorking ? pf.working.tax   : pf.retirement.tax;

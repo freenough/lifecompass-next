@@ -30,9 +30,10 @@ note.com/freenoughで連載中の4シリーズ小説（田中誠／山本恒一�
   実残高（`nisa/ideco/tax` + 配偶者分）を加重平均した`sigmaT`を掛けて、**同一のshockを
   3口座すべてに加算**する（`nisaRate = rW + shock`、`idecoRate`・`taxRate`も同様）。
   「市場全体が一緒に動く」という意図的な簡略化であり、変更対象ではない。
-- **全口座集計のμ・σの重みは「資産配分の入力有無」ではなく実際の残高・積立額**
-  （`getAggregateWeights`: 積立期は残高＋積立額、取崩期は残高のみ。①現在のPFに金額入力が
-  あればそれを優先）。残高・積立額が0円の口座は、資産配分を入力しても重み0のままになる。
+- **全口座集計のμ・σの重みは「資産配分の入力有無」ではなく現在の残高**
+  （`getAggregateWeights`: 積立期・取崩期とも残高のみ。積立額は含めない。`phase`引数は結果に影響しない。
+  口座ごとに、①現在のPFに金額入力があればその合計、なければ`bNisa/bIdeco/bTax`を使う）。
+  残高が0円の口座は、資産配分を入力しても重み0のままになる。
 - **重みは年ごとに動的に再計算される**（`AccountConfig.sigmaW/sigmaR` × `SimParams.mcStdDynamic`/
   `mcStdRDynamic`）。「PF計算値を使う」がONの口座だけが動的モード対象。手動入力（OFF）の
   口座は従来通りmcStd/mcStdR固定値のまま（`scripts/full-verify.js`等、SimParamsを直接組み立てる

@@ -297,7 +297,7 @@ export function getAggregateWeights(profile: ProfileV3, phase: 'working' | 'reti
  * 全口座集計のμ（表示専用・読み取り専用のライブ値）を算出する。
  * μは各口座自身の残高に紐づいてシミュレーションへ個別に適用されるため
  * （getEffectiveRW/RR）、この集計値自体はシミュレーション結果に一切影響しない
- * 表示専用の数値だが、重み付けはσ側（getAggregateWeights・実残高＋積立額）と統一する。
+ * 表示専用の数値だが、重み付けはσ側（getAggregateWeights・現在の残高）と統一する。
  */
 export function calcAggregateMu(profile: ProfileV3, rows: [AssetRow[], AssetRow[], AssetRow[]], phase: 'working' | 'retirement'): number {
   const weights = getAggregateWeights(profile, phase);
@@ -308,8 +308,8 @@ export function calcAggregateMu(profile: ProfileV3, rows: [AssetRow[], AssetRow[
 
 /**
  * 全口座集計のσ（Monte Carloシミュレーションに直接使われる実効値と共通）を算出する。
- * 重みは実際の残高・積立額のみ（getAggregateWeights）。PF欄に資産配分の入力があるかどうかは
- * 重みの有無と無関係――残高・積立額が0円の口座は、資産配分を入力しても重み0のままにする。
+ * 重みは実際の現在の残高のみ（getAggregateWeights。積立額は含めない）。PF欄に資産配分の入力があるかどうかは
+ * 重みの有無と無関係――残高が0円の口座は、資産配分を入力しても重み0のままにする。
  * 相関=1（口座横断で全口座が同じshockを受ける）という設計を前提にすれば、この残高加重平均は
  * 近似ではなく数学的に正確な合成方法である（σ(aX+bY)=|a|σX+|b|σY when ρ(X,Y)=1）。
  * PF側の「全口座集計」表示と、MC設定側の「PF計算値を使う」実効値は、
