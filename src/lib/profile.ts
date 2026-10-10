@@ -46,6 +46,12 @@ export const ASSET_CLASSES: { key: string; mu: number; sigma: number; group: str
   // 同列に既定値を置かない。mu/sigmaは0のダミー値とし、この資産クラスをPFに含めた口座は
   // 6.3節のバリデーションにより手動入力への切替を促す。
   { key: '暗号資産',    mu: 0,    sigma: 0,     group: 'crypto'   },
+  // 保険・その他：資産管理ツール（assetManagement/categories.ts）からのインポートで入る銘柄。
+  // 暗号資産と同じく既定の前提を置かない（mu/sigmaは0のダミー）。含めた口座は
+  // getCryptoManualWarningsで手動入力への切替を促す。σが0なので相関はどのグループでも
+  // 結果が変わらず、資産管理ツール側の`group ?? 'cash'`に合わせて'cash'とする（ASSET_CORRに行は足さない）。
+  { key: '保険',        mu: 0,    sigma: 0,     group: 'cash'     },
+  { key: 'その他',      mu: 0,    sigma: 0,     group: 'cash'     },
 ];
 
 const ASSET_MU:    Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.mu]));
@@ -56,7 +62,7 @@ const ASSET_GROUP: Record<string, string> = Object.fromEntries(ASSET_CLASSES.map
 export const UNSELECTED_ASSET_CLASS = '';
 
 /**
- * 未選択（''）、またはASSET_CLASSESにない値（資産管理ツールからのインポートで入る'保険'等）。
+ * 未選択（''）、またはASSET_CLASSESにない値（CSV取り込み等で入る任意の文字列）。
  * calcMuはこれらをμ0%として計算してしまうため、①現在のPFからworkingへコピーしない判定に使う。
  */
 const ASSET_CLASS_KEYS = new Set(ASSET_CLASSES.map(a => a.key));
@@ -355,9 +361,14 @@ export function getUnconfiguredAccounts(profile: ProfileV3): string[] {
   return issues;
 }
 
+// 既定の期待リターン・σを置かない銘柄（ASSET_CLASSESではmu/sigma=0のダミー）。
+const NO_DEFAULT_ASSUMPTION_CLASSES = ['暗号資産', '保険', 'その他'];
+
 /**
- * instruction_phase2_companystate_rearchitecture.md 6.3節：暗号資産をPFに含めた口座が
- * 「PF計算値を使う（自動）」のままになっている場合の手動入力誘導。getUnconfiguredAccounts()の
+ * instruction_phase2_companystate_rearchitecture.md 6.3節：既定の前提がない銘柄（暗号資産・保険・
+ * その他。NO_DEFAULT_ASSUMPTION_CLASSES）をPFに含めた口座が
+ * 「PF計算値を使う（自動）」のままになっている場合の手動入力誘導。同じ口座に複数あれば1つの警告に
+ * まとめる（銘柄名を「・」でつなぐ）。関数名は暗号資産だけだった頃のまま。getUnconfiguredAccounts()の
  * check()（行数0のアクティブ口座を検出）とは条件が異なる（行はあるが暗号資産を含み自動モード）
  * ため、別関数として追加する。返り値はそのまま画面表示できる完成済みの文（getUnconfiguredAccounts
  * のようにラベルだけ返して呼び出し側で共通の接尾辞を付ける形式にすると、この警告文とは
@@ -370,8 +381,9 @@ export function getCryptoManualWarnings(profile: ProfileV3): string[] {
   const warnings: string[] = [];
 
   const checkCrypto = (label: string, active: boolean, rows: AssetRow[], manualFlagKey: string) => {
-    if (active && rows.some(r => r.assetClass === '暗号資産') && !flags[manualFlagKey]) {
-      warnings.push(`暗号資産は既定の期待リターンを設定していません。${label}を手動入力に切り替えて、ご自身の想定利回りを入力してください。`);
+    const classes = NO_DEFAULT_ASSUMPTION_CLASSES.filter(c => rows.some(r => r.assetClass === c));
+    if (active && classes.length > 0 && !flags[manualFlagKey]) {
+      warnings.push(`${classes.join('・')}は既定の期待リターンを設定していません。${label}を手動入力に切り替えて、ご自身の想定利回りを入力してください。`);
     }
   };
 

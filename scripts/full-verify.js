@@ -950,6 +950,15 @@ console.log('='.repeat(100));
 require('./verify-ts-node-register.js');
 
 // ================================================================
+// シミュレーターと資産管理ツールのASSET_CLASSESの一致（再発防止）
+// unify_asset_classes_insurance_other.md 2-3節。銘柄名・順番・mu/sigma/groupを突き合わせる。
+// ================================================================
+console.log('\n' + '='.repeat(100));
+console.log('【ASSET_CLASSESの一致（シミュレーター・資産管理ツール）】verify-asset-classes-sync.js');
+console.log('='.repeat(100));
+require('./verify-asset-classes-sync.js');
+
+// ================================================================
 // FAQPage構造化データ抽出（remark ASTベース） src/lib/faqExtraction.ts
 // claude_instruction_faq_logo_implementation_v2.md の回帰テスト。extractFaqFromMarkdown()が
 // 動的import()を使い非同期のため、full-verify.js内の他のverify-*.jsとの出力の前後入れ替わりを
