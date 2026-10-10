@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSimulatorStore, CURRENT_BALANCE_KEY } from '@/store/simulatorStore';
-import { ASSET_CLASSES, UNSELECTED_ASSET_CLASS, calcMu, calcAggregateMu, calcAggregateSigma } from '@/lib/profile';
+import { ASSET_CLASSES, UNSELECTED_ASSET_CLASS, isUnmappedAssetClass, calcMu, calcAggregateMu, calcAggregateSigma } from '@/lib/profile';
 import type { AssetRow } from '@/lib/profile';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 
@@ -17,6 +17,33 @@ const SP_ACCT: Record<Acct, SpAcct> = {
   ideco: 'spIdeco',
   tax:   'spTax',
 };
+
+// 銘柄の<select>（本人・配偶者、現在・積立期・取崩期で共通）。表示だけを扱い、値は書き換えない。
+// 一覧（ASSET_CLASSES）にない値（インポートで入る'保険'等）は、一致する<option>がないと先頭の
+// 「全世界株」と表示されてしまうため、その値を「{値}（一覧外）」として選択状態で出す。
+// 未選択・一覧外は、選択済みの銘柄と見分けられるよう薄い色にする。
+function AssetClassSelect({ value, onChange, allowUnselected }: {
+  value: string;
+  onChange: (val: string) => void;
+  allowUnselected: boolean;
+}) {
+  const isUnselected = value === UNSELECTED_ASSET_CLASS;
+  const isOutsideList = !isUnselected && isUnmappedAssetClass(value);
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className={`flex-1 text-xs border border-slate-300 rounded px-1 py-1 ${isUnselected || isOutsideList ? 'text-slate-400' : ''}`}
+    >
+      {/* 「銘柄を選択」は①現在のPFだけ（working/retirementに''を入れない） */}
+      {allowUnselected && <option value={UNSELECTED_ASSET_CLASS}>銘柄を選択</option>}
+      {isOutsideList && <option value={value}>{value}（一覧外）</option>}
+      {ASSET_CLASSES.map(a => (
+        <option key={a.key} value={a.key} className="text-slate-800">{a.key}</option>
+      ))}
+    </select>
+  );
+}
 
 interface AssetCardProps {
   phase: Phase;
@@ -89,17 +116,7 @@ function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
       {/* main rows */}
       {rows.map((row, i) => (
         <div key={i} className="flex gap-1 items-center">
-          <select
-            value={row.assetClass}
-            onChange={e => setClass(i, e.target.value)}
-            className={`flex-1 text-xs border border-slate-300 rounded px-1 py-1 ${row.assetClass === UNSELECTED_ASSET_CLASS ? 'text-slate-400' : ''}`}
-          >
-            {/* 「銘柄を選択」は①現在のPFだけ（working/retirementに''を入れない） */}
-            {isCurrent && <option value={UNSELECTED_ASSET_CLASS}>銘柄を選択</option>}
-            {ASSET_CLASSES.map(a => (
-              <option key={a.key} value={a.key} className="text-slate-800">{a.key}</option>
-            ))}
-          </select>
+          <AssetClassSelect value={row.assetClass} onChange={val => setClass(i, val)} allowUnselected={isCurrent} />
           {isCurrent ? (
             <>
               <input
@@ -163,16 +180,7 @@ function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
             <div className="flex flex-col gap-2 px-3 pb-3">
               {sp.map((row, i) => (
                 <div key={i} className="flex gap-1 items-center">
-                  <select
-                    value={row.assetClass}
-                    onChange={e => setSpClass(i, e.target.value)}
-                    className={`flex-1 text-xs border border-slate-300 rounded px-1 py-1 ${row.assetClass === UNSELECTED_ASSET_CLASS ? 'text-slate-400' : ''}`}
-                  >
-                    <option value={UNSELECTED_ASSET_CLASS}>銘柄を選択</option>
-                    {ASSET_CLASSES.map(a => (
-                      <option key={a.key} value={a.key} className="text-slate-800">{a.key}</option>
-                    ))}
-                  </select>
+                  <AssetClassSelect value={row.assetClass} onChange={val => setSpClass(i, val)} allowUnselected />
                   <input
                     type="number"
                     value={row.amount ?? 0}
