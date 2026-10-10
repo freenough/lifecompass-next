@@ -6,6 +6,7 @@
 // 実装しない（過剰実装を避ける、3.3節）。
 
 import { ASSET_CLASSES } from '../assetManagement/categories';
+import { NO_DEFAULT_ASSUMPTION_CLASSES } from '../profile';
 import type { CorporatePortfolioRow, CorporatePortfolioPhase, CorporatePortfolio } from './types';
 
 const ASSET_MU:    Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.mu ?? 0]));
@@ -85,18 +86,21 @@ export function getEffectiveRetirementSigma(portfolio: CorporatePortfolio, worki
 }
 
 /**
- * instruction_phase2_companystate_rearchitecture.md 6.3節：法人側の暗号資産手動入力誘導。
+ * instruction_phase2_companystate_rearchitecture.md 6.3節：法人側の、既定の前提がない銘柄（暗号資産・保険・
+ * その他。個人側profile.tsのNO_DEFAULT_ASSUMPTION_CLASSESを共有）の手動入力誘導。関数名は暗号資産だけだった頃のまま。
  * CompanyStateは口座単位（NISA/iDeCo/特定口座）ではなくフェーズ単位（②積立期／③取崩期）のため、
  * 個人側profile.tsのgetUnconfiguredAccounts()とは別の粒度で判定する：該当フェーズのrowsに
- * 暗号資産が含まれ、かつそのフェーズの実効μ・σのいずれかが自動（PF計算値）モードのままの場合に
- * 警告する。
+ * 該当銘柄が含まれ、かつそのフェーズの実効μ・σのいずれかが自動（PF計算値）モードのままの場合に
+ * 警告する。複数含まれていれば、銘柄名を定数の順に「・」でつないで、フェーズごとに1つの警告にまとめる。
  */
 export function getCorporateCryptoWarnings(portfolio: CorporatePortfolio): string[] {
   const warnings: string[] = [];
-  const hasCrypto = (rows: CorporatePortfolioRow[]) => rows.some(r => r.assetClass === '暗号資産');
+  const noDefaultClasses = (rows: CorporatePortfolioRow[]) =>
+    NO_DEFAULT_ASSUMPTION_CLASSES.filter(c => rows.some(r => r.assetClass === c));
 
-  if (hasCrypto(portfolio.working.rows) && (!portfolio.working.useManualMu || !portfolio.working.useManualSigma)) {
-    warnings.push('暗号資産は既定の期待リターンを設定していません。②積立期のPFを手動入力に切り替えて、ご自身の想定利回り・標準偏差を入力してください。');
+  const workingClasses = noDefaultClasses(portfolio.working.rows);
+  if (workingClasses.length > 0 && (!portfolio.working.useManualMu || !portfolio.working.useManualSigma)) {
+    warnings.push(`${workingClasses.join('・')}は既定の期待リターンを設定していません。②積立期のPFを手動入力に切り替えて、ご自身の想定利回り・標準偏差を入力してください。`);
   }
 
   // rateSameAsWorking/sigmaSameAsWorkingがONの場合、取崩期の実効値は積立期をそのまま使うため
@@ -105,8 +109,9 @@ export function getCorporateCryptoWarnings(portfolio: CorporatePortfolio): strin
   // retirement.sameAsWorkingによるスキップと同じ考え方）。
   if (!portfolio.rateSameAsWorking && !portfolio.sigmaSameAsWorking) {
     const retirementRows = portfolio.retirementSameAsWorking ? portfolio.working.rows : portfolio.retirement.rows;
-    if (hasCrypto(retirementRows) && (!portfolio.retirement.useManualMu || !portfolio.retirement.useManualSigma)) {
-      warnings.push('暗号資産は既定の期待リターンを設定していません。③取崩期のPFを手動入力に切り替えて、ご自身の想定利回り・標準偏差を入力してください。');
+    const retirementClasses = noDefaultClasses(retirementRows);
+    if (retirementClasses.length > 0 && (!portfolio.retirement.useManualMu || !portfolio.retirement.useManualSigma)) {
+      warnings.push(`${retirementClasses.join('・')}は既定の期待リターンを設定していません。③取崩期のPFを手動入力に切り替えて、ご自身の想定利回り・標準偏差を入力してください。`);
     }
   }
 
