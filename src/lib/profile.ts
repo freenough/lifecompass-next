@@ -362,7 +362,7 @@ export function getUnconfiguredAccounts(profile: ProfileV3): string[] {
 }
 
 // 既定の期待リターン・σを置かない銘柄（ASSET_CLASSESではmu/sigma=0のダミー）。
-const NO_DEFAULT_ASSUMPTION_CLASSES = ['暗号資産', '保険', 'その他'];
+export const NO_DEFAULT_ASSUMPTION_CLASSES = ['暗号資産', '保険', 'その他'];
 
 /**
  * instruction_phase2_companystate_rearchitecture.md 6.3節：既定の前提がない銘柄（暗号資産・保険・
