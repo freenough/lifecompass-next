@@ -12,13 +12,12 @@ export interface AssetClassDef {
   group?: string;
 }
 
-// src/lib/profile.ts の ASSET_CLASSES（31-42行目）を値としてそのまま複製したもの。
+// src/lib/profile.ts の ASSET_CLASSES を値としてそのまま複製したもの。
 // calcMu/calcPortfolioMetrics等のロジックは複製・呼び出ししない（このツールは将来予測を
 // 行わないためmu/sigma/相関係数は機能上不要）。mu/sigma/groupは複製元との値照合用に
 // フィールドだけ保持しており、このツール自体は参照・計算に使わない。
-// 複製元との一致確認方法：profile.tsのASSET_CLASSESとこの配列の先頭10件をkey/mu/sigma/group
-// で目視突き合わせる（scripts/full-verify.js等で自動照合してもよいが、値が変わるのは
-// LTCMA年次改訂時のみのため、現状は手動確認で十分と判断）。
+// 複製元との一致確認方法：scripts/verify-asset-classes-sync.js が、profile.ts との一致（銘柄名・順番・
+// mu/sigma/group）を自動で確認する（scripts/full-verify.js から呼ばれる）。
 export const ASSET_CLASSES: AssetClassDef[] = [
   { key: '全世界株',    mu: 6.83, sigma: 18.89, group: 'stock'    },
   { key: '先進国株',    mu: 6.75, sigma: 19.01, group: 'stock'    },
