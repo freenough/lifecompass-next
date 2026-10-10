@@ -1,6 +1,8 @@
 // 法人ポートフォリオのμ・σ算出ロジック。
 // src/lib/profile.ts（ロック対象）の calcMu/calcPortfolioMetrics と同じ計算式をこのファイルに
-// 複製する（実装指示書2章：「ロジックを複製、importしない」方針）。
+// 複製する（実装指示書2章：「ロジックを複製、importしない」方針。計算ロジックは複製）。
+// ただし定数NO_DEFAULT_ASSUMPTION_CLASSES（手動入力の警告対象）だけは、個人側と同じ一覧を
+// 共有するためprofile.tsからimportする。
 // 個人側は口座別（NISA/iDeCo/特定口座）を集計する必要があるが、法人側は法人資産1本のみのため、
 // 複数口座の加重集計部分（calcAggregateMu/calcAggregateSigma/calcAggregatedSigma相当）は
 // 実装しない（過剰実装を避ける、3.3節）。
