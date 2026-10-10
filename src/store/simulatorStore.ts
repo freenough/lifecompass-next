@@ -4,13 +4,30 @@ import { create } from 'zustand';
 import { simulate, analyze, runMC } from '@/lib';
 import type { YearSnap, AnalysisResult, MCResult, WithdrawalStrategy, LifeEvent } from '@/lib/types';
 import type { ProfileV3, AssetRow } from '@/lib/profile';
-import { profileToSimParams, SAMPLE_PROFILE, getUnconfiguredAccounts, getEffectiveRW, getEffectiveMcStd } from '@/lib/profile';
+import { profileToSimParams, SAMPLE_PROFILE, getUnconfiguredAccounts, getEffectiveRW, getEffectiveMcStd, isUnmappedAssetClass } from '@/lib/profile';
 import { useCompanyStateStore } from '@/lib/hojinCompanyState/companyStateStore';
 import type { ImportedPersonalAssets } from '@/lib/importFromAssetManagementPersonal';
 
 type PortfolioPhase   = 'current' | 'working' | 'retirement';
 type PortfolioAcct    = 'nisa' | 'ideco' | 'tax';
 type SpPortfolioAcct  = 'spNisa' | 'spIdeco' | 'spTax';
+
+// ①現在のPFの口座（本人・配偶者）→ 同期先の残高パラメータ
+export const CURRENT_BALANCE_KEY = {
+  nisa:    'bNisa',
+  ideco:   'bIdeco',
+  tax:     'bTax',
+  spNisa:  'spNisaBal',
+  spIdeco: 'spIdecoBal',
+  spTax:   'spTaxBal',
+} as const satisfies Record<PortfolioAcct | SpPortfolioAcct, keyof ProfileV3['params']>;
+
+// 編集した口座の残高だけを、その口座の①現在のPFの金額合計に同期する。
+// 行が0本の口座は入力欄の残高を維持する（ほかの口座の残高は触らない）。
+function currentBalancePatch(acct: PortfolioAcct | SpPortfolioAcct, rows: AssetRow[]): Partial<ProfileV3['params']> {
+  if (rows.length === 0) return {};
+  return { [CURRENT_BALANCE_KEY[acct]]: rows.reduce((s, r) => s + (r.amount ?? 0), 0) };
+}
 
 export type ScenarioKey = 'optimistic' | 'neutral' | 'pessimistic';
 
@@ -86,7 +103,8 @@ interface SimulatorState {
    * インポートで①現在PFのbCash/spCashBalと6つの口座別行配列をまとめて一括反映する
    * （updatePortfolio/updateSpousePortfolioを6回呼ぶより1パスで済ませる）。 */
   importPersonalAssets: (imported: ImportedPersonalAssets) => void;
-  copyCurrentToWorking: () => void;
+  /** 戻り値：未選択（またはASSET_CLASSESにない）銘柄があるためworkingへコピーしなかった口座。 */
+  copyCurrentToWorking: () => PortfolioAcct[];
   setSameAsWorking: (val: boolean) => void;
   setRateSameAsWorking: (val: boolean) => void;
   setSigmaSameAsWorking: (val: boolean) => void;
@@ -190,15 +208,8 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
         ...profile.portfolio,
         [phase]: { ...profile.portfolio[phase], [acct]: rows },
       };
-      const paramPatch: Partial<ProfileV3['params']> = {};
-
-      // current PF編集時: amount合計をbNisa/bIdeco/bTaxに即時同期
-      if (phase === 'current') {
-        const cur = newPortfolio.current;
-        paramPatch.bNisa  = cur.nisa.reduce((s, r) => s + (r.amount ?? 0), 0);
-        paramPatch.bIdeco = cur.ideco.reduce((s, r) => s + (r.amount ?? 0), 0);
-        paramPatch.bTax   = cur.tax.reduce((s, r) => s + (r.amount ?? 0), 0);
-      }
+      // current PF編集時: 編集した口座のamount合計だけをbNisa/bIdeco/bTaxに即時同期
+      const paramPatch = phase === 'current' ? currentBalancePatch(acct, rows) : {};
 
       // rW/rR（μ）・mcStd/mcStdR（σ）はいずれもgetEffectiveRW/RR・getEffectiveMcStd/StdR経由の
       // 算出値に一本化したため、ここでの同期は不要（各表示が再レンダリングで自動追従する）
@@ -215,13 +226,10 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
     updateSpousePortfolio: (acct, rows) => {
       const { profile, activeStrategies, extraEvents } = get();
       const newCurrent = { ...profile.portfolio.current, [acct]: rows };
-      // Sync spNisaBal/spIdecoBal/spTaxBal from spouse portfolio rows
-      const spNisaBal  = (newCurrent.spNisa  ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
-      const spIdecoBal = (newCurrent.spIdeco ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
-      const spTaxBal   = (newCurrent.spTax   ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
+      // 編集した口座のamount合計だけをspNisaBal/spIdecoBal/spTaxBalに同期
       const newProfile: ProfileV3 = {
         ...profile,
-        params: { ...profile.params, spNisaBal, spIdecoBal, spTaxBal },
+        params: { ...profile.params, ...currentBalancePatch(acct, rows) },
         portfolio: { ...profile.portfolio, current: newCurrent },
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
@@ -276,12 +284,19 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
       const bIdeco = cur.ideco.reduce((s, r) => s + (r.amount ?? 0), 0);
       const bTax   = cur.tax.reduce((s, r) => s + (r.amount ?? 0), 0);
 
+      const skipped: PortfolioAcct[] = [];
       for (const acct of accts) {
         const rows = cur[acct];
+        // 金額の入った未選択（またはASSET_CLASSESにない）銘柄がある口座はコピーしない（workingの既存の行を残す）。
+        // 除いて比率を出すと選択済みの銘柄が過大に、そのままコピーするとcalcMuがμ0%として計算するため
+        if (rows.some(r => (r.amount ?? 0) > 0 && isUnmappedAssetClass(r.assetClass))) {
+          skipped.push(acct);
+          continue;
+        }
         const total = rows.reduce((s, r) => s + (r.amount ?? 0), 0);
         if (total) {
-          // currentに金額が入っている口座: 比率をコピー
-          newWorking[acct] = rows.map(r => ({
+          // currentに金額が入っている口座: 比率をコピー（残る未選択の行は金額0なので、workingに入れない）
+          newWorking[acct] = rows.filter(r => !isUnmappedAssetClass(r.assetClass)).map(r => ({
             assetClass: r.assetClass,
             pct: Math.round(((r.amount ?? 0) / total) * 1000) / 10,
           }));
@@ -303,6 +318,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
+      return skipped;
     },
 
     setSameAsWorking: (val) => {

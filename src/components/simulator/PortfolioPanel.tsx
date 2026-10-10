@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useSimulatorStore } from '@/store/simulatorStore';
-import { ASSET_CLASSES, calcMu, calcAggregateMu, calcAggregateSigma } from '@/lib/profile';
+import { useSimulatorStore, CURRENT_BALANCE_KEY } from '@/store/simulatorStore';
+import { ASSET_CLASSES, UNSELECTED_ASSET_CLASS, calcMu, calcAggregateMu, calcAggregateSigma } from '@/lib/profile';
 import type { AssetRow } from '@/lib/profile';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 
@@ -26,9 +26,20 @@ interface AssetCardProps {
 }
 
 function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
-  const { updatePortfolio, updateSpousePortfolio } = useSimulatorStore();
+  const { profile, updatePortfolio, updateSpousePortfolio } = useSimulatorStore();
   const [spOpen, setSpOpen] = useState(false);
   const isCurrent = phase === 'current';
+
+  // ①現在のPFの新しい行：銘柄は未選択。最初の1本だけ、その口座の入力欄の残高を金額に入れる
+  // （0万円の行で残高が0に同期されないように）。2本目以降は0。
+  const newCurrentRow = (
+    existing: AssetRow[],
+    balanceKey: (typeof CURRENT_BALANCE_KEY)[keyof typeof CURRENT_BALANCE_KEY],
+  ): AssetRow => ({
+    assetClass: UNSELECTED_ASSET_CLASS,
+    pct: 0,
+    amount: existing.length === 0 ? profile.params[balanceKey] ?? 0 : 0,
+  });
 
   // ── main rows ────────────────────────────────────────────────
   const update = (newRows: AssetRow[]) => updatePortfolio(phase, acct, newRows);
@@ -40,7 +51,7 @@ function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
   const setPct    = (i: number, val: number) =>
     update(rows.map((r, idx) => idx === i ? { ...r, pct: val } : r));
   const addRow = () => update([...rows, isCurrent
-    ? { assetClass: '全世界株', pct: 0, amount: 0 }
+    ? newCurrentRow(rows, CURRENT_BALANCE_KEY[acct])
     : { assetClass: '全世界株', pct: 0 }
   ]);
   const delRow = (i: number) => update(rows.filter((_, idx) => idx !== i));
@@ -53,7 +64,7 @@ function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
     updateSp(sp.map((r, idx) => idx === i ? { ...r, assetClass: val } : r));
   const setSpAmount = (i: number, val: number) =>
     updateSp(sp.map((r, idx) => idx === i ? { ...r, amount: val } : r));
-  const addSpRow = () => updateSp([...sp, { assetClass: '全世界株', pct: 0, amount: 0 }]);
+  const addSpRow = () => updateSp([...sp, newCurrentRow(sp, CURRENT_BALANCE_KEY[SP_ACCT[acct]])]);
   const delSpRow = (i: number) => updateSp(sp.filter((_, idx) => idx !== i));
 
   // ── derived values ───────────────────────────────────────────
@@ -81,10 +92,12 @@ function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
           <select
             value={row.assetClass}
             onChange={e => setClass(i, e.target.value)}
-            className="flex-1 text-xs border border-slate-300 rounded px-1 py-1"
+            className={`flex-1 text-xs border border-slate-300 rounded px-1 py-1 ${row.assetClass === UNSELECTED_ASSET_CLASS ? 'text-slate-400' : ''}`}
           >
+            {/* 「銘柄を選択」は①現在のPFだけ（working/retirementに''を入れない） */}
+            {isCurrent && <option value={UNSELECTED_ASSET_CLASS}>銘柄を選択</option>}
             {ASSET_CLASSES.map(a => (
-              <option key={a.key} value={a.key}>{a.key}</option>
+              <option key={a.key} value={a.key} className="text-slate-800">{a.key}</option>
             ))}
           </select>
           {isCurrent ? (
@@ -153,10 +166,11 @@ function AssetCard({ phase, acct, rows, spRows }: AssetCardProps) {
                   <select
                     value={row.assetClass}
                     onChange={e => setSpClass(i, e.target.value)}
-                    className="flex-1 text-xs border border-slate-300 rounded px-1 py-1"
+                    className={`flex-1 text-xs border border-slate-300 rounded px-1 py-1 ${row.assetClass === UNSELECTED_ASSET_CLASS ? 'text-slate-400' : ''}`}
                   >
+                    <option value={UNSELECTED_ASSET_CLASS}>銘柄を選択</option>
                     {ASSET_CLASSES.map(a => (
-                      <option key={a.key} value={a.key}>{a.key}</option>
+                      <option key={a.key} value={a.key} className="text-slate-800">{a.key}</option>
                     ))}
                   </select>
                   <input
@@ -230,6 +244,14 @@ function Section({ label, badge, badgeColor, children, subAction }: SectionProps
 export default function PortfolioPanel() {
   const { profile, setSameAsWorking, copyCurrentToWorking } = useSimulatorStore();
   const pf = profile.portfolio;
+  // 「①の比率をコピー」で、未選択の銘柄があるためコピーしなかった口座を伝える（次のコピーで更新）
+  const [copySkipMessage, setCopySkipMessage] = useState<string | null>(null);
+  const handleCopyCurrentToWorking = () => {
+    const skipped = copyCurrentToWorking();
+    setCopySkipMessage(skipped.length > 0
+      ? `${skipped.map(a => ACCT_LABELS[a]).join('・')}は未選択（または一覧にない）銘柄があるため、積立期の配分にはコピーしませんでした`
+      : null);
+  };
 
   // μ/σ表示: calcAggregateMu/calcAggregateSigma（プロフィール側でMC設定の実効値計算とも共有）
   // だけを参照する読み取り専用のライブ値。別ロジックでの再計算は行わない。
@@ -257,12 +279,15 @@ export default function PortfolioPanel() {
         badge="② 積立期"
         badgeColor="bg-blue-100 text-blue-700"
         subAction={
-          <button
-            onClick={copyCurrentToWorking}
-            className="text-[10px] border border-slate-300 rounded px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
-          >
-            ①の比率をコピー
-          </button>
+          <>
+            <button
+              onClick={handleCopyCurrentToWorking}
+              className="text-[10px] border border-slate-300 rounded px-2 py-0.5 text-slate-500 hover:bg-slate-50 whitespace-nowrap"
+            >
+              ①の比率をコピー
+            </button>
+            {copySkipMessage && <p className="mt-1 text-[11px] text-slate-500" role="status">{copySkipMessage}</p>}
+          </>
         }
       >
         <AssetCard phase="working" acct="nisa"  rows={pf.working.nisa} />

@@ -52,6 +52,18 @@ const ASSET_MU:    Record<string, number> = Object.fromEntries(ASSET_CLASSES.map
 const ASSET_SIGMA: Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.sigma]));
 const ASSET_GROUP: Record<string, string> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.group]));
 
+// ①現在のPF（金額の行）の「銘柄を選択」＝未選択。working/retirement（割合の行）には入れない。
+export const UNSELECTED_ASSET_CLASS = '';
+
+/**
+ * 未選択（''）、またはASSET_CLASSESにない値（資産管理ツールからのインポートで入る'保険'等）。
+ * calcMuはこれらをμ0%として計算してしまうため、①現在のPFからworkingへコピーしない判定に使う。
+ */
+const ASSET_CLASS_KEYS = new Set(ASSET_CLASSES.map(a => a.key));
+export function isUnmappedAssetClass(assetClass: string): boolean {
+  return !ASSET_CLASS_KEYS.has(assetClass);
+}
+
 // 6節：暗号資産（cryptoグループ）を追加。相関係数はBitwise社の過去10年実績ベースの値を
 // 暫定採用（出典：Bitwise Asset Management, "Crypto's Role in a Diversified Portfolio"）。
 // 既存5グループの各行にもcrypto列を対称に追加する。
@@ -259,8 +271,8 @@ export function calcAggregatedSigma(acctRows: AssetRow[][], acctBals: number[]):
 
 /**
  * 全口座集計のμ・σの重み付けに使う「各口座の現在残高」を算出する。
- * ①現在のPFに金額入力があればそれを優先し、なければparamsのbNisa/bIdeco/bTaxを使う
- * （updatePortfolio/copyCurrentToWorkingの残高同期と同じ優先順位）。
+ * 口座ごとに、①現在のPFに行が1本以上あればその金額合計を、なければparamsのbNisa/bIdeco/bTaxを使う
+ * （updatePortfolioの残高同期と同じ判定。PFが一部の口座だけにあっても、PFが空の口座の残高を落とさない）。
  * 資産配分（PF欄）の入力有無とは無関係に、残高が0円の口座は重み0になる。
  * μ・σどちらの集計もこの同じ重みを参照する（整合性のため）。
  * 積立期・取崩期（phase）で計算式を分ける理由はない――将来の積立額や運用成長を
@@ -270,14 +282,9 @@ export function calcAggregatedSigma(acctRows: AssetRow[][], acctBals: number[]):
 export function getAggregateWeights(profile: ProfileV3, phase: 'working' | 'retirement'): [number, number, number] {
   const p = profile.params;
   const cur = profile.portfolio.current;
-  const bNisaCur  = cur.nisa.reduce((s, r) => s + (r.amount ?? 0), 0);
-  const bIdecoCur = cur.ideco.reduce((s, r) => s + (r.amount ?? 0), 0);
-  const bTaxCur   = cur.tax.reduce((s, r) => s + (r.amount ?? 0), 0);
-  const totalCur  = bNisaCur + bIdecoCur + bTaxCur;
-  const bNisa  = totalCur > 0 ? bNisaCur  : p.bNisa;
-  const bIdeco = totalCur > 0 ? bIdecoCur : p.bIdeco;
-  const bTax   = totalCur > 0 ? bTaxCur   : p.bTax;
-  return [bNisa, bIdeco, bTax];
+  const balance = (rows: AssetRow[], fallback: number) =>
+    rows.length > 0 ? rows.reduce((s, r) => s + (r.amount ?? 0), 0) : fallback;
+  return [balance(cur.nisa, p.bNisa), balance(cur.ideco, p.bIdeco), balance(cur.tax, p.bTax)];
 }
 
 /**
