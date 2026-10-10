@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSimulatorStore, CURRENT_BALANCE_KEY } from '@/store/simulatorStore';
-import { ASSET_CLASSES, UNSELECTED_ASSET_CLASS, isUnmappedAssetClass, calcMu, calcAggregateMu, calcAggregateSigma } from '@/lib/profile';
+import { ASSET_CLASSES, UNSELECTED_ASSET_CLASS, isUnmappedAssetClass, calcMu, calcAggregateMu, calcAggregateSigma, getCryptoManualWarnings } from '@/lib/profile';
 import type { AssetRow } from '@/lib/profile';
 import { stripLeadingZero, clearZeroOrSelect } from '@/lib/numberInput';
 
@@ -274,8 +274,19 @@ export default function PortfolioPanel() {
   const sigmaW = calcAggregateSigma(profile, [pf.working.nisa, pf.working.ideco, pf.working.tax], 'working');
   const sigmaR = calcAggregateSigma(profile, [retNisaRows, retIdecoRows, retTaxRows], 'retirement');
 
+  // 手動入力の警告（結果パネルの先頭と同じ文）。1024px未満は入力を開いている間、結果パネルが
+  // 見えないため、PFパネルの先頭にも出す。1024px以上は結果パネルが並んで見えるので出さない（lg:hidden）。
+  const cryptoManualWarnings = getCryptoManualWarnings(profile);
+
   return (
     <div className="flex flex-col gap-1">
+      {cryptoManualWarnings.length > 0 && (
+        <div className="rounded border border-amber-300 bg-amber-50 px-3 py-2 mb-1 lg:hidden">
+          {cryptoManualWarnings.map((w, i) => (
+            <p key={i} className="text-[11px] text-amber-700">{w}</p>
+          ))}
+        </div>
+      )}
       <Section label="現在のPF" badge="① 現在" badgeColor="bg-slate-100 text-slate-600">
         <AssetCard phase="current" acct="nisa"  rows={pf.current.nisa}  spRows={pf.current.spNisa  ?? []} />
         <AssetCard phase="current" acct="ideco" rows={pf.current.ideco} spRows={pf.current.spIdeco ?? []} />
