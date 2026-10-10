@@ -52,6 +52,18 @@ const ASSET_MU:    Record<string, number> = Object.fromEntries(ASSET_CLASSES.map
 const ASSET_SIGMA: Record<string, number> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.sigma]));
 const ASSET_GROUP: Record<string, string> = Object.fromEntries(ASSET_CLASSES.map(a => [a.key, a.group]));
 
+// ①現在のPF（金額の行）の「銘柄を選択」＝未選択。working/retirement（割合の行）には入れない。
+export const UNSELECTED_ASSET_CLASS = '';
+
+/**
+ * 未選択（''）、またはASSET_CLASSESにない値（資産管理ツールからのインポートで入る'保険'等）。
+ * calcMuはこれらをμ0%として計算してしまうため、①現在のPFからworkingへコピーしない判定に使う。
+ */
+const ASSET_CLASS_KEYS = new Set(ASSET_CLASSES.map(a => a.key));
+export function isUnmappedAssetClass(assetClass: string): boolean {
+  return !ASSET_CLASS_KEYS.has(assetClass);
+}
+
 // 6節：暗号資産（cryptoグループ）を追加。相関係数はBitwise社の過去10年実績ベースの値を
 // 暫定採用（出典：Bitwise Asset Management, "Crypto's Role in a Diversified Portfolio"）。
 // 既存5グループの各行にもcrypto列を対称に追加する。

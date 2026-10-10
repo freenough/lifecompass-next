@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { simulate, analyze, runMC } from '@/lib';
 import type { YearSnap, AnalysisResult, MCResult, WithdrawalStrategy, LifeEvent } from '@/lib/types';
 import type { ProfileV3, AssetRow } from '@/lib/profile';
-import { profileToSimParams, SAMPLE_PROFILE, getUnconfiguredAccounts, getEffectiveRW, getEffectiveMcStd } from '@/lib/profile';
+import { profileToSimParams, SAMPLE_PROFILE, getUnconfiguredAccounts, getEffectiveRW, getEffectiveMcStd, isUnmappedAssetClass } from '@/lib/profile';
 import { useCompanyStateStore } from '@/lib/hojinCompanyState/companyStateStore';
 import type { ImportedPersonalAssets } from '@/lib/importFromAssetManagementPersonal';
 
@@ -13,7 +13,7 @@ type PortfolioAcct    = 'nisa' | 'ideco' | 'tax';
 type SpPortfolioAcct  = 'spNisa' | 'spIdeco' | 'spTax';
 
 // ①現在のPFの口座（本人・配偶者）→ 同期先の残高パラメータ
-const CURRENT_BALANCE_KEY = {
+export const CURRENT_BALANCE_KEY = {
   nisa:    'bNisa',
   ideco:   'bIdeco',
   tax:     'bTax',
@@ -103,7 +103,8 @@ interface SimulatorState {
    * インポートで①現在PFのbCash/spCashBalと6つの口座別行配列をまとめて一括反映する
    * （updatePortfolio/updateSpousePortfolioを6回呼ぶより1パスで済ませる）。 */
   importPersonalAssets: (imported: ImportedPersonalAssets) => void;
-  copyCurrentToWorking: () => void;
+  /** 戻り値：未選択（またはASSET_CLASSESにない）銘柄があるためworkingへコピーしなかった口座。 */
+  copyCurrentToWorking: () => PortfolioAcct[];
   setSameAsWorking: (val: boolean) => void;
   setRateSameAsWorking: (val: boolean) => void;
   setSigmaSameAsWorking: (val: boolean) => void;
@@ -283,12 +284,19 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
       const bIdeco = cur.ideco.reduce((s, r) => s + (r.amount ?? 0), 0);
       const bTax   = cur.tax.reduce((s, r) => s + (r.amount ?? 0), 0);
 
+      const skipped: PortfolioAcct[] = [];
       for (const acct of accts) {
         const rows = cur[acct];
+        // 金額の入った未選択（またはASSET_CLASSESにない）銘柄がある口座はコピーしない（workingの既存の行を残す）。
+        // 除いて比率を出すと選択済みの銘柄が過大に、そのままコピーするとcalcMuがμ0%として計算するため
+        if (rows.some(r => (r.amount ?? 0) > 0 && isUnmappedAssetClass(r.assetClass))) {
+          skipped.push(acct);
+          continue;
+        }
         const total = rows.reduce((s, r) => s + (r.amount ?? 0), 0);
         if (total) {
-          // currentに金額が入っている口座: 比率をコピー
-          newWorking[acct] = rows.map(r => ({
+          // currentに金額が入っている口座: 比率をコピー（残る未選択の行は金額0なので、workingに入れない）
+          newWorking[acct] = rows.filter(r => !isUnmappedAssetClass(r.assetClass)).map(r => ({
             assetClass: r.assetClass,
             pct: Math.round(((r.amount ?? 0) / total) * 1000) / 10,
           }));
@@ -310,6 +318,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => {
       };
       const { snaps, analysis } = runAll(newProfile, activeStrategies, extraEvents);
       set({ profile: newProfile, snaps, analysis, mcResult: null, mcError: null });
+      return skipped;
     },
 
     setSameAsWorking: (val) => {
